@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(desktop VERSION 0.3 LANGUAGES CXX)
+project(densitometer VERSION 0.3 LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_AUTOMOC ON)
@@ -42,7 +42,7 @@ set(PROJECT_SOURCES
 
 set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/deploy/windows/resources/info.rc")
 
-qt_add_executable(desktop
+qt_add_executable(densitometer
     MANUAL_FINALIZATION
     ${PROJECT_SOURCES}
     ${QRC_FILES}
@@ -51,22 +51,22 @@ qt_add_executable(desktop
 
 qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 
-target_link_libraries(desktop PRIVATE
+target_link_libraries(densitometer PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::SerialPort
 )
 
-set_target_properties(desktop PROPERTIES
+set_target_properties(densitometer PROPERTIES
     MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/deploy/macOS/Info.plist"
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
 )
 
 include(GNUInstallDirs)
-install(TARGETS desktop
+install(TARGETS densitometer
     BUNDLE DESTINATION .
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
 
-qt_finalize_executable(desktop)
+qt_finalize_executable(densitometer)
