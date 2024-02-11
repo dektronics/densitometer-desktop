@@ -80,6 +80,9 @@ private:
     DensInterface::DensityType lastReadingType_ = DensInterface::DensityUnknown;
     float lastReadingDensity_ = qSNaN();
     float lastReadingOffset_ = qSNaN();
+    QPixmap reflTypePixmap;
+    QPixmap tranTypePixmap;
+    QPixmap zeroSetPixmap;
 };
 
 #endif // MAINWINDOW_H

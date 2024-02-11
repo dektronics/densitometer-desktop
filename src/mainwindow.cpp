@@ -11,6 +11,7 @@
 #include <QtGui/QValidator>
 #include <QtGui/QStandardItemModel>
 #include <QtGui/QClipboard>
+#include <QtGui/QStyleHints>
 
 #include "connectdialog.h"
 #include "densinterface.h"
@@ -21,6 +22,7 @@
 #include "settingsexporter.h"
 #include "settingsimportdialog.h"
 #include "floatitemdelegate.h"
+#include "util.h"
 
 namespace
 {
@@ -135,6 +137,14 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->autoAddPushButton->setChecked(true);
     ui->addReadingPushButton->setEnabled(false);
+
+
+    // Generate the theme-colored icon pixmaps
+    reflTypePixmap = util::createThemeColoredPixmap(this, QString::fromUtf8(":/images/reflection-icon.png"));
+    tranTypePixmap = util::createThemeColoredPixmap(this, QString::fromUtf8(":/images/transmission-icon.png"));
+    zeroSetPixmap = util::createThemeColoredPixmap(this, QString::fromUtf8(":/images/zero-set-indicator.png"));
+
+    ui->readingTypeLogoLabel->setPixmap(reflTypePixmap);
 
     refreshButtonState();
 }
@@ -432,15 +442,15 @@ void MainWindow::onDensityReading(DensInterface::DensityType type, float dValue,
 
     // Update main tab contents
     if (type == DensInterface::DensityReflection) {
-        ui->readingTypeLogoLabel->setPixmap(QPixmap(QString::fromUtf8(":/images/reflection-icon.png")));
+        ui->readingTypeLogoLabel->setPixmap(reflTypePixmap);
         ui->readingTypeNameLabel->setText(tr("Reflection"));
     } else {
-        ui->readingTypeLogoLabel->setPixmap(QPixmap(QString::fromUtf8(":/images/transmission-icon.png")));
+        ui->readingTypeLogoLabel->setPixmap(tranTypePixmap);
         ui->readingTypeNameLabel->setText(tr("Transmission"));
     }
 
     if (!qIsNaN(dZero)) {
-        ui->zeroIndicatorLabel->setPixmap(QPixmap(QString::fromUtf8(":/images/zero-set-indicator.png")));
+        ui->zeroIndicatorLabel->setPixmap(zeroSetPixmap);
         float displayZero = dZero;
         if (qAbs(displayZero) < 0.01F) {
             displayZero = 0.0F;
@@ -566,10 +576,10 @@ void MainWindow::measTableAddReading(DensInterface::DensityType type, float dens
     QString offsetStr;
 
     if (type == DensInterface::DensityReflection) {
-        typeIcon = QIcon(QString::fromUtf8(":/images/reflection-icon.png"));
+        typeIcon = QIcon(reflTypePixmap);
         typeStr = QLatin1String("R");
     } else if (type == DensInterface::DensityTransmission) {
-        typeIcon = QIcon(QString::fromUtf8(":/images/transmission-icon.png"));
+        typeIcon = QIcon(tranTypePixmap);
         typeStr = QLatin1String("T");
     }
 

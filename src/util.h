@@ -7,6 +7,8 @@
 
 class QObject;
 class QValidator;
+class QWidget;
+class QPixmap;
 
 namespace util
 {
@@ -24,6 +26,8 @@ void free2DArray(double **array, const size_t rows);
 
 QValidator *createIntValidator(int min, int max, QObject *parent = nullptr);
 QValidator *createFloatValidator(double min, double max, int decimals, QObject *parent = nullptr);
+
+QPixmap createThemeColoredPixmap(const QWidget *widget, const QString &fileName);
 
 }
 

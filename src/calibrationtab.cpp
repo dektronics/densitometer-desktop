@@ -1,5 +1,7 @@
 #include "calibrationtab.h"
 
+#include <QtGui/QGuiApplication>
+#include <QtGui/QStyleHints>
 #include <QtWidgets/QLineEdit>
 
 CalibrationTab::CalibrationTab(DensInterface *densInterface, QWidget *parent)
@@ -20,7 +22,11 @@ void CalibrationTab::updateLineEditDirtyState(QLineEdit *lineEdit, int value)
         || lineEdit->text() == QString::number(value)) {
         lineEdit->setStyleSheet(styleSheet());
     } else {
-        lineEdit->setStyleSheet("QLineEdit { background-color: lightgoldenrodyellow; }");
+        if (QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark) {
+            lineEdit->setStyleSheet("QLineEdit { background-color: darkslategrey; }");
+        } else {
+            lineEdit->setStyleSheet("QLineEdit { background-color: lightgoldenrodyellow; }");
+        }
     }
 }
 
@@ -32,6 +38,10 @@ void CalibrationTab::updateLineEditDirtyState(QLineEdit *lineEdit, float value, 
         || lineEdit->text() == QString::number(value, 'f', prec)) {
         lineEdit->setStyleSheet(styleSheet());
     } else {
-        lineEdit->setStyleSheet("QLineEdit { background-color: lightgoldenrodyellow; }");
+        if (QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark) {
+            lineEdit->setStyleSheet("QLineEdit { background-color: darkslategrey; }");
+        } else {
+            lineEdit->setStyleSheet("QLineEdit { background-color: lightgoldenrodyellow; }");
+        }
     }
 }

@@ -1,6 +1,7 @@
 #include "remotecontroldialog.h"
 #include "ui_remotecontroldialog.h"
 
+#include <QStyleHints>
 #include <QDebug>
 
 RemoteControlDialog::RemoteControlDialog(DensInterface *densInterface, QWidget *parent) :
@@ -103,9 +104,15 @@ void RemoteControlDialog::onSystemRemoteControl(bool enabled)
 
 void RemoteControlDialog::onDiagLightChanged()
 {
-    ui->reflSpinBox->setStyleSheet("QSpinBox { background-color: lightgreen; }");
-    ui->tranSpinBox->setStyleSheet("QSpinBox { background-color: lightgreen; }");
-    ui->tranUvSpinBox->setStyleSheet("QSpinBox { background-color: lightgreen; }");
+    if (QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark) {
+        ui->reflSpinBox->setStyleSheet("QSpinBox { background-color: darkgreen; }");
+        ui->tranSpinBox->setStyleSheet("QSpinBox { background-color: darkgreen; }");
+        ui->tranUvSpinBox->setStyleSheet("QSpinBox { background-color: darkgreen; }");
+    } else {
+        ui->reflSpinBox->setStyleSheet("QSpinBox { background-color: lightgreen; }");
+        ui->tranSpinBox->setStyleSheet("QSpinBox { background-color: lightgreen; }");
+        ui->tranUvSpinBox->setStyleSheet("QSpinBox { background-color: lightgreen; }");
+    }
     ledControlState(true);
 }
 

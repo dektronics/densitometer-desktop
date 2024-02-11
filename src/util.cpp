@@ -2,6 +2,8 @@
 
 #include <QIntValidator>
 #include <QDoubleValidator>
+#include <QWidget>
+#include <QPixmap>
 #include <string.h>
 
 namespace util
@@ -89,6 +91,25 @@ QValidator *createFloatValidator(double min, double max, int decimals, QObject *
     QDoubleValidator *validator = new QDoubleValidator(min, max, decimals, parent);
     validator->setNotation(QDoubleValidator::StandardNotation);
     return validator;
+}
+
+QPixmap createThemeColoredPixmap(const QWidget *widget, const QString &fileName)
+{
+    if (!widget || fileName.isEmpty()) { return QPixmap(); }
+
+    const QColor baseColor = widget->palette().color(QPalette::Text);
+    const QPixmap basePixmap(fileName);
+
+    QImage tmp = basePixmap.toImage();
+
+    for(int y = 0; y < tmp.height(); y++) {
+        for(int x= 0; x < tmp.width(); x++) {
+            QColor color(baseColor.red(), baseColor.green(), baseColor.blue(), tmp.pixelColor(x,y).alpha());
+            tmp.setPixelColor(x, y, color);
+        }
+    }
+    QPixmap pixmap = QPixmap::fromImage(tmp);
+    return pixmap;
 }
 
 }
