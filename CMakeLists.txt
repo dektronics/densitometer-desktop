@@ -40,18 +40,11 @@ set(PROJECT_SOURCES
     ${TS_FILES}
 )
 
-if (APPLE)
-    set(PROJECT_MACOS_SOURCES
-        src/MacUtil.mm src/MacUtil.h
-    )
-endif()
-
 set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/deploy/windows/resources/info.rc")
 
 qt_add_executable(densitometer
     MANUAL_FINALIZATION
     ${PROJECT_SOURCES}
-    ${PROJECT_MACOS_SOURCES}
     ${QRC_FILES}
     ${app_icon_resource_windows}
 )

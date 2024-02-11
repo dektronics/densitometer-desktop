@@ -8,10 +8,6 @@
 #include <QTimer>
 #include <QDebug>
 
-#ifdef Q_OS_MACOS
-#include "MacUtil.h"
-#endif
-
 #include "mainwindow.h"
 #include "headlesstask.h"
 
@@ -109,13 +105,6 @@ int main(int argc, char *argv[])
             break;
         }
     }
-
-#ifdef Q_OS_MACOS
-    /* Force light theme for UI consistency */
-    if (macIsInDarkTheme()) {
-        macSetToLightTheme();
-    }
-#endif
 
     if (handleCommandLine(a)) {
         return 0;
