@@ -12,6 +12,24 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 REQUIRED COMPONENTS Widgets LinguistTools)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets SerialPort LinguistTools)
 
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    find_package(Libudev)
+    find_path(LIBUSB_INCLUDE_DIR
+        NAMES libusb.h
+        PATH_SUFFIXES "include" "libusb" "libusb-1.0")
+    find_library(LIBUSB_LIBRARY
+        NAMES usb-1.0
+        PATH_SUFFIXES "lib" "lib32" "lib64")
+endif()
+
+if(LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARY)
+    set(LIBUSB_FOUND TRUE)
+
+    set(FT260LIBUSB_SOURCES
+        src/ft260libusb.cpp src/ft260libusb.h
+    )
+endif()
+
 set(TS_FILES assets/translations/densitometer_en_US.ts)
 set(QRC_FILES assets/densitometer.qrc)
 
@@ -37,6 +55,10 @@ set(PROJECT_SOURCES
     src/slopecalibrationdialog.cpp src/slopecalibrationdialog.h src/slopecalibrationdialog.ui
     src/util.cpp src/util.h
     src/qsimplesignalaggregator.cpp src/qsimplesignalaggregator.h src/qsignalaggregator.h
+    src/ft260deviceinfo.cpp src/ft260deviceinfo.h src/ft260deviceinfo_p.h
+    src/ft260.cpp src/ft260.h
+    src/stickinterface.cpp src/stickinterface.h
+    ${FT260LIBUSB_SOURCES}
     ${TS_FILES}
 )
 
@@ -55,6 +77,11 @@ target_link_libraries(densitometer PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::SerialPort
 )
+
+if (LIBUSB_FOUND)
+    target_link_libraries(densitometer PRIVATE usb-1.0)
+    target_compile_definitions(densitometer PUBLIC HAS_LIBUSB)
+endif()
 
 set_target_properties(densitometer PROPERTIES
     MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/deploy/macOS/Info.plist"

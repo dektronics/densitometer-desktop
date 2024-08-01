@@ -12,6 +12,7 @@
 #include <QtGui/QStandardItemModel>
 #include <QtGui/QClipboard>
 #include <QtGui/QStyleHints>
+#include <QSerialPortInfo>
 
 #include "connectdialog.h"
 #include "densinterface.h"
@@ -22,6 +23,8 @@
 #include "settingsexporter.h"
 #include "settingsimportdialog.h"
 #include "floatitemdelegate.h"
+#include "ft260.h"
+#include "stickinterface.h"
 #include "util.h"
 
 namespace
@@ -157,7 +160,13 @@ MainWindow::~MainWindow()
 void MainWindow::connectToPort(const QString &portName)
 {
     if (!portName.isEmpty()) {
-        openConnectionToPort(portName);
+        const auto serInfos = QSerialPortInfo::availablePorts();
+        for (const QSerialPortInfo &info : serInfos) {
+            if (info.portName() == portName) {
+                openConnectionToSerialPort(info);
+                break;
+            }
+        }
     }
 }
 
@@ -176,15 +185,21 @@ void MainWindow::onOpenConnectionDialogFinished(int result)
     dialog->deleteLater();
 
     if (result == QDialog::Accepted) {
-        const QString portName = dialog->portName();
-        openConnectionToPort(portName);
+        const QVariant portInfo = dialog->portInfo();
+        if (portInfo.canConvert<QSerialPortInfo>()) {
+            const QSerialPortInfo info = portInfo.value<QSerialPortInfo>();
+            openConnectionToSerialPort(info);
+        } else if (portInfo.canConvert<Ft260DeviceInfo>()) {
+            const Ft260DeviceInfo info = portInfo.value<Ft260DeviceInfo>();
+            openConnectionToFt260(info);
+        }
     }
 }
 
-void MainWindow::openConnectionToPort(const QString &portName)
+void MainWindow::openConnectionToSerialPort(const QSerialPortInfo &info)
 {
-    qDebug() << "Connecting to:" << portName;
-    serialPort_->setPortName(portName);
+    qDebug() << "Connecting to:" << info.portName();
+    serialPort_->setPortName(info.portName());
     serialPort_->setBaudRate(QSerialPort::Baud115200);
     serialPort_->setDataBits(QSerialPort::Data8);
     serialPort_->setParity(QSerialPort::NoParity);
@@ -195,7 +210,7 @@ void MainWindow::openConnectionToPort(const QString &portName)
         if (densInterface_->connectToDevice(serialPort_)) {
             ui->actionConnect->setEnabled(false);
             ui->actionDisconnect->setEnabled(true);
-            statusLabel_->setText(tr("Connected to %1").arg(portName));
+            statusLabel_->setText(tr("Connected to %1").arg(info.portName()));
         } else {
             serialPort_->close();
             statusLabel_->setText(tr("Unrecognized device"));
@@ -207,12 +222,45 @@ void MainWindow::openConnectionToPort(const QString &portName)
     }
 }
 
+void MainWindow::openConnectionToFt260(const Ft260DeviceInfo &info)
+{
+    if (stickInterface_) {
+        stickInterface_->deleteLater();
+        stickInterface_ = nullptr;
+    }
+
+    qDebug() << "Connecting to:" << info.deviceDisplayPath();
+
+    Ft260 *ft260 = Ft260::createDriver(info);
+    if (!ft260) {
+        qWarning() << "Unable to create driver for device";
+        return;
+    }
+
+    stickInterface_ = new StickInterface(ft260, this);
+    if (stickInterface_->open()) {
+        onConnectionOpened();
+    } else {
+        stickInterface_->deleteLater();
+        stickInterface_ = nullptr;
+
+        statusLabel_->setText(tr("Open error"));
+        QMessageBox::critical(this, tr("Error"), tr("Unable to connect to device"));
+    }
+}
+
 void MainWindow::closeConnection()
 {
     qDebug() << "Close connection";
-    densInterface_->disconnectFromDevice();
-    if (serialPort_->isOpen()) {
-        serialPort_->close();
+    if (stickInterface_) {
+        stickInterface_->close();
+        stickInterface_->deleteLater();
+        stickInterface_ = nullptr;
+    } else {
+        densInterface_->disconnectFromDevice();
+        if (serialPort_->isOpen()) {
+            serialPort_->close();
+        }
     }
     refreshButtonState();
     ui->actionConnect->setEnabled(true);
@@ -401,17 +449,25 @@ void MainWindow::onConnectionOpened()
         }
     }
 
-    densInterface_->sendSetMeasurementFormat(DensInterface::FormatExtended);
-    densInterface_->sendSetAllowUncalibratedMeasurements(true);
-    densInterface_->sendGetSystemBuild();
-    densInterface_->sendGetSystemDeviceInfo();
-    densInterface_->sendGetSystemUID();
-    densInterface_->sendGetSystemInternalSensors();
+    if (stickInterface_) {
+        //TODO Any startup requests
+    } else {
+        densInterface_->sendSetMeasurementFormat(DensInterface::FormatExtended);
+        densInterface_->sendSetAllowUncalibratedMeasurements(true);
+        densInterface_->sendGetSystemBuild();
+        densInterface_->sendGetSystemDeviceInfo();
+        densInterface_->sendGetSystemUID();
+        densInterface_->sendGetSystemInternalSensors();
+    }
 
     refreshButtonState();
 
     if (logWindow_->isVisible()) {
-        densInterface_->sendSetDiagLoggingModeUsb();
+        if (stickInterface_) {
+            logWindow_->hide();
+        } else {
+            densInterface_->sendSetDiagLoggingModeUsb();
+        }
     }
 }
 

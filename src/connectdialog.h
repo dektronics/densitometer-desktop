@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QSerialPort>
+#include "ft260deviceinfo.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -20,7 +21,7 @@ public:
     explicit ConnectDialog(QWidget *parent = nullptr);
     ~ConnectDialog();
 
-    QString portName() const;
+    QVariant portInfo() const;
 
 private slots:
     void showPortInfo(int idx);
@@ -30,7 +31,9 @@ private:
     void fillPortsInfo();
 
     Ui::ConnectDialog *ui;
-    QString portName_;
+    QVariant portInfo_;
+    QMap<int, QSerialPortInfo> serialInfoList_;
+    QMap<int, Ft260DeviceInfo> ft260InfoList_;
 };
 
 #endif // CONNECTDIALOG_H

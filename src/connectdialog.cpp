@@ -4,6 +4,8 @@
 #include <QSerialPortInfo>
 #include <QPushButton>
 
+#include "ft260.h"
+
 static const char blankString[] = QT_TRANSLATE_NOOP("ConnectDialog", "N/A");
 
 ConnectDialog::ConnectDialog(QWidget *parent) :
@@ -23,9 +25,9 @@ ConnectDialog::~ConnectDialog()
     delete ui;
 }
 
-QString ConnectDialog::portName() const
+QVariant ConnectDialog::portInfo() const
 {
-    return portName_;
+    return portInfo_;
 }
 
 void ConnectDialog::showPortInfo(int idx)
@@ -34,47 +36,54 @@ void ConnectDialog::showPortInfo(int idx)
         return;
     }
 
-    const QStringList list = ui->serialPortInfoListBox->itemData(idx).toStringList();
-    ui->descriptionLabel->setText(tr("Description: %1").arg(list.count() > 1 ? list.at(1) : tr(blankString)));
-    ui->manufacturerLabel->setText(tr("Manufacturer: %1").arg(list.count() > 2 ? list.at(2) : tr(blankString)));
-    ui->serialNumberLabel->setText(tr("Serial number: %1").arg(list.count() > 3 ? list.at(3) : tr(blankString)));
-    ui->locationLabel->setText(tr("Location: %1").arg(list.count() > 4 ? list.at(4) : tr(blankString)));
-    ui->vidLabel->setText(tr("Vendor Identifier: %1").arg(list.count() > 5 ? list.at(5) : tr(blankString)));
-    ui->pidLabel->setText(tr("Product Identifier: %1").arg(list.count() > 6 ? list.at(6) : tr(blankString)));
+    const QVariant dataVariant = ui->serialPortInfoListBox->itemData(idx);
+    if (dataVariant.canConvert<QSerialPortInfo>()) {
+        const QSerialPortInfo info = dataVariant.value<QSerialPortInfo>();
+        ui->descriptionLabel->setText(tr("Description: %1").arg(info.description()));
+        ui->manufacturerLabel->setText(tr("Manufacturer: %1").arg(info.manufacturer()));
+        ui->serialNumberLabel->setText(tr("Serial number: %1").arg(info.serialNumber()));
+        ui->locationLabel->setText(tr("Location: %1").arg(info.systemLocation()));
+        ui->vidLabel->setText(tr("Vendor Identifier: %1").arg((info.vendorIdentifier() ? QString::number(info.vendorIdentifier(), 16) : blankString)));
+        ui->pidLabel->setText(tr("Product Identifier: %1").arg((info.productIdentifier() ? QString::number(info.productIdentifier(), 16) : blankString)));
+
+    } else if (dataVariant.canConvert<Ft260DeviceInfo>()) {
+        const Ft260DeviceInfo info = dataVariant.value<Ft260DeviceInfo>();
+        ui->descriptionLabel->setText(tr("Description: %1").arg(info.description()));
+        ui->descriptionLabel->setText(tr("Description: %1").arg(info.description()));
+        ui->manufacturerLabel->setText(tr("Manufacturer: %1").arg(info.manufacturer()));
+        ui->serialNumberLabel->setText(tr("Serial number: %1").arg(info.serialNumber()));
+        ui->locationLabel->setText(tr("Location: %1").arg(blankString));
+        ui->vidLabel->setText(tr("Vendor Identifier: %1").arg((info.vendorId() ? QString::number(info.vendorId(), 16) : blankString)));
+        ui->pidLabel->setText(tr("Product Identifier: %1").arg((info.productId() ? QString::number(info.productId(), 16) : blankString)));
+    }
 }
 
 void ConnectDialog::accept()
 {
-    portName_ = ui->serialPortInfoListBox->currentText();
+    portInfo_ = ui->serialPortInfoListBox->currentData();
     QDialog::accept();
 }
 
 void ConnectDialog::fillPortsInfo()
 {
     ui->serialPortInfoListBox->clear();
-    QString description;
-    QString manufacturer;
-    QString serialNumber;
-    const auto infos = QSerialPortInfo::availablePorts();
-    for (const QSerialPortInfo &info : infos) {
+
+    const auto serInfos = QSerialPortInfo::availablePorts();
+    for (const QSerialPortInfo &info : serInfos) {
         // Filter the list to only contain devices that match the VID/PID
         // actually assigned to the Printalyzer Densitometer
         if (!(info.vendorIdentifier() == 0x16D0 && info.productIdentifier() == 0x10EB)) {
             continue;
         }
-        QStringList list;
-        description = info.description();
-        manufacturer = info.manufacturer();
-        serialNumber = info.serialNumber();
-        list << info.portName()
-             << (!description.isEmpty() ? description : blankString)
-             << (!manufacturer.isEmpty() ? manufacturer : blankString)
-             << (!serialNumber.isEmpty() ? serialNumber : blankString)
-             << info.systemLocation()
-             << (info.vendorIdentifier() ? QString::number(info.vendorIdentifier(), 16) : blankString)
-             << (info.productIdentifier() ? QString::number(info.productIdentifier(), 16) : blankString);
-
-        ui->serialPortInfoListBox->addItem(list.first(), list);
+        const QString displayName = info.portName();
+        ui->serialPortInfoListBox->addItem(displayName, QVariant::fromValue(info));
     }
+
+    const auto ftInfos = Ft260::listDevices();
+    for (const Ft260DeviceInfo &info : ftInfos) {
+        const QString displayName = info.deviceDisplayPath();
+        ui->serialPortInfoListBox->addItem(displayName, QVariant::fromValue(info));
+    }
+
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(ui->serialPortInfoListBox->count() > 0);
 }

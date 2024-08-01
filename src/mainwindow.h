@@ -3,7 +3,9 @@
 
 #include <QMainWindow>
 #include <QAbstractItemModel>
+#include <QSerialPortInfo>
 #include "densinterface.h"
+#include "ft260deviceinfo.h"
 
 QT_BEGIN_NAMESPACE
 
@@ -20,6 +22,7 @@ class DiagnosticsTab;
 class CalibrationTab;
 class LogWindow;
 class RemoteControlDialog;
+class StickInterface;
 
 class MainWindow : public QMainWindow
 {
@@ -60,7 +63,8 @@ private slots:
     void onClearTableClicked();
 
 private:
-    void openConnectionToPort(const QString &portName);
+    void openConnectionToSerialPort(const QSerialPortInfo &info);
+    void openConnectionToFt260(const Ft260DeviceInfo &info);
     void refreshButtonState();
     void measTableAddReading(DensInterface::DensityType type, float density, float offset);
     void measTableCut();
@@ -73,6 +77,7 @@ private:
     QLabel *statusLabel_ = nullptr;
     QSerialPort *serialPort_ = nullptr;
     DensInterface *densInterface_ = nullptr;
+    StickInterface *stickInterface_ = nullptr;
     DiagnosticsTab *diagnosticsTab_ = nullptr;
     CalibrationTab *calibrationTab_ = nullptr;
     LogWindow *logWindow_ = nullptr;
