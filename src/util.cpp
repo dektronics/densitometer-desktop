@@ -54,6 +54,59 @@ float decode_f32(const QString &val)
     return copy_to_f32((const uint8_t *)bytes.data());
 }
 
+uint32_t stmCrc32Fast(uint32_t crc, uint32_t data)
+{
+    // Calculate the CRC-32 checksum on a block of data, using the same algorithm
+    // used by the hardware CRC module inside the STM32F4 microcontroller.
+    //
+    // Based on the C implementation posted here:
+    // https://community.st.com/s/question/0D50X0000AIeYIb/stm32f4-crc32-algorithm-headache
+
+    static const uint32_t crcTable[] = {
+        0x00000000, 0x04C11DB7, 0x09823B6E, 0x0D4326D9,
+        0x130476DC, 0x17C56B6B, 0x1A864DB2, 0x1E475005,
+        0x2608EDB8, 0x22C9F00F, 0x2F8AD6D6, 0x2B4BCB61,
+        0x350C9B64, 0x31CD86D3, 0x3C8EA00A, 0x384FBDBD
+    };
+
+    crc = crc ^ data;
+
+    crc = (crc << 4) ^ crcTable[crc >> 28];
+    crc = (crc << 4) ^ crcTable[crc >> 28];
+    crc = (crc << 4) ^ crcTable[crc >> 28];
+    crc = (crc << 4) ^ crcTable[crc >> 28];
+    crc = (crc << 4) ^ crcTable[crc >> 28];
+    crc = (crc << 4) ^ crcTable[crc >> 28];
+    crc = (crc << 4) ^ crcTable[crc >> 28];
+    crc = (crc << 4) ^ crcTable[crc >> 28];
+
+    return crc;
+}
+
+uint32_t calculateStmCrc32(uint32_t *data, size_t len)
+{
+    uint32_t crc = 0xFFFFFFFF;
+
+    for (size_t i = 0; i < len; i++) {
+        crc = stmCrc32Fast(crc, data[i]);
+    }
+
+    return crc;
+}
+
+uint16_t calculateFtdiChecksum(const uint8_t *data, size_t len)
+{
+    uint16_t crc = 0xAAAA;
+
+    if (len % 2 != 0) { return 0; }
+
+    for (size_t i = 0; i < len; i += 2) {
+        crc ^= data[i] | (data[i + 1] << 8);
+        crc = (crc << 1) | (crc >> 15);
+    }
+    return crc;
+}
+
 double **make2DArray(const size_t rows, const size_t cols)
 {
     double **array;

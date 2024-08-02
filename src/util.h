@@ -21,6 +21,9 @@ float copy_to_f32(const uint8_t *buf);
 QString encode_f32(float val);
 float decode_f32(const QString &val);
 
+uint32_t calculateStmCrc32(uint32_t *data, size_t len);
+uint16_t calculateFtdiChecksum(const uint8_t *data, size_t len);
+
 double **make2DArray(const size_t rows, const size_t cols);
 void free2DArray(double **array, const size_t rows);
 

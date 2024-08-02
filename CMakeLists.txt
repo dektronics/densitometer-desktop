@@ -57,6 +57,10 @@ set(PROJECT_SOURCES
     src/qsimplesignalaggregator.cpp src/qsimplesignalaggregator.h src/qsignalaggregator.h
     src/ft260deviceinfo.cpp src/ft260deviceinfo.h src/ft260deviceinfo_p.h
     src/ft260.cpp src/ft260.h
+    src/tsl2585.cpp src/tsl2585.h
+    src/m24c08.cpp src/m24c08.h
+    src/tsl2585calibration.cpp src/tsl2585calibration.h
+    src/sticksettings.cpp src/sticksettings.h
     src/stickinterface.cpp src/stickinterface.h
     ${FT260LIBUSB_SOURCES}
     ${TS_FILES}
