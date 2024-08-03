@@ -62,6 +62,8 @@ set(PROJECT_SOURCES
     src/tsl2585calibration.cpp src/tsl2585calibration.h
     src/sticksettings.cpp src/sticksettings.h
     src/stickinterface.cpp src/stickinterface.h
+    src/stickreading.cpp src/stickreading.h
+    src/stickremotecontroldialog.cpp src/stickremotecontroldialog.h src/stickremotecontroldialog.ui
     ${FT260LIBUSB_SOURCES}
     ${TS_FILES}
 )

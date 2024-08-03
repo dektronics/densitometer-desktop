@@ -5,7 +5,9 @@
 #include <QDebug>
 
 #include "densinterface.h"
+#include "stickinterface.h"
 #include "remotecontroldialog.h"
+#include "stickremotecontroldialog.h"
 
 DiagnosticsTab::DiagnosticsTab(DensInterface *densInterface, QWidget *parent)
     : QWidget(parent)
@@ -49,6 +51,15 @@ DiagnosticsTab::~DiagnosticsTab()
     delete ui;
 }
 
+void DiagnosticsTab::setStickInterface(StickInterface *stickInterface)
+{
+    if (stickInterface_ != stickInterface) {
+        stickInterface_ = stickInterface;
+        configureForDeviceType();
+        refreshButtonState();
+    }
+}
+
 bool DiagnosticsTab::isRemoteOpen() const
 {
     return remoteDialog_ != nullptr;
@@ -72,12 +83,17 @@ void DiagnosticsTab::onConnectionClosed()
 
 void DiagnosticsTab::onSystemVersionResponse()
 {
-    if (densInterface_->projectName().isEmpty()) {
-        ui->nameLabel->setText("Printalyzer Densitometer");
+    if (stickInterface_) {
+        ui->nameLabel->setText("Printalyzer DensiStick");
+        ui->versionLabel->setText("");
     } else {
-        ui->nameLabel->setText(QString("<b>%1</b>").arg(densInterface_->projectName()));
+        if (densInterface_->projectName().isEmpty()) {
+            ui->nameLabel->setText("Printalyzer Densitometer");
+        } else {
+            ui->nameLabel->setText(QString("<b>%1</b>").arg(densInterface_->projectName()));
+        }
+        ui->versionLabel->setText(tr("Version: %1").arg(densInterface_->version()));
     }
-    ui->versionLabel->setText(tr("Version: %1").arg(densInterface_->version()));
 }
 
 void DiagnosticsTab::onSystemBuildResponse()
@@ -138,14 +154,20 @@ void DiagnosticsTab::onDiagDisplayScreenshot(const QByteArray &data)
 
 void DiagnosticsTab::onRemoteControl()
 {
-    if (!densInterface_->connected()) {
+    if (!densInterface_->connected() && (!stickInterface_ || !stickInterface_->connected())) {
         return;
     }
+
     if (remoteDialog_) {
         remoteDialog_->setFocus();
         return;
     }
-    remoteDialog_ = new RemoteControlDialog(densInterface_, this);
+
+    if (stickInterface_) {
+        remoteDialog_ = new StickRemoteControlDialog(stickInterface_, this);
+    } else {
+        remoteDialog_ = new RemoteControlDialog(densInterface_, this);
+    }
     connect(remoteDialog_, &QDialog::finished, this, &DiagnosticsTab::onRemoteControlFinished);
     remoteDialog_->show();
 }
@@ -156,27 +178,42 @@ void DiagnosticsTab::onRemoteControlFinished()
     remoteDialog_ = nullptr;
 }
 
-
 void DiagnosticsTab::configureForDeviceType()
 {
-    DensInterface::DeviceType deviceType;
-    if (densInterface_->connected()) {
-        deviceType = densInterface_->deviceType();
-        lastDeviceType_ = deviceType;
-    } else {
-        deviceType = lastDeviceType_;
-    }
-
-    if (deviceType == DensInterface::DeviceUvVis) {
-        ui->sensorTempLabel->setVisible(true);
-    } else {
+    if (stickInterface_) {
+        ui->refreshSensorsPushButton->setVisible(false);
+        ui->screenshotButton->setVisible(false);
         ui->sensorTempLabel->setVisible(false);
+        onSystemVersionResponse();
+    } else {
+        ui->refreshSensorsPushButton->setVisible(true);
+        ui->screenshotButton->setVisible(true);
+
+        DensInterface::DeviceType deviceType;
+        if (densInterface_->connected()) {
+            deviceType = densInterface_->deviceType();
+            lastDeviceType_ = deviceType;
+        } else {
+            deviceType = lastDeviceType_;
+        }
+
+        if (deviceType == DensInterface::DeviceUvVis) {
+            ui->sensorTempLabel->setVisible(true);
+        } else {
+            ui->sensorTempLabel->setVisible(false);
+        }
     }
 }
 
 void DiagnosticsTab::refreshButtonState()
 {
-    const bool connected = densInterface_->connected();
+    bool connected;
+    if (stickInterface_) {
+        connected = stickInterface_->connected();
+    } else {
+        connected = densInterface_->connected();
+    }
+
     if (connected) {
         ui->refreshSensorsPushButton->setEnabled(true);
         ui->screenshotButton->setEnabled(true);

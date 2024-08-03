@@ -225,6 +225,7 @@ void MainWindow::openConnectionToSerialPort(const QSerialPortInfo &info)
 void MainWindow::openConnectionToFt260(const Ft260DeviceInfo &info)
 {
     if (stickInterface_) {
+        diagnosticsTab_->setStickInterface(nullptr);
         stickInterface_->deleteLater();
         stickInterface_ = nullptr;
     }
@@ -247,12 +248,15 @@ void MainWindow::openConnectionToFt260(const Ft260DeviceInfo &info)
         statusLabel_->setText(tr("Open error"));
         QMessageBox::critical(this, tr("Error"), tr("Unable to connect to device"));
     }
+
+    diagnosticsTab_->setStickInterface(stickInterface_);
 }
 
 void MainWindow::closeConnection()
 {
     qDebug() << "Close connection";
     if (stickInterface_) {
+        diagnosticsTab_->setStickInterface(nullptr);
         stickInterface_->close();
         stickInterface_->deleteLater();
         stickInterface_ = nullptr;
