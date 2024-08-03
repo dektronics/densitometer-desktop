@@ -19,6 +19,7 @@
 #include "diagnosticstab.h"
 #include "calibrationbaselinetab.h"
 #include "calibrationuvvistab.h"
+#include "calibrationsticktab.h"
 #include "logwindow.h"
 #include "settingsexporter.h"
 #include "settingsimportdialog.h"
@@ -240,6 +241,9 @@ void MainWindow::openConnectionToFt260(const Ft260DeviceInfo &info)
 
     stickInterface_ = new StickInterface(ft260, this);
     if (stickInterface_->open()) {
+        ui->actionConnect->setEnabled(false);
+        ui->actionDisconnect->setEnabled(true);
+        statusLabel_->setText(tr("Connected to %1").arg(info.deviceDisplayPath()));
         onConnectionOpened();
     } else {
         stickInterface_->deleteLater();
@@ -436,12 +440,14 @@ void MainWindow::onConnectionOpened()
 {
     qDebug() << "Connection opened";
 
-    if (calibrationTab_->deviceType() != densInterface_->deviceType()) {
+    if (calibrationTab_->deviceType() != densInterface_->deviceType() || stickInterface_) {
         ui->tabCalibrationLayout->replaceWidget(calibrationTab_, ui->tabCalibrationWidget);
         calibrationTab_->deleteLater();
         calibrationTab_ = nullptr;
 
-        if (densInterface_->deviceType() == DensInterface::DeviceBaseline) {
+        if (stickInterface_) {
+            calibrationTab_ = new CalibrationStickTab(stickInterface_);
+        } else if (densInterface_->deviceType() == DensInterface::DeviceBaseline) {
             calibrationTab_ = new CalibrationBaselineTab(densInterface_);
         } else if (densInterface_->deviceType() == DensInterface::DeviceUvVis) {
             calibrationTab_ = new CalibrationUvVisTab(densInterface_);

@@ -40,11 +40,17 @@ public:
     Tsl2585CalTarget &operator=(const Tsl2585CalTarget &);
     ~Tsl2585CalTarget();
 
-    void setSlope(float slope);
-    float slope() const;
+    void setLoDensity(float loDensity);
+    float loDensity() const;
 
-    void setIntercept(float intercept);
-    float intercept() const;
+    void setLoReading(float loValue);
+    float loReading() const;
+
+    void setHiDensity(float hiDensity);
+    float hiDensity() const;
+
+    void setHiReading(float hiValue);
+    float hiReading() const;
 
     bool isValid() const;
 

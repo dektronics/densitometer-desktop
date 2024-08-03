@@ -53,13 +53,15 @@
 #define CAL_TSL2585_SLOPE_B0    64 /* 4B (float) */
 #define CAL_TSL2585_SLOPE_B1    68 /* 4B (float) */
 #define CAL_TSL2585_SLOPE_B2    72 /* 4B (float) */
-#define CAL_TSL2558_SLOPE_CRC   76 /* 4B (uint32_t) */
+#define CAL_TSL2585_SLOPE_CRC   76 /* 4B (uint32_t) */
 
-/* TSL2585 Target Calibration (16B) */
-#define CAL_TSL2585_TARGET_LUX_SLOPE     80 /* 4B (float) */
-#define CAL_TSL2585_TARGET_LUX_INTERCEPT 84 /* 4B (float) */
-#define CAL_TSL2585_RESERVED2            88 /* 4B (for page alignment) */
-#define CAL_TSL2585_TARGET_CRC           92 /* 4B (uint32_t) */
+/* TSL2585 Target Calibration (32B) */
+#define CAL_TSL2585_TARGET_LO_DENSITY  80 /* 4B (float) */
+#define CAL_TSL2585_TARGET_LO_READING  84 /* 4B (float) */
+#define CAL_TSL2585_TARGET_HI_DENSITY  88 /* 4B (float) */
+#define CAL_TSL2585_TARGET_HI_READING  92 /* 4B (float) */
+#define CAL_TSL2585_RESERVED2          88 /* 12B (for page alignment) */
+#define CAL_TSL2585_TARGET_CRC        108 /* 4B (uint32_t) */
 
 StickSettings::StickSettings(M24C08 *eeprom) : eeprom_(eeprom), headerValid_(false)
 {
@@ -184,10 +186,10 @@ Tsl2585Calibration StickSettings::readCalTsl2585()
     }
 
     // Validate the slope data CRC
-    crc = util::copy_to_u32(data + CAL_TSL2558_SLOPE_CRC);
+    crc = util::copy_to_u32(data + CAL_TSL2585_SLOPE_CRC);
     calculated_crc = util::calculateStmCrc32(
         reinterpret_cast<uint32_t *>(data + CAL_TSL2585_SLOPE_B0),
-        (CAL_TSL2558_SLOPE_CRC - CAL_TSL2585_SLOPE_B0) / 4UL);
+        (CAL_TSL2585_SLOPE_CRC - CAL_TSL2585_SLOPE_B0) / 4UL);
     if (crc == calculated_crc) {
         // Parse the slope data
         Tsl2585CalSlope calSlope;
@@ -202,12 +204,14 @@ Tsl2585Calibration StickSettings::readCalTsl2585()
     // Validate the target data CRC
     crc = util::copy_to_u32(data + CAL_TSL2585_TARGET_CRC);
     calculated_crc = util::calculateStmCrc32(
-        reinterpret_cast<uint32_t *>(data + CAL_TSL2585_TARGET_LUX_SLOPE),
-        (CAL_TSL2585_TARGET_CRC - CAL_TSL2585_TARGET_LUX_SLOPE) / 4UL);
+        reinterpret_cast<uint32_t *>(data + CAL_TSL2585_TARGET_LO_DENSITY),
+        (CAL_TSL2585_TARGET_CRC - CAL_TSL2585_TARGET_LO_DENSITY) / 4UL);
     if (crc == calculated_crc) {
         Tsl2585CalTarget calTarget;
-        calTarget.setSlope(util::copy_to_f32(data + CAL_TSL2585_TARGET_LUX_SLOPE));
-        calTarget.setIntercept(util::copy_to_f32(data + CAL_TSL2585_TARGET_LUX_INTERCEPT));
+        calTarget.setLoDensity(util::copy_to_f32(data + CAL_TSL2585_TARGET_LO_DENSITY));
+        calTarget.setLoReading(util::copy_to_f32(data + CAL_TSL2585_TARGET_LO_READING));
+        calTarget.setHiDensity(util::copy_to_f32(data + CAL_TSL2585_TARGET_HI_DENSITY));
+        calTarget.setHiReading(util::copy_to_f32(data + CAL_TSL2585_TARGET_HI_READING));
         calData.setTargetCalibration(calTarget);
     } else {
         qWarning() << "Invalid TSL2585 target cal CRC:" << Qt::hex << crc << "!=" << calculated_crc;
@@ -250,16 +254,18 @@ bool StickSettings::writeCalTsl2585(const Tsl2585Calibration &calData)
 
     crc = util::calculateStmCrc32(
         reinterpret_cast<uint32_t *>(data + CAL_TSL2585_SLOPE_B0),
-        (CAL_TSL2558_SLOPE_CRC - CAL_TSL2585_SLOPE_B0) / 4UL);
-    util::copy_from_u32(data + CAL_TSL2558_SLOPE_CRC, crc);
+        (CAL_TSL2585_SLOPE_CRC - CAL_TSL2585_SLOPE_B0) / 4UL);
+    util::copy_from_u32(data + CAL_TSL2585_SLOPE_CRC, crc);
 
     // Populate the target data
-    util::copy_from_f32(data + CAL_TSL2585_TARGET_LUX_SLOPE, calData.targetCalibration().slope());
-    util::copy_from_f32(data + CAL_TSL2585_TARGET_LUX_INTERCEPT, calData.targetCalibration().intercept());
+    util::copy_from_f32(data + CAL_TSL2585_TARGET_LO_DENSITY, calData.targetCalibration().loDensity());
+    util::copy_from_f32(data + CAL_TSL2585_TARGET_LO_READING, calData.targetCalibration().loReading());
+    util::copy_from_f32(data + CAL_TSL2585_TARGET_HI_DENSITY, calData.targetCalibration().hiDensity());
+    util::copy_from_f32(data + CAL_TSL2585_TARGET_HI_READING, calData.targetCalibration().hiReading());
 
     crc = util::calculateStmCrc32(
-        reinterpret_cast<uint32_t *>(data + CAL_TSL2585_TARGET_LUX_SLOPE),
-        (CAL_TSL2585_TARGET_CRC - CAL_TSL2585_TARGET_LUX_SLOPE) / 4UL);
+        reinterpret_cast<uint32_t *>(data + CAL_TSL2585_TARGET_LO_DENSITY),
+        (CAL_TSL2585_TARGET_CRC - CAL_TSL2585_TARGET_LO_DENSITY) / 4UL);
     util::copy_from_u32(data + CAL_TSL2585_TARGET_CRC, crc);
 
     // Write the buffer to the EEPROM

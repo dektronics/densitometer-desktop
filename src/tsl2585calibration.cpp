@@ -54,8 +54,10 @@ bool Tsl2585CalSlope::isValid() const
 class Tsl2585CalTargetData : public QSharedData
 {
 public:
-    float slope = qSNaN();
-    float intercept = qSNaN();
+    float loDensity = qSNaN();
+    float loReading = qSNaN();
+    float hiDensity = qSNaN();
+    float hiReading = qSNaN();
 };
 
 Tsl2585CalTarget::Tsl2585CalTarget() : data(new Tsl2585CalTargetData)
@@ -78,16 +80,44 @@ Tsl2585CalTarget::~Tsl2585CalTarget()
 {
 }
 
-void Tsl2585CalTarget::setSlope(float slope) { data->slope = slope; }
-float Tsl2585CalTarget::slope() const { return data->slope; }
+void Tsl2585CalTarget::setLoDensity(float loDensity) { data->loDensity = loDensity; }
+float Tsl2585CalTarget::loDensity() const { return data->loDensity; }
 
-void Tsl2585CalTarget::setIntercept(float intercept) { data->intercept = intercept; }
-float Tsl2585CalTarget::intercept() const { return data->intercept; }
+void Tsl2585CalTarget::setLoReading(float loValue) { data->loReading = loValue; }
+float Tsl2585CalTarget::loReading() const { return data->loReading; }
+
+void Tsl2585CalTarget::setHiDensity(float hiDensity) { data->hiDensity = hiDensity; }
+float Tsl2585CalTarget::hiDensity() const { return data->hiDensity; }
+
+void Tsl2585CalTarget::setHiReading(float hiValue) { data->hiReading = hiValue; }
+float Tsl2585CalTarget::hiReading() const { return data->hiReading; }
 
 bool Tsl2585CalTarget::isValid() const
 {
     // Invalid if any values are NaN
-    if (qIsNaN(data->slope) || qIsNaN(data->intercept)) {
+    if (qIsNaN(data->loDensity) || qIsNaN(data->loReading)
+        || qIsNaN(data->hiDensity) || qIsNaN(data->hiReading)) {
+        return false;
+    }
+
+    // Invalid if any values are less than zero
+    if (data->loDensity < 0 || data->loReading < 0
+        || data->hiDensity < 0 || data->hiReading < 0) {
+        return false;
+    }
+
+    // Invalid if low density is greater than high density
+    if (data->loDensity >= data->hiDensity) {
+        return false;
+    }
+
+    // Invalid if low reading is less than high reading
+    if (data->loReading <= data->hiReading) {
+        return false;
+    }
+
+    // Low density must be greater than zero
+    if (data->loDensity < 0.01F) {
         return false;
     }
 

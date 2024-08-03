@@ -138,9 +138,19 @@ bool StickInterface::connected() const
     return connected_;
 }
 
+bool StickInterface::hasSettings() const
+{
+    return hasSettings_;
+}
+
 bool StickInterface::running() const
 {
     return sensorRunning_;
+}
+
+StickSettings *StickInterface::settings()
+{
+    return settings_;
 }
 
 bool StickInterface::setLightEnable(bool enable)

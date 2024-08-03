@@ -20,7 +20,10 @@ public:
     void close();
 
     bool connected() const;
+    bool hasSettings() const;
     bool running() const;
+
+    StickSettings *settings();
 
     bool setLightEnable(bool enable);
     bool lightEnabled() const;

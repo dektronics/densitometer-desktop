@@ -36,6 +36,7 @@ set(QRC_FILES assets/densitometer.qrc)
 set(PROJECT_SOURCES
     src/calibrationbaselinetab.cpp src/calibrationbaselinetab.h src/calibrationbaselinetab.ui
     src/calibrationuvvistab.cpp src/calibrationuvvistab.h src/calibrationuvvistab.ui
+    src/calibrationsticktab.cpp src/calibrationsticktab.h src/calibrationsticktab.ui
     src/calibrationtab.cpp src/calibrationtab.h
     src/connectdialog.cpp src/connectdialog.h src/connectdialog.ui
     src/denscalvalues.cpp src/denscalvalues.h
