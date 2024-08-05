@@ -4,7 +4,7 @@
 #include <QtWidgets/QMessageBox>
 #include <QDebug>
 
-#include "gaincalibrationdialog.h"
+#include "stickgaincalibrationdialog.h"
 #include "slopecalibrationdialog.h"
 #include "sticksettings.h"
 #include "util.h"
@@ -178,32 +178,44 @@ void CalibrationStickTab::onCalGetAllValues()
 
 void CalibrationStickTab::onCalGainCalClicked()
 {
-    //TODO
-#if 0
     ui->gainCalPushButton->setEnabled(false);
 
     QMessageBox messageBox;
     messageBox.setWindowTitle(tr("Sensor Gain Calibration"));
-    messageBox.setText(tr("Hold the device firmly closed with no film in the optical path."));
+    messageBox.setText(tr("Place the device face-down on a reflective white surface "
+                          "and do not touch it for the duration of the gain "
+                          "calibration cycle."));
     messageBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
     messageBox.setDefaultButton(QMessageBox::Ok);
 
     if (messageBox.exec() == QMessageBox::Ok) {
-        GainCalibrationDialog dialog(densInterface_, this);
+        StickGainCalibrationDialog dialog(stickInterface_, this);
         dialog.exec();
         if (dialog.success()) {
-            densInterface_->sendGetCalLight();
-            densInterface_->sendGetCalGain();
+            const QMap<int, float> gainMeasurements = dialog.gainMeasurements();
+
+            for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
+                QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
+                const float gainValue = gainMeasurements.value(i);
+                if (lineEdit) {
+                    if (qIsNaN(gainValue) || !qIsFinite(gainValue) || gainValue <= 0.0F) {
+                        lineEdit->setText(QString());
+                    } else {
+                        lineEdit->setText(QString::number(gainValue, 'f'));
+                    }
+                }
+            }
         }
     }
 
     ui->gainCalPushButton->setEnabled(true);
-#endif
 }
 
 void CalibrationStickTab::onCalGainSetClicked()
 {
     bool ok;
+
+    Tsl2585Calibration updatedCal = calData_;
 
     for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
         QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
@@ -211,11 +223,14 @@ void CalibrationStickTab::onCalGainSetClicked()
             float gainValue = lineEdit->text().toFloat(&ok);
             if (!ok) { return; }
 
-            calData_.setGainCalibration(static_cast<tsl2585_gain_t>(i), gainValue);
+            updatedCal.setGainCalibration(static_cast<tsl2585_gain_t>(i), gainValue);
         }
     }
 
-    //densInterface_->sendSetCalGain(calSlope);
+    if (stickInterface_->settings()->writeCalTsl2585(updatedCal)) {
+        calData_ = updatedCal;
+        updateCalGain();
+    }
 }
 
 void CalibrationStickTab::onCalSlopeSetClicked()
