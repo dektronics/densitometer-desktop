@@ -127,10 +127,9 @@ void StickRemoteControlDialog::sendSetSensorConfig()
 void StickRemoteControlDialog::sendSetSensorAgc()
 {
     if (ui->agcCheckBox->isChecked()) {
-        // Currently using the same sample count as ALS measurements.
-        // Perhaps this should be a separate setting, or something to
-        // experiment with.
-        stickInterface_->setSensorAgcEnable(((ui->intComboBox->currentIndex() + 1) * 100) - 1);
+        // Currently using a value that's a quarter of the normal count
+        const int count = (ui->intComboBox->currentIndex() + 1) * 100;
+        stickInterface_->setSensorAgcEnable((count / 4) - 1);
     } else {
         stickInterface_->setSensorAgcDisable();
     }

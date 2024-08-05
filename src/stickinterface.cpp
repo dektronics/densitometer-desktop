@@ -199,6 +199,9 @@ float StickInterface::lightCurrent() const
     static const float FIXED_RESISTANCE = 16.5F;
     static const float WIPER = 0.075F;
 
+    // Two channels per LED, two LEDs
+    static const float CURRENT_MULTIPLIER = 4.0F;
+
     const float potValue = WIPER + (((float)lightBrightness_ / 127.0F) * 100.0F);
     const float rSet = potValue + FIXED_RESISTANCE;
 
@@ -207,7 +210,7 @@ float StickInterface::lightCurrent() const
 
     const float currentMa = 820.0F / (rSet - 0.139);
 
-    return currentMa / 1000.0F;
+    return (currentMa * CURRENT_MULTIPLIER) / 1000.0F;
 }
 
 bool StickInterface::setSensorConfig(int gain, int sampleTime, int sampleCount)
