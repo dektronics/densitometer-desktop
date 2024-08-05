@@ -66,6 +66,7 @@ set(PROJECT_SOURCES
     src/stickinterface.cpp src/stickinterface.h
     src/stickreading.cpp src/stickreading.h
     src/stickremotecontroldialog.cpp src/stickremotecontroldialog.h src/stickremotecontroldialog.ui
+    src/stickrunner.h src/stickrunner.cpp
     ${FT260LIBUSB_SOURCES}
     ${TS_FILES}
 )

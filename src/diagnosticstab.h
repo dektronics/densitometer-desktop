@@ -9,7 +9,7 @@ namespace Ui {
 class DiagnosticsTab;
 }
 
-class StickInterface;
+class StickRunner;
 
 class DiagnosticsTab : public QWidget
 {
@@ -19,7 +19,7 @@ public:
     explicit DiagnosticsTab(DensInterface *densInterface, QWidget *parent = nullptr);
     ~DiagnosticsTab();
 
-    void setStickInterface(StickInterface *stickInterface);
+    void setStickRunner(StickRunner *stickRunner);
 
     bool isRemoteOpen() const;
 
@@ -46,7 +46,7 @@ private:
     DensInterface *densInterface_ = nullptr;
     DensInterface::DeviceType lastDeviceType_ = DensInterface::DeviceBaseline;
     QDialog *remoteDialog_ = nullptr;
-    StickInterface *stickInterface_ = nullptr;
+    StickRunner *stickRunner_ = nullptr;
 };
 
 #endif // DIAGNOSTICSTAB_H

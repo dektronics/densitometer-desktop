@@ -9,13 +9,14 @@
 #include "sticksettings.h"
 #include "util.h"
 
-CalibrationStickTab::CalibrationStickTab(StickInterface *stickInterface, QWidget *parent)
+CalibrationStickTab::CalibrationStickTab(StickRunner *stickRunner, QWidget *parent)
     : CalibrationTab(nullptr, parent)
-    , ui(new Ui::CalibrationStickTab), stickInterface_(stickInterface)
+    , ui(new Ui::CalibrationStickTab), stickRunner_(stickRunner)
 {
     ui->setupUi(this);
 
-    connect(stickInterface_, &QObject::destroyed, this, &CalibrationStickTab::onStickInterfaceDestroyed);
+    connect(stickRunner_, &QObject::destroyed, this, &CalibrationStickTab::onStickInterfaceDestroyed);
+    connect(stickRunner_, &StickRunner::targetMeasurement, this, &CalibrationStickTab::onTargetMeasurement);
 
     // Calibration UI signals
     connect(ui->calGetAllPushButton, &QPushButton::clicked, this, &CalibrationStickTab::onCalGetAllValues);
@@ -91,7 +92,7 @@ void CalibrationStickTab::reloadAll()
 void CalibrationStickTab::onStickInterfaceDestroyed(QObject *obj)
 {
     Q_UNUSED(obj)
-    stickInterface_ = nullptr;
+    stickRunner_ = nullptr;
     refreshButtonState();
 }
 
@@ -108,22 +109,13 @@ void CalibrationStickTab::onConnectionClosed()
 
 void CalibrationStickTab::refreshButtonState()
 {
-    const bool connected = stickInterface_ && stickInterface_->connected()  && stickInterface_->hasSettings();
+    const bool connected = stickRunner_ && stickRunner_->stickInterface()->connected()  && stickRunner_->stickInterface()->hasSettings();
     if (connected) {
         ui->calGetAllPushButton->setEnabled(true);
         ui->gainCalPushButton->setEnabled(true);
         ui->gainGetPushButton->setEnabled(true);
         ui->slopeGetPushButton->setEnabled(true);
         ui->reflGetPushButton->setEnabled(true);
-
-        // // Populate read-only edit fields that are only set
-        // // via the protocol for consistency of the data formats
-        // if (ui->low0LineEdit->text().isEmpty()) {
-        //     ui->low0LineEdit->setText("1");
-        // }
-        // if (ui->low1LineEdit->text().isEmpty()) {
-        //     ui->low1LineEdit->setText("1");
-        // }
     } else {
         ui->calGetAllPushButton->setEnabled(false);
         ui->gainCalPushButton->setEnabled(false);
@@ -150,27 +142,20 @@ void CalibrationStickTab::refreshButtonState()
     ui->reflHiReadingLineEdit->setReadOnly(!connected);
 }
 
-void CalibrationStickTab::onDensityReading(DensInterface::DensityType type, float dValue, float dZero, float rawValue, float corrValue)
+void CalibrationStickTab::onTargetMeasurement(float basicReading)
 {
-    Q_UNUSED(dValue)
-    Q_UNUSED(dZero)
-    Q_UNUSED(rawValue)
-
-    // Update calibration tab fields, if focused
-    if (type == DensInterface::DensityReflection) {
-        if (ui->reflLoReadingLineEdit->hasFocus()) {
-            ui->reflLoReadingLineEdit->setText(QString::number(corrValue, 'f'));
-        } else if (ui->reflHiReadingLineEdit->hasFocus()) {
-            ui->reflHiReadingLineEdit->setText(QString::number(corrValue, 'f'));
-        }
+    if (ui->reflLoReadingLineEdit->hasFocus()) {
+        ui->reflLoReadingLineEdit->setText(QString::number(basicReading, 'f'));
+    } else if (ui->reflHiReadingLineEdit->hasFocus()) {
+        ui->reflHiReadingLineEdit->setText(QString::number(basicReading, 'f'));
     }
 }
 
 void CalibrationStickTab::onCalGetAllValues()
 {
-    if (!stickInterface_ || !stickInterface_->connected() || !stickInterface_->hasSettings()) { return; }
+    if (!stickRunner_ || !stickRunner_->stickInterface()->connected() || !stickRunner_->stickInterface()->hasSettings()) { return; }
 
-    calData_ = stickInterface_->settings()->readCalTsl2585();
+    calData_ = stickRunner_->stickInterface()->settings()->readCalTsl2585();
     updateCalGain();
     updateCalSlope();
     updateCalTarget();
@@ -189,7 +174,8 @@ void CalibrationStickTab::onCalGainCalClicked()
     messageBox.setDefaultButton(QMessageBox::Ok);
 
     if (messageBox.exec() == QMessageBox::Ok) {
-        StickGainCalibrationDialog dialog(stickInterface_, this);
+        stickRunner_->setEnabled(false);
+        StickGainCalibrationDialog dialog(stickRunner_->stickInterface(), this);
         dialog.exec();
         if (dialog.success()) {
             const QMap<int, float> gainMeasurements = dialog.gainMeasurements();
@@ -206,6 +192,7 @@ void CalibrationStickTab::onCalGainCalClicked()
                 }
             }
         }
+        stickRunner_->setEnabled(true);
     }
 
     ui->gainCalPushButton->setEnabled(true);
@@ -227,8 +214,9 @@ void CalibrationStickTab::onCalGainSetClicked()
         }
     }
 
-    if (stickInterface_->settings()->writeCalTsl2585(updatedCal)) {
+    if (stickRunner_->stickInterface()->settings()->writeCalTsl2585(updatedCal)) {
         calData_ = updatedCal;
+        stickRunner_->reloadCalibration();
         updateCalGain();
     }
 }
@@ -268,14 +256,20 @@ void CalibrationStickTab::onCalReflectionSetClicked()
     calTarget.setHiReading(ui->reflHiReadingLineEdit->text().toFloat(&ok));
     if (!ok) { return; }
 
-    calData_.setTargetCalibration(calTarget);
-    //densInterface_->sendSetCalReflection(calTarget);
+    Tsl2585Calibration updatedCal = calData_;
+    updatedCal.setTargetCalibration(calTarget);
+
+    if (stickRunner_->stickInterface()->settings()->writeCalTsl2585(updatedCal)) {
+        calData_ = updatedCal;
+        stickRunner_->reloadCalibration();
+        updateCalTarget();
+    }
 }
 
 void CalibrationStickTab::onCalGainTextChanged()
 {
     bool enableSet = true;
-    if (stickInterface_ && stickInterface_->connected() && stickInterface_->hasSettings()) {
+    if (stickRunner_ && stickRunner_->stickInterface()->connected() && stickRunner_->stickInterface()->hasSettings()) {
         for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
             QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
             if (lineEdit && (lineEdit->text().isEmpty() || !lineEdit->hasAcceptableInput())) {
@@ -299,7 +293,7 @@ void CalibrationStickTab::onCalGainTextChanged()
 
 void CalibrationStickTab::onCalSlopeTextChanged()
 {
-    if (stickInterface_ && stickInterface_->connected() && stickInterface_->hasSettings()
+    if (stickRunner_ && stickRunner_->stickInterface()->connected() && stickRunner_->stickInterface()->hasSettings()
         && ui->b0LineEdit->hasAcceptableInput()
         && ui->b1LineEdit->hasAcceptableInput()
         && ui->b2LineEdit->hasAcceptableInput()) {
@@ -316,7 +310,7 @@ void CalibrationStickTab::onCalSlopeTextChanged()
 
 void CalibrationStickTab::onCalReflectionTextChanged()
 {
-    if (stickInterface_ && stickInterface_->connected() && stickInterface_->hasSettings()
+    if (stickRunner_ && stickRunner_->stickInterface()->connected() && stickRunner_->stickInterface()->hasSettings()
         && ui->reflLoDensityLineEdit->hasAcceptableInput()
         && ui->reflLoReadingLineEdit->hasAcceptableInput()
         && ui->reflHiDensityLineEdit->hasAcceptableInput()

@@ -40,10 +40,10 @@ public:
     bool sensorStop();
 
 signals:
+    void buttonEvent(bool pressed);
     void sensorReading(const StickReading& reading);
 
 private slots:
-    void onButtonInterrupt(bool pressed);
     void onSensorInterrupt();
 
 private:

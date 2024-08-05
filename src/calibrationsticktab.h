@@ -4,7 +4,7 @@
 #include <QWidget>
 
 #include "calibrationtab.h"
-#include "stickinterface.h"
+#include "stickrunner.h"
 #include "tsl2585calibration.h"
 
 class QLineEdit;
@@ -18,7 +18,7 @@ class CalibrationStickTab : public CalibrationTab
     Q_OBJECT
 
 public:
-    explicit CalibrationStickTab(StickInterface *stickInterface, QWidget *parent = nullptr);
+    explicit CalibrationStickTab(StickRunner *stickRunner, QWidget *parent = nullptr);
     ~CalibrationStickTab();
 
     virtual DensInterface::DeviceType deviceType() const { return DensInterface::DeviceUvVis; }
@@ -33,7 +33,7 @@ private slots:
     void onConnectionOpened();
     void onConnectionClosed();
 
-    void onDensityReading(DensInterface::DensityType type, float dValue, float dZero, float rawValue, float corrValue);
+    void onTargetMeasurement(float basicReading);
 
     void onCalGetAllValues();
     void onCalGainCalClicked();
@@ -55,7 +55,7 @@ private:
     void updateCalTarget();
 
     Ui::CalibrationStickTab *ui;
-    StickInterface *stickInterface_ = nullptr;
+    StickRunner *stickRunner_ = nullptr;
     Tsl2585Calibration calData_;
 };
 

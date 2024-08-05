@@ -96,7 +96,7 @@ bool StickInterface::open()
         return false;
     }
 
-    connect(ft260_, &Ft260::buttonInterrupt, this, &StickInterface::onButtonInterrupt);
+    connect(ft260_, &Ft260::buttonInterrupt, this, &StickInterface::buttonEvent);
     connect(ft260_, &Ft260::sensorInterrupt, this, &StickInterface::onSensorInterrupt);
 
     connected_ = true;
@@ -110,7 +110,7 @@ void StickInterface::close()
     connected_ = false;
     sensorRunning_ = false;
 
-    disconnect(ft260_, &Ft260::buttonInterrupt, this, &StickInterface::onButtonInterrupt);
+    disconnect(ft260_, &Ft260::buttonInterrupt, this, &StickInterface::buttonEvent);
     disconnect(ft260_, &Ft260::sensorInterrupt, this, &StickInterface::onSensorInterrupt);
 
     if (settings_) {
@@ -361,11 +361,6 @@ bool StickInterface::sensorStop()
     }
 
     return !sensorRunning_;
-}
-
-void StickInterface::onButtonInterrupt(bool pressed)
-{
-    qDebug() << "--> Button press:" << pressed;
 }
 
 void StickInterface::onSensorInterrupt()

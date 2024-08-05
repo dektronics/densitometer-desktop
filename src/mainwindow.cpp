@@ -26,6 +26,7 @@
 #include "floatitemdelegate.h"
 #include "ft260.h"
 #include "stickinterface.h"
+#include "stickrunner.h"
 #include "util.h"
 
 namespace
@@ -225,10 +226,10 @@ void MainWindow::openConnectionToSerialPort(const QSerialPortInfo &info)
 
 void MainWindow::openConnectionToFt260(const Ft260DeviceInfo &info)
 {
-    if (stickInterface_) {
-        diagnosticsTab_->setStickInterface(nullptr);
-        stickInterface_->deleteLater();
-        stickInterface_ = nullptr;
+    if (stickRunner_) {
+        diagnosticsTab_->setStickRunner(nullptr);
+        stickRunner_->deleteLater();
+        stickRunner_ = nullptr;
     }
 
     qDebug() << "Connecting to:" << info.deviceDisplayPath();
@@ -239,31 +240,32 @@ void MainWindow::openConnectionToFt260(const Ft260DeviceInfo &info)
         return;
     }
 
-    stickInterface_ = new StickInterface(ft260, this);
-    if (stickInterface_->open()) {
+    StickInterface *stickInterface = new StickInterface(ft260);
+    if (stickInterface->open()) {
+        stickRunner_ = new StickRunner(stickInterface, this);
         ui->actionConnect->setEnabled(false);
         ui->actionDisconnect->setEnabled(true);
         statusLabel_->setText(tr("Connected to %1").arg(info.deviceDisplayPath()));
         onConnectionOpened();
     } else {
-        stickInterface_->deleteLater();
-        stickInterface_ = nullptr;
+        stickInterface->deleteLater();
+        stickInterface = nullptr;
 
         statusLabel_->setText(tr("Open error"));
         QMessageBox::critical(this, tr("Error"), tr("Unable to connect to device"));
     }
 
-    diagnosticsTab_->setStickInterface(stickInterface_);
+    diagnosticsTab_->setStickRunner(stickRunner_);
 }
 
 void MainWindow::closeConnection()
 {
     qDebug() << "Close connection";
-    if (stickInterface_) {
-        diagnosticsTab_->setStickInterface(nullptr);
-        stickInterface_->close();
-        stickInterface_->deleteLater();
-        stickInterface_ = nullptr;
+    if (stickRunner_) {
+        diagnosticsTab_->setStickRunner(nullptr);
+        stickRunner_->stickInterface()->close();
+        stickRunner_->deleteLater();
+        stickRunner_ = nullptr;
     } else {
         densInterface_->disconnectFromDevice();
         if (serialPort_->isOpen()) {
@@ -440,13 +442,13 @@ void MainWindow::onConnectionOpened()
 {
     qDebug() << "Connection opened";
 
-    if (calibrationTab_->deviceType() != densInterface_->deviceType() || stickInterface_) {
+    if (calibrationTab_->deviceType() != densInterface_->deviceType() || stickRunner_) {
         ui->tabCalibrationLayout->replaceWidget(calibrationTab_, ui->tabCalibrationWidget);
         calibrationTab_->deleteLater();
         calibrationTab_ = nullptr;
 
-        if (stickInterface_) {
-            calibrationTab_ = new CalibrationStickTab(stickInterface_);
+        if (stickRunner_) {
+            calibrationTab_ = new CalibrationStickTab(stickRunner_);
         } else if (densInterface_->deviceType() == DensInterface::DeviceBaseline) {
             calibrationTab_ = new CalibrationBaselineTab(densInterface_);
         } else if (densInterface_->deviceType() == DensInterface::DeviceUvVis) {
@@ -459,8 +461,9 @@ void MainWindow::onConnectionOpened()
         }
     }
 
-    if (stickInterface_) {
-        //TODO Any startup requests
+    if (stickRunner_) {
+        stickRunner_->reloadCalibration();
+        connect(stickRunner_, &StickRunner::targetDensity, this, &MainWindow::onTargetDensity);
     } else {
         densInterface_->sendSetMeasurementFormat(DensInterface::FormatExtended);
         densInterface_->sendSetAllowUncalibratedMeasurements(true);
@@ -473,7 +476,7 @@ void MainWindow::onConnectionOpened()
     refreshButtonState();
 
     if (logWindow_->isVisible()) {
-        if (stickInterface_) {
+        if (stickRunner_) {
             logWindow_->hide();
         } else {
             densInterface_->sendSetDiagLoggingModeUsb();
@@ -551,6 +554,11 @@ void MainWindow::onDensityReading(DensInterface::DensityType type, float dValue,
             onAddReadingClicked();
         }
     }
+}
+
+void MainWindow::onTargetDensity(float density)
+{
+    onDensityReading(DensInterface::DensityReflection, density, 0.0F, qSNaN(), qSNaN());
 }
 
 void MainWindow::onActionCut()

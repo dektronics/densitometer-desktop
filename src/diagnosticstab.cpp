@@ -5,6 +5,7 @@
 #include <QDebug>
 
 #include "densinterface.h"
+#include "stickrunner.h"
 #include "stickinterface.h"
 #include "remotecontroldialog.h"
 #include "stickremotecontroldialog.h"
@@ -51,10 +52,10 @@ DiagnosticsTab::~DiagnosticsTab()
     delete ui;
 }
 
-void DiagnosticsTab::setStickInterface(StickInterface *stickInterface)
+void DiagnosticsTab::setStickRunner(StickRunner *stickRunner)
 {
-    if (stickInterface_ != stickInterface) {
-        stickInterface_ = stickInterface;
+    if (stickRunner_ != stickRunner) {
+        stickRunner_ = stickRunner;
         configureForDeviceType();
         refreshButtonState();
     }
@@ -83,7 +84,7 @@ void DiagnosticsTab::onConnectionClosed()
 
 void DiagnosticsTab::onSystemVersionResponse()
 {
-    if (stickInterface_) {
+    if (stickRunner_) {
         ui->nameLabel->setText("Printalyzer DensiStick");
         ui->versionLabel->setText("");
     } else {
@@ -154,7 +155,7 @@ void DiagnosticsTab::onDiagDisplayScreenshot(const QByteArray &data)
 
 void DiagnosticsTab::onRemoteControl()
 {
-    if (!densInterface_->connected() && (!stickInterface_ || !stickInterface_->connected())) {
+    if (!densInterface_->connected() && (!stickRunner_ || !stickRunner_->stickInterface()->connected())) {
         return;
     }
 
@@ -163,8 +164,9 @@ void DiagnosticsTab::onRemoteControl()
         return;
     }
 
-    if (stickInterface_) {
-        remoteDialog_ = new StickRemoteControlDialog(stickInterface_, this);
+    if (stickRunner_) {
+        stickRunner_->setEnabled(false);
+        remoteDialog_ = new StickRemoteControlDialog(stickRunner_->stickInterface(), this);
     } else {
         remoteDialog_ = new RemoteControlDialog(densInterface_, this);
     }
@@ -174,13 +176,16 @@ void DiagnosticsTab::onRemoteControl()
 
 void DiagnosticsTab::onRemoteControlFinished()
 {
+    if (stickRunner_) {
+        stickRunner_->setEnabled(true);
+    }
     remoteDialog_->deleteLater();
     remoteDialog_ = nullptr;
 }
 
 void DiagnosticsTab::configureForDeviceType()
 {
-    if (stickInterface_) {
+    if (stickRunner_) {
         ui->refreshSensorsPushButton->setVisible(false);
         ui->screenshotButton->setVisible(false);
         ui->sensorTempLabel->setVisible(false);
@@ -208,8 +213,8 @@ void DiagnosticsTab::configureForDeviceType()
 void DiagnosticsTab::refreshButtonState()
 {
     bool connected;
-    if (stickInterface_) {
-        connected = stickInterface_->connected();
+    if (stickRunner_) {
+        connected = stickRunner_->stickInterface()->connected();
     } else {
         connected = densInterface_->connected();
     }

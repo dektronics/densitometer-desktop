@@ -23,6 +23,7 @@ class CalibrationTab;
 class LogWindow;
 class RemoteControlDialog;
 class StickInterface;
+class StickRunner;
 
 class MainWindow : public QMainWindow
 {
@@ -52,6 +53,7 @@ private slots:
     void onConnectionError();
 
     void onDensityReading(DensInterface::DensityType type, float dValue, float dZero, float rawValue, float corrValue);
+    void onTargetDensity(float density);
 
     void onActionCut();
     void onActionCopy();
@@ -77,7 +79,7 @@ private:
     QLabel *statusLabel_ = nullptr;
     QSerialPort *serialPort_ = nullptr;
     DensInterface *densInterface_ = nullptr;
-    StickInterface *stickInterface_ = nullptr;
+    StickRunner *stickRunner_ = nullptr;
     DiagnosticsTab *diagnosticsTab_ = nullptr;
     CalibrationTab *calibrationTab_ = nullptr;
     LogWindow *logWindow_ = nullptr;
