@@ -106,6 +106,8 @@ bool StickInterface::open()
 
 void StickInterface::close()
 {
+    setLightEnable(false);
+
     hasSettings_ = false;
     connected_ = false;
     sensorRunning_ = false;
@@ -155,6 +157,8 @@ StickSettings *StickInterface::settings()
 
 bool StickInterface::setLightEnable(bool enable)
 {
+    if (!ft260_) { return false; }
+
     Ft260GpioReport updateReport;
     memcpy(&updateReport, &gpioReport_, sizeof(Ft260GpioReport));
 
@@ -179,6 +183,8 @@ bool StickInterface::lightEnabled() const
 
 bool StickInterface::setLightBrightness(quint8 value)
 {
+    if (!ft260_) { return false; }
+
     if (value > 127) { value = 127; }
 
     if (ft260_->i2cWriteRawByte(MCP4017_ADDRESS, value)) {

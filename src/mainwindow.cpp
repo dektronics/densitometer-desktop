@@ -463,6 +463,7 @@ void MainWindow::onConnectionOpened()
 
     if (stickRunner_) {
         stickRunner_->reloadCalibration();
+        stickRunner_->setEnabled(true);
         connect(stickRunner_, &StickRunner::targetDensity, this, &MainWindow::onTargetDensity);
     } else {
         densInterface_->sendSetMeasurementFormat(DensInterface::FormatExtended);
@@ -558,7 +559,7 @@ void MainWindow::onDensityReading(DensInterface::DensityType type, float dValue,
 
 void MainWindow::onTargetDensity(float density)
 {
-    onDensityReading(DensInterface::DensityReflection, density, 0.0F, qSNaN(), qSNaN());
+    onDensityReading(DensInterface::DensityReflection, density, qSNaN(), qSNaN(), qSNaN());
 }
 
 void MainWindow::onActionCut()

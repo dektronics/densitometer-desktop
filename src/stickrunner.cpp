@@ -32,7 +32,15 @@ StickInterface *StickRunner::stickInterface()
 
 void StickRunner::setEnabled(bool enabled)
 {
-    enabled_ = enabled;
+    if (enabled_ != enabled) {
+        if (enabled) {
+            stickInterface_->setLightBrightness(127);
+            stickInterface_->setLightEnable(true);
+        } else {
+            stickInterface_->setLightEnable(false);
+        }
+        enabled_ = enabled;
+    }
 }
 
 bool StickRunner::enabled() const
@@ -97,6 +105,8 @@ void StickRunner::finishMeasurement()
     measuring_ = false;
     stickInterface_->setLightEnable(false);
     stickInterface_->sensorStop();
+    stickInterface_->setLightBrightness(127);
+    stickInterface_->setLightEnable(true);
 
     float sum = 0;
     size_t count = 0;

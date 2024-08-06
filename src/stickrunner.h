@@ -31,7 +31,7 @@ private:
     void startMeasurement();
     void finishMeasurement();
     StickInterface *stickInterface_;
-    bool enabled_ = true;
+    bool enabled_ = false;
     bool measuring_ = false;
     int skipCount_ = 0;
     QList<StickReading> readingList_;
