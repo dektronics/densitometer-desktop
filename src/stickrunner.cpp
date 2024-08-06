@@ -56,6 +56,7 @@ void StickRunner::onButtonEvent(bool pressed)
 void StickRunner::onSensorReading(const StickReading& reading)
 {
     if (!measuring_) { return; }
+
     if (skipCount_ > 0) {
         skipCount_--;
         return;
@@ -72,7 +73,7 @@ void StickRunner::onSensorReading(const StickReading& reading)
 
     readingList_.append(reading);
 
-    if (readingList_.size() == READING_COUNT) {
+    if (readingList_.size() >= READING_COUNT) {
         finishMeasurement();
     }
 }
@@ -87,6 +88,7 @@ void StickRunner::startMeasurement()
     stickInterface_->setLightEnable(true);
     stickInterface_->sensorStart();
     skipCount_ = SKIP_COUNT;
+    readingList_.clear();
     measuring_ = true;
 }
 
