@@ -1,6 +1,7 @@
 #include "ft260libusb.h"
 
 #include <QThread>
+#include <QDateTime>
 #include <QDebug>
 
 #include <libusb-1.0/libusb.h>
@@ -243,7 +244,9 @@ bool Ft260LibUsb::open()
     }
 
     thread_ = QThread::create([this] {
-        QThread::sleep(1);
+        //QThread::sleep(1);
+        const qint64 startTime = QDateTime::currentMSecsSinceEpoch();
+        bool started = false;
         int r = 0;
         uint8_t buf[128];
         int nbytes;
@@ -254,6 +257,15 @@ bool Ft260LibUsb::open()
             else if (r < 0) {
                 qWarning() << "libusb_interrupt_transfer error:" << libusb_strerror(r);
                 break;
+            }
+
+            // Ignore any data received in the first second since starting
+            if (!started) {
+                if (QDateTime::currentMSecsSinceEpoch() > startTime + 1000) {
+                    started = true;
+                } else {
+                    continue;
+                }
             }
 
             if (nbytes == 3 && buf[0] == 0xB1) {
