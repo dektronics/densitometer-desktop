@@ -241,6 +241,7 @@ void MainWindow::openConnectionToFt260(const Ft260DeviceInfo &info)
     }
 
     StickInterface *stickInterface = new StickInterface(ft260);
+    connect(stickInterface, &StickInterface::connectionClosed, this, &MainWindow::closeConnection);
     if (stickInterface->open()) {
         stickRunner_ = new StickRunner(stickInterface, this);
         ui->actionConnect->setEnabled(false);
@@ -262,6 +263,7 @@ void MainWindow::closeConnection()
 {
     qDebug() << "Close connection";
     if (stickRunner_) {
+        disconnect(stickRunner_->stickInterface(), &StickInterface::connectionClosed, this, &MainWindow::closeConnection);
         diagnosticsTab_->setStickRunner(nullptr);
         stickRunner_->stickInterface()->close();
         stickRunner_->deleteLater();

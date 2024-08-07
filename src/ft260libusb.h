@@ -39,6 +39,9 @@ public:
 
     static QList<Ft260DeviceInfo> listDevices();
 
+private slots:
+    void onIntThreadFinished();
+
 private:
     bool i2cWriteRequest(quint8 addr, uint8_t flags, const uint8_t *payload, quint8 payloadSize);
     bool i2cReadRequest(quint8 addr, uint8_t flags, quint16 payloadSize);
@@ -48,8 +51,8 @@ private:
     uint8_t inputEp_[2] = {0, 0};
     uint16_t inputEpMaxPacketSize_[2] = {0, 0};
     uint8_t outputEp_[2] = {0, 0};
-    bool hasSecondary_ = false;
     QThread *thread_ = nullptr;
+    bool connected_ = false;
 };
 
 #endif // FT260LIBUSB_H

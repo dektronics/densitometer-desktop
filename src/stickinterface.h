@@ -40,10 +40,12 @@ public:
     bool sensorStop();
 
 signals:
+    void connectionClosed();
     void buttonEvent(bool pressed);
     void sensorReading(const StickReading& reading);
 
 private slots:
+    void onConnectionClosed();
     void onSensorInterrupt();
 
 private:
@@ -63,6 +65,7 @@ private:
     quint16 sensorAgcCount_ = 0;
     bool sensorAgcEnabled_ = false;
     bool sensorRunning_ = false;
+    bool shutdown_ = false;
 };
 
 #endif // STICKINTERFACE_H

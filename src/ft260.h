@@ -47,6 +47,8 @@ public:
     static bool isMatchingDevice(quint16 vid, quint16 pid);
 
 signals:
+    void connectionOpened();
+    void connectionClosed();
     void buttonInterrupt(bool pressed);
     void sensorInterrupt();
 };

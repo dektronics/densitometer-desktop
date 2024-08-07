@@ -21,6 +21,7 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 
 private slots:
+    void onStickInterfaceDestroyed(QObject *obj);
     void onStickLightChanged();
 
     void onReflOffClicked();

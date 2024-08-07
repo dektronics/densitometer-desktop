@@ -235,7 +235,6 @@ bool Ft260LibUsb::open()
         }
 
         qDebug() << "Secondary endpoint initialized";
-        hasSecondary_ = true;
     } while (0);
 
     if (r < 0) {
@@ -244,7 +243,6 @@ bool Ft260LibUsb::open()
     }
 
     thread_ = QThread::create([this] {
-        //QThread::sleep(1);
         const qint64 startTime = QDateTime::currentMSecsSinceEpoch();
         bool started = false;
         int r = 0;
@@ -292,13 +290,21 @@ bool Ft260LibUsb::open()
         } while (r >= 0);
         qWarning() << "Fell out of loop";
     });
+    connect(thread_, &QThread::finished, this, &Ft260LibUsb::onIntThreadFinished);
     thread_->start();
+
+    connected_ = true;
+    emit connectionOpened();
 
     return true;
 }
 
 void Ft260LibUsb::close()
 {
+    if (thread_ && thread_->isRunning()) {
+        disconnect(thread_, &QThread::finished, this, &Ft260LibUsb::onIntThreadFinished);
+    }
+
     for (int i = 0; i < 2; i++) {
         if (handle_[i]) {
             libusb_release_interface(handle_[i], 0);
@@ -309,11 +315,21 @@ void Ft260LibUsb::close()
             outputEp_[i] = 0;
         }
     }
-    hasSecondary_ = false;
     if (thread_) {
         thread_->wait();
         thread_->deleteLater();
         thread_ = nullptr;
+    }
+    if (connected_) {
+        connected_ = false;
+        emit connectionClosed();
+    }
+}
+
+void Ft260LibUsb::onIntThreadFinished()
+{
+    if (connected_) {
+        close();
     }
 }
 

@@ -24,10 +24,13 @@ StickInterface::StickInterface(Ft260 *ft260, QObject *parent)
     if (ft260_ && !ft260_->parent()) {
         ft260_->setParent(this);
     }
+    connect(ft260_, &Ft260::connectionClosed, this, &StickInterface::onConnectionClosed);
 }
 
 StickInterface::~StickInterface()
 {
+    disconnect(ft260_, &Ft260::connectionClosed, this, &StickInterface::onConnectionClosed);
+    shutdown_ = true;
     close();
 }
 
@@ -132,6 +135,16 @@ void StickInterface::close()
 
     if (ft260_) {
         ft260_->close();
+    }
+    if (!shutdown_) {
+        emit connectionClosed();
+    }
+}
+
+void StickInterface::onConnectionClosed()
+{
+    if (connected_) {
+        close();
     }
 }
 

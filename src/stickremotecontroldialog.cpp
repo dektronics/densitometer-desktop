@@ -33,6 +33,7 @@ StickRemoteControlDialog::StickRemoteControlDialog(StickInterface *stickInterfac
     connect(ui->reflReadPushButton, &QPushButton::clicked, this, &StickRemoteControlDialog::onReflReadClicked);
 
     connect(stickInterface_, &StickInterface::sensorReading, this, &StickRemoteControlDialog::onSensorReading);
+    connect(stickInterface_, &QObject::destroyed, this, &StickRemoteControlDialog::onStickInterfaceDestroyed);
 
     ledControlState(true);
     sensorControlState(true);
@@ -51,13 +52,22 @@ void StickRemoteControlDialog::showEvent(QShowEvent *event)
 
 void StickRemoteControlDialog::closeEvent(QCloseEvent *event)
 {
-    stickInterface_->sensorStop();
-    stickInterface_->setLightEnable(false);
+    if (stickInterface_) {
+        stickInterface_->sensorStop();
+        stickInterface_->setLightEnable(false);
+    }
     QDialog::closeEvent(event);
+}
+
+void StickRemoteControlDialog::onStickInterfaceDestroyed(QObject *obj)
+{
+    stickInterface_ = nullptr;
+    close();
 }
 
 void StickRemoteControlDialog::onStickLightChanged()
 {
+    if (!stickInterface_) { return; }
     ui->reflSpinBox->setValue(stickInterface_->lightBrightness());
     ui->reflCurrentLineEdit->setText(tr("%1 mA").arg(std::round(stickInterface_->lightCurrent() * 1000.0F)));
 
@@ -71,6 +81,7 @@ void StickRemoteControlDialog::onStickLightChanged()
 
 void StickRemoteControlDialog::onReflOffClicked()
 {
+    if (!stickInterface_) { return; }
     ledControlState(false);
     stickInterface_->setLightEnable(false);
     onStickLightChanged();
@@ -78,6 +89,7 @@ void StickRemoteControlDialog::onReflOffClicked()
 
 void StickRemoteControlDialog::onReflOnClicked()
 {
+    if (!stickInterface_) { return; }
     ledControlState(false);
     stickInterface_->setLightEnable(true);
     onStickLightChanged();
@@ -85,6 +97,7 @@ void StickRemoteControlDialog::onReflOnClicked()
 
 void StickRemoteControlDialog::onReflSetClicked()
 {
+    if (!stickInterface_) { return; }
     ledControlState(false);
     stickInterface_->setLightBrightness(ui->reflSpinBox->value());
     onStickLightChanged();
@@ -98,6 +111,7 @@ void StickRemoteControlDialog::onReflSpinBoxValueChanged(int value)
 
 void StickRemoteControlDialog::ledControlState(bool enabled)
 {
+    if (!stickInterface_) { return; }
     ui->reflOffPushButton->setEnabled(enabled && stickInterface_->lightEnabled());
     ui->reflOnPushButton->setEnabled(enabled && !stickInterface_->lightEnabled());
     ui->reflSetPushButton->setEnabled(enabled);
@@ -106,6 +120,7 @@ void StickRemoteControlDialog::ledControlState(bool enabled)
 
 void StickRemoteControlDialog::onSensorStartClicked()
 {
+    if (!stickInterface_) { return; }
     sensorControlState(false);
     if (sensorConfigOnStart_) {
         sendSetSensorConfig();
@@ -119,6 +134,7 @@ void StickRemoteControlDialog::onSensorStartClicked()
 
 void StickRemoteControlDialog::sendSetSensorConfig()
 {
+    if (!stickInterface_) { return; }
     stickInterface_->setSensorConfig(
         ui->gainComboBox->currentIndex(),
         SAMPLE_TIME, ((ui->intComboBox->currentIndex() + 1) * 100) - 1);
@@ -126,6 +142,7 @@ void StickRemoteControlDialog::sendSetSensorConfig()
 
 void StickRemoteControlDialog::sendSetSensorAgc()
 {
+    if (!stickInterface_) { return; }
     if (ui->agcCheckBox->isChecked()) {
         // Currently using a value that's a quarter of the normal count
         const int count = (ui->intComboBox->currentIndex() + 1) * 100;
@@ -137,6 +154,7 @@ void StickRemoteControlDialog::sendSetSensorAgc()
 
 void StickRemoteControlDialog::onSensorStopClicked()
 {
+    if (!stickInterface_) { return; }
     stickInterface_->sensorStop();
     sensorStarted_ = false;
     sensorControlState(true);
@@ -177,6 +195,7 @@ void StickRemoteControlDialog::onAgcCheckBoxStateChanged(int state)
 
 void StickRemoteControlDialog::onReflReadClicked()
 {
+    if (!stickInterface_) { return; }
     ledControlState(false);
     sensorControlState(false);
     ui->reflSpinBox->setValue(128);
