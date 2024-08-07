@@ -39,12 +39,14 @@ QList<Ft260DeviceInfo> Ft260::listDevices()
 
 bool Ft260::isMatchingDevice(quint16 vid, quint16 pid)
 {
+#if 0
     // Default FT260 device ID
     if (vid == 0x403 && pid == 0x6030) {
         return true;
     }
-    // Allocated Meter Probe device ID
-    else if (vid == 0x16D0 && pid == 0x132C) {
+#endif
+    // Allocated DensiStick device ID
+    if (vid == 0x16D0 && pid == 0x1382) {
         return true;
     }
 
