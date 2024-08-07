@@ -55,6 +55,15 @@ CalibrationStickTab::CalibrationStickTab(StickRunner *stickRunner, QWidget *pare
     connect(ui->reflHiDensityLineEdit, &QLineEdit::textChanged, this, &CalibrationStickTab::onCalReflectionTextChanged);
     connect(ui->reflHiReadingLineEdit, &QLineEdit::textChanged, this, &CalibrationStickTab::onCalReflectionTextChanged);
 
+    // It has been determined that slope calibration is not beneficial
+    // for a reflection-only device, and can even make errors worse.
+    // This is likely because the range of readings is not as large
+    // as with transmission, and thus does not cover the region where
+    // these corrections are most helpful.
+    // As such, slope calibration features are disabled and may be
+    // later removed.
+    ui->slopeGroupBox->setEnabled(false);
+
     refreshButtonState();
 }
 
@@ -369,13 +378,10 @@ void CalibrationStickTab::updateCalTarget()
 
 void CalibrationStickTab::onSlopeCalibrationTool()
 {
-    //TODO
-#if 0
-    SlopeCalibrationDialog *dialog = new SlopeCalibrationDialog(densInterface_, this);
+    SlopeCalibrationDialog *dialog = new SlopeCalibrationDialog(stickRunner_, this);
     connect(dialog, &QDialog::finished, this, &CalibrationStickTab::onSlopeCalibrationToolFinished);
     dialog->setCalculateZeroAdjustment(true);
     dialog->show();
-#endif
 }
 
 void CalibrationStickTab::onSlopeCalibrationToolFinished(int result)

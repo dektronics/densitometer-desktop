@@ -14,11 +14,10 @@
 
 //TODO Find a way to store the raw floats, rather than being limited by string formatting
 
-SlopeCalibrationDialog::SlopeCalibrationDialog(DensInterface *densInterface, QWidget *parent) :
+SlopeCalibrationDialog::SlopeCalibrationDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SlopeCalibrationDialog),
-    densInterface_(densInterface),
-    enableZeroAdj_(false),
+    enableZeroAdj_(false), enableReflReadings_(false),
     calValues_{qSNaN(), qSNaN(), qSNaN()},
     zeroAdj_(qSNaN())
 {
@@ -57,9 +56,6 @@ SlopeCalibrationDialog::SlopeCalibrationDialog(DensInterface *densInterface, QWi
     ui->tableView->setItemDelegateForColumn(0, new FloatItemDelegate(0.0, 5.0, 2));
     ui->tableView->setItemDelegateForColumn(1, new FloatItemDelegate(0.0, 1000.0, 6));
 
-    if (densInterface_) {
-        connect(densInterface_, &DensInterface::densityReading, this, &SlopeCalibrationDialog::onDensityReading);
-    }
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 
     // Preload calibrated numbers for the step wedge, with basic validation,
@@ -83,6 +79,23 @@ SlopeCalibrationDialog::SlopeCalibrationDialog(DensInterface *densInterface, QWi
     setCalculateZeroAdjustment(enableZeroAdj_);
 }
 
+SlopeCalibrationDialog::SlopeCalibrationDialog(DensInterface *densInterface, QWidget *parent)
+    : SlopeCalibrationDialog(parent)
+{
+    if (densInterface) {
+        connect(densInterface, &DensInterface::densityReading, this, &SlopeCalibrationDialog::onDensityReading);
+    }
+}
+
+SlopeCalibrationDialog::SlopeCalibrationDialog(StickRunner *stickRunner, QWidget *parent)
+    : SlopeCalibrationDialog(parent)
+{
+    if (stickRunner) {
+        connect(stickRunner, &StickRunner::targetDensity, this, &SlopeCalibrationDialog::onTargetMeasurement);
+    }
+    enableReflReadings_ = true;
+}
+
 SlopeCalibrationDialog::~SlopeCalibrationDialog()
 {
     delete ui;
@@ -90,6 +103,7 @@ SlopeCalibrationDialog::~SlopeCalibrationDialog()
 
 void SlopeCalibrationDialog::setCalculateZeroAdjustment(bool enable)
 {
+    if (enableReflReadings_) { return; }
     enableZeroAdj_ = enable;
 
     ui->zLabel->setVisible(enable);
@@ -117,6 +131,16 @@ void SlopeCalibrationDialog::onDensityReading(DensInterface::DensityType type, f
         return;
     }
 
+    addRawMeasurement(rawValue);
+}
+
+void SlopeCalibrationDialog::onTargetMeasurement(float basicReading)
+{
+    addRawMeasurement(basicReading);
+}
+
+void SlopeCalibrationDialog::addRawMeasurement(float rawValue)
+{
     if (qIsNaN(rawValue) || rawValue < 0.0F) {
         return;
     }
@@ -308,20 +332,38 @@ void SlopeCalibrationDialog::onCalculateResults()
             break;
         }
         if (row == 0) {
-            if (density < 0.0F || density > 0.001F) {
-                qDebug() << "First row density must be zero:" << density;
-                break;
-            }
+            if (enableReflReadings_) {
+                // For reflection readings, the base measurement is calculated
+                // by removing the density of the first patch from the first
+                // reading.
+                // Because of this, there will be no difference between
+                // actual and expected values for the first two data points,
+                // and there will be one more element in the set than in the
+                // provided input.
+                base_measurement = measurement * std::pow(10.0F, density);
+                float logBase = std::log10(base_measurement);
+                xList.append(logBase);
+                yList.append(logBase);
 
-            // Apply zero adjustment
-            if (enableZeroAdj_ && !std::isnan(zeroAdj)) {
-                measurement *= std::pow(10.0, zeroAdj);
-            }
+                float logMeas = std::log10(measurement);
+                xList.append(logMeas);
+                yList.append(logMeas);
+            } else {
+                if (density < 0.0F || density > 0.001F) {
+                    qDebug() << "First row density must be zero:" << density;
+                    break;
+                }
 
-            float x = std::log10(measurement);
-            xList.append(x);
-            yList.append(x);
-            base_measurement = measurement;
+                // Apply zero adjustment
+                if (enableZeroAdj_ && !std::isnan(zeroAdj)) {
+                    measurement *= std::pow(10.0, zeroAdj);
+                }
+
+                float x = std::log10(measurement);
+                xList.append(x);
+                yList.append(x);
+                base_measurement = measurement;
+            }
         } else {
             float x = std::log10(measurement);
             float y = std::log10(base_measurement / std::pow(10.0F, density));

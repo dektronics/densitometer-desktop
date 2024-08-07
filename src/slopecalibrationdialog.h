@@ -7,6 +7,7 @@
 #include <QPair>
 #include <tuple>
 #include "densinterface.h"
+#include "stickrunner.h"
 
 namespace Ui {
 class SlopeCalibrationDialog;
@@ -16,8 +17,11 @@ class SlopeCalibrationDialog : public QDialog
 {
     Q_OBJECT
 
+private:
+    explicit SlopeCalibrationDialog(QWidget *parent);
 public:
     explicit SlopeCalibrationDialog(DensInterface *densInterface, QWidget *parent = nullptr);
+    explicit SlopeCalibrationDialog(StickRunner *stickRunner, QWidget *parent = nullptr);
     ~SlopeCalibrationDialog();
 
     void setCalculateZeroAdjustment(bool enable);
@@ -27,6 +31,7 @@ public:
 
 private slots:
     void onDensityReading(DensInterface::DensityType type, float dValue, float dZero, float rawValue, float corrValue);
+    void onTargetMeasurement(float basicReading);
     void onActionCut();
     void onActionCopy();
     void onActionPaste();
@@ -35,6 +40,7 @@ private slots:
     void onClearReadings();
 
 private:
+    void addRawMeasurement(float rawValue);
     std::tuple<float, float, float> polyfit(const QList<float> &xList, const QList<float> &yList);
     void gaussEliminationLS(int m, int n, double **a /*[m][n]*/, double *x /*[n-1]*/);
     QPair<int, int> upperLeftActiveIndex() const;
@@ -42,8 +48,8 @@ private:
 
     Ui::SlopeCalibrationDialog *ui;
     QStandardItemModel *model_;
-    DensInterface *densInterface_;
     bool enableZeroAdj_;
+    bool enableReflReadings_;
     std::tuple<float, float, float> calValues_;
     float zeroAdj_;
 };
