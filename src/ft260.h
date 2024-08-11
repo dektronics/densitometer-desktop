@@ -16,10 +16,12 @@ class Ft260 : public QObject
 {
     Q_OBJECT
 protected:
-    explicit Ft260(QObject *parent = nullptr);
+    explicit Ft260(Ft260DeviceInfo deviceInfo, QObject *parent = nullptr);
 
 public:
     virtual ~Ft260();
+
+    Ft260DeviceInfo deviceInfo() const;
 
     virtual bool open() = 0;
     virtual void close() = 0;
@@ -51,6 +53,9 @@ signals:
     void connectionClosed();
     void buttonInterrupt(bool pressed);
     void sensorInterrupt();
+
+protected:
+    const Ft260DeviceInfo deviceInfo_;
 };
 
 #endif // FT260_H

@@ -41,7 +41,7 @@ typedef enum {
 } FT260_I2C_COMMAND;
 }
 
-Ft260LibUsb::Ft260LibUsb(const Ft260DeviceInfo &device, QObject *parent) : Ft260(parent), deviceInfo_(device)
+Ft260LibUsb::Ft260LibUsb(const Ft260DeviceInfo &device, QObject *parent) : Ft260(device, parent)
 {
     int r;
     r = libusb_init(&context_);

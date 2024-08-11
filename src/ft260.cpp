@@ -7,8 +7,9 @@
 #ifdef HAS_LIBUSB
 #include "ft260libusb.h"
 #endif
+#include "ft260hidapi.h"
 
-Ft260::Ft260(QObject *parent) : QObject(parent)
+Ft260::Ft260(Ft260DeviceInfo deviceInfo, QObject *parent) : QObject(parent), deviceInfo_(deviceInfo)
 {
 }
 
@@ -19,8 +20,11 @@ Ft260::~Ft260()
 Ft260 *Ft260::createDriver(const Ft260DeviceInfo &device)
 {
     Ft260 *driver = nullptr;
+    if (device.deviceDriver() == Ft260DeviceInfo::DriverHidApi) {
+        driver = new Ft260HidApi(device);
+    }
 #ifdef HAS_LIBUSB
-    if (device.deviceDriver() == Ft260DeviceInfo::DriverLibUsb) {
+    else if (device.deviceDriver() == Ft260DeviceInfo::DriverLibUsb) {
         driver = new Ft260LibUsb(device);
     }
 #endif
@@ -34,6 +38,8 @@ QList<Ft260DeviceInfo> Ft260::listDevices()
     const QList<Ft260DeviceInfo> listLibUsb = Ft260LibUsb::listDevices();
     list.append(listLibUsb);
 #endif
+    const QList<Ft260DeviceInfo> listHidApi = Ft260HidApi::listDevices();
+    list.append(listHidApi);
     return list;
 }
 

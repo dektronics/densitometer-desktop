@@ -30,6 +30,9 @@ if(LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARY)
     )
 endif()
 
+set(BUILD_SHARED_LIBS FALSE)
+add_subdirectory(external/hidapi)
+
 set(TS_FILES assets/translations/densitometer_en_US.ts)
 set(QRC_FILES assets/densitometer.qrc)
 
@@ -59,6 +62,7 @@ set(PROJECT_SOURCES
     src/qsimplesignalaggregator.cpp src/qsimplesignalaggregator.h src/qsignalaggregator.h
     src/ft260deviceinfo.cpp src/ft260deviceinfo.h src/ft260deviceinfo_p.h
     src/ft260.cpp src/ft260.h
+    src/ft260hidapi.cpp src/ft260hidapi.h
     src/tsl2585.cpp src/tsl2585.h
     src/m24c08.cpp src/m24c08.h
     src/tsl2585calibration.cpp src/tsl2585calibration.h
@@ -85,6 +89,7 @@ qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 target_link_libraries(densitometer PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::SerialPort
+    hidapi::hidapi
 )
 
 if (LIBUSB_FOUND)

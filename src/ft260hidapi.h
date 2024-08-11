@@ -1,16 +1,17 @@
-#ifndef FT260LIBUSB_H
-#define FT260LIBUSB_H
+#ifndef FT260HIDAPI_H
+#define FT260HIDAPI_H
+
+#include <atomic>
 
 #include "ft260.h"
 
-typedef struct libusb_context libusb_context;
-typedef struct libusb_device_handle libusb_device_handle;
+typedef struct hid_device_ hid_device;
 
-class Ft260LibUsb : public Ft260
+class Ft260HidApi : public Ft260
 {
 public:
-    explicit Ft260LibUsb(const Ft260DeviceInfo &device, QObject *parent = nullptr);
-    virtual ~Ft260LibUsb();
+    explicit Ft260HidApi(const Ft260DeviceInfo &device, QObject *parent = nullptr);
+    virtual ~Ft260HidApi();
 
     bool open();
     void close();
@@ -45,13 +46,10 @@ private slots:
 private:
     bool i2cWriteRequest(quint8 addr, uint8_t flags, const uint8_t *payload, quint8 payloadSize);
     bool i2cReadRequest(quint8 addr, uint8_t flags, quint16 payloadSize);
-    libusb_context *context_ = nullptr;
-    libusb_device_handle *handle_[2] = {nullptr, nullptr};
-    uint8_t inputEp_[2] = {0, 0};
-    uint16_t inputEpMaxPacketSize_[2] = {0, 0};
-    uint8_t outputEp_[2] = {0, 0};
+    hid_device *handle_[2] = {nullptr, nullptr};
     QThread *thread_ = nullptr;
-    bool connected_ = false;
+	bool connected_ = false;
+    std::atomic<bool> closing_ = false;
 };
 
-#endif // FT260LIBUSB_H
+#endif // FT260HIDAPI_H

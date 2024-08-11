@@ -15,6 +15,7 @@ public:
     enum Driver {
         DriverUnknown = 0,
         DriverLibUsb,
+        DriverHidApi
     };
 
     Ft260DeviceInfo();
@@ -42,6 +43,7 @@ public:
 private:
     Ft260DeviceInfo(const Ft260DeviceInfoPrivate &dd);
     friend QList<Ft260DeviceInfo> listDevicesByLibUsb();
+    friend QList<Ft260DeviceInfo> listDevicesByHidApi();
     std::unique_ptr<Ft260DeviceInfoPrivate> d_ptr;
 };
 
