@@ -13,6 +13,7 @@
 #include <QtGui/QClipboard>
 #include <QtGui/QStyleHints>
 #include <QSerialPortInfo>
+#include <QtSvgWidgets/QtSvgWidgets>
 
 #include "connectdialog.h"
 #include "densinterface.h"
@@ -149,7 +150,19 @@ MainWindow::MainWindow(QWidget *parent)
     tranTypePixmap = util::createThemeColoredPixmap(this, QString::fromUtf8(":/images/transmission-icon.png"));
     zeroSetPixmap = util::createThemeColoredPixmap(this, QString::fromUtf8(":/images/zero-set-indicator.png"));
 
-    ui->readingTypeLogoLabel->setPixmap(reflTypePixmap);
+    // Prepare the theme-colored SVG elements
+    reflTypeWidget_ = util::createThemeColoredSvgWidget(this, QString::fromUtf8(":/images/reflection-icon.svg"));
+    reflTypeWidget_->setFixedSize(48, 48);
+
+    tranTypeWidget_ = util::createThemeColoredSvgWidget(this, QString::fromUtf8(":/images/transmission-icon.svg"));
+    tranTypeWidget_->setFixedSize(48, 48);
+
+    ui->readingTypeLogoLabel->setVisible(false);
+    reflTypeWidget_->setVisible(true);
+    tranTypeWidget_->setVisible(false);
+
+    ui->readingLayout->insertWidget(0, reflTypeWidget_);
+    ui->readingLayout->insertWidget(1, tranTypeWidget_);
 
     refreshButtonState();
 }
@@ -514,10 +527,12 @@ void MainWindow::onDensityReading(DensInterface::DensityType type, float dValue,
 
     // Update main tab contents
     if (type == DensInterface::DensityReflection) {
-        ui->readingTypeLogoLabel->setPixmap(reflTypePixmap);
+        reflTypeWidget_->setVisible(true);
+        tranTypeWidget_->setVisible(false);
         ui->readingTypeNameLabel->setText(tr("Reflection"));
     } else {
-        ui->readingTypeLogoLabel->setPixmap(tranTypePixmap);
+        reflTypeWidget_->setVisible(false);
+        tranTypeWidget_->setVisible(true);
         ui->readingTypeNameLabel->setText(tr("Transmission"));
     }
 

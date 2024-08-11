@@ -14,6 +14,7 @@ class QSerialPort;
 class QLineEdit;
 class QSpinBox;
 class QStandardItemModel;
+class QSvgWidget;
 
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -90,6 +91,8 @@ private:
     QPixmap reflTypePixmap;
     QPixmap tranTypePixmap;
     QPixmap zeroSetPixmap;
+    QSvgWidget *reflTypeWidget_;
+    QSvgWidget *tranTypeWidget_;
 };
 
 #endif // MAINWINDOW_H

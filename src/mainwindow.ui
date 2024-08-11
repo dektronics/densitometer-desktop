@@ -109,7 +109,7 @@
               </layout>
              </item>
              <item>
-              <layout class="QHBoxLayout" name="horizontalLayout_9">
+              <layout class="QHBoxLayout" name="readingLayout">
                <item>
                 <widget class="QLabel" name="readingTypeLogoLabel">
                  <property name="text">

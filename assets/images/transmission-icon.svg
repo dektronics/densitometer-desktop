@@ -5,7 +5,7 @@
    height="20"
    viewBox="0 0 20 20"
    id="svg1018"
-   sodipodi:docname="target-transmission.svg"
+   sodipodi:docname="transmission-icon.svg"
    inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
@@ -32,9 +32,9 @@
      inkscape:window-maximized="1"
      inkscape:current-layer="svg1018" />
   <g
-     id="g4807">
+     id="g1428">
     <circle
-       style="fill:none;stroke:#000000;stroke-width:2.00238;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:none;stroke:#000000;stroke-width:2.00238;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;fill-opacity:1"
        id="path4060"
        cx="10"
        cy="10"
@@ -42,6 +42,6 @@
     <path
        d="M 10,5.0000002 8.6363636,8.636364 5,10.000001 8.6363636,11.363637 10,15 11.363636,11.363637 15,10.000001 11.363636,8.636364 Z"
        id="path2"
-       style="stroke-width:0.454545" />
+       style="stroke-width:0.454545;fill:#000000;fill-opacity:1" />
   </g>
 </svg>

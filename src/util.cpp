@@ -4,6 +4,8 @@
 #include <QDoubleValidator>
 #include <QWidget>
 #include <QPixmap>
+#include <QSvgWidget>
+#include <QFile>
 #include <string.h>
 
 namespace util
@@ -146,11 +148,11 @@ QValidator *createFloatValidator(double min, double max, int decimals, QObject *
     return validator;
 }
 
-QPixmap createThemeColoredPixmap(const QWidget *widget, const QString &fileName)
+QPixmap createThemeColoredPixmap(const QWidget *refWidget, const QString &fileName)
 {
-    if (!widget || fileName.isEmpty()) { return QPixmap(); }
+    if (!refWidget || fileName.isEmpty()) { return QPixmap(); }
 
-    const QColor baseColor = widget->palette().color(QPalette::Text);
+    const QColor baseColor = refWidget->palette().color(QPalette::Text);
     const QPixmap basePixmap(fileName);
 
     QImage tmp = basePixmap.toImage();
@@ -163,6 +165,34 @@ QPixmap createThemeColoredPixmap(const QWidget *widget, const QString &fileName)
     }
     QPixmap pixmap = QPixmap::fromImage(tmp);
     return pixmap;
+}
+
+QSvgWidget *createThemeColoredSvgWidget(const QWidget *refWidget, const QString &fileName)
+{
+    // This function assumes the provided SVG is monochrome and
+    // has all elements explicitly set to black
+
+    QSvgWidget *widget = new QSvgWidget();
+
+    if (!refWidget || fileName.isEmpty()) { return widget; }
+
+    const QColor baseColor = refWidget->palette().color(QPalette::Text);
+
+    QFile file(fileName);
+    if (!file.open(QIODevice::ReadOnly)) {
+        return widget;
+    }
+
+    QByteArray svgData = file.readAll();
+    if (svgData.isEmpty()) {
+        return widget;
+    }
+
+    const QByteArray themeColor = baseColor.name(QColor::HexRgb).toUtf8();
+    svgData.replace(QByteArray("#000000"), themeColor);
+
+    widget->load(svgData);
+    return widget;
 }
 
 }
