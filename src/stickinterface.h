@@ -32,7 +32,8 @@ public:
     quint8 lightBrightness() const;
     float lightCurrent() const;
 
-    bool setSensorConfig(int gain, int sampleTime, int sampleCount);
+    bool setSensorGain(int gain);
+    bool setSensorIntegration(int sampleTime, int sampleCount);
     bool setSensorAgcEnable(int sampleCount);
     bool setSensorAgcDisable();
 
@@ -64,6 +65,8 @@ private:
     quint16 sensorSampleCount_ = 199;
     quint16 sensorAgcCount_ = 0;
     bool sensorAgcEnabled_ = false;
+    bool discardNextReading_ = false;
+    bool agcDisabledResetGain_ = false;
     bool sensorRunning_ = false;
     bool shutdown_ = false;
 };

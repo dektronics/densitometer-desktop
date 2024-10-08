@@ -135,8 +135,9 @@ void StickRemoteControlDialog::onSensorStartClicked()
 void StickRemoteControlDialog::sendSetSensorConfig()
 {
     if (!stickInterface_) { return; }
-    stickInterface_->setSensorConfig(
-        ui->gainComboBox->currentIndex(),
+    stickInterface_->setSensorGain(
+        ui->gainComboBox->currentIndex());
+    stickInterface_->setSensorIntegration(
         SAMPLE_TIME, ((ui->intComboBox->currentIndex() + 1) * 100) - 1);
 }
 

@@ -33,9 +33,10 @@ private:
     StickInterface *stickInterface_;
     bool enabled_ = false;
     bool measuring_ = false;
-    int skipCount_ = 0;
     QList<StickReading> readingList_;
     Tsl2585Calibration calData_;
+    qint64 measStartTime_;
+    int agcStep_;
 };
 
 #endif // STICKRUNNER_H

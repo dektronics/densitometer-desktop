@@ -2,6 +2,7 @@
 #define STICKREADING_H
 
 #include <QSharedDataPointer>
+#include <QDebug>
 
 #include "tsl2585.h"
 
@@ -30,5 +31,7 @@ public:
 private:
     QSharedDataPointer<StickReadingData> data;
 };
+
+QDebug operator<<(QDebug debug, const StickReading &reading);
 
 #endif // STICKREADING_H

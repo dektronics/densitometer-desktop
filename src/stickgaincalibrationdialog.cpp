@@ -115,7 +115,8 @@ void StickGainCalibrationDialog::timerEvent(QTimerEvent *event)
         stickInterface_->setLightBrightness(stepBrightness_);
         stickInterface_->setLightEnable(true);
         stickInterface_->setSensorAgcDisable();
-        stickInterface_->setSensorConfig(stepGain_, SAMPLE_TIME, LED_SAMPLE_COUNT);
+        stickInterface_->setSensorGain(stepGain_);
+        stickInterface_->setSensorIntegration(SAMPLE_TIME, LED_SAMPLE_COUNT);
         stickInterface_->sensorStart();
         captureReadings_ = true;
         step_++; stepNew_ = true;
@@ -150,7 +151,8 @@ void StickGainCalibrationDialog::timerEvent(QTimerEvent *event)
             } else {
                 stepBrightness_ = 0;
                 stickInterface_->setLightBrightness(stepBrightness_);
-                stickInterface_->setSensorConfig(stepGain_, SAMPLE_TIME, LED_SAMPLE_COUNT);
+                stickInterface_->setSensorGain(stepGain_);
+                stickInterface_->setSensorIntegration(SAMPLE_TIME, LED_SAMPLE_COUNT);
             }
         }
 
@@ -190,8 +192,9 @@ void StickGainCalibrationDialog::timerEvent(QTimerEvent *event)
 
         stickInterface_->setLightBrightness(stepBrightness_);
         stickInterface_->setLightEnable(true);
-        stickInterface_->setSensorConfig(
-            upperGain_ ? stepGain_ : stepGain_ - 1,
+        stickInterface_->setSensorGain(
+            upperGain_ ? stepGain_ : stepGain_ - 1);
+        stickInterface_->setSensorIntegration(
             SAMPLE_TIME, GAIN_SAMPLE_COUNT);
         skipCount_ = GAIN_SKIP_READINGS;
         readingList_.clear();

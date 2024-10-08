@@ -52,3 +52,33 @@ uint32_t StickReading::reading() const
 {
     return data->reading;
 }
+
+QDebug operator<<(QDebug debug, const StickReading &reading)
+{
+    QDebugStateSaver saver(debug);
+    debug.nospace().noquote() << "StickReading(";
+    switch(reading.status()) {
+    case StickReading::ResultInvalid:
+        debug.nospace() << "ResultInvalid";
+        break;
+    case StickReading::ResultValid:
+        debug.nospace() << "ResultValid";
+        break;
+    case StickReading::ResultSaturated:
+        debug.nospace() << "ResultSaturated";
+        break;
+    case StickReading::ResultOverflow:
+        debug.nospace() << "ResultOverflow";
+        break;
+    default:
+        debug.nospace() << static_cast<int>(reading.status());
+        break;
+    }
+
+    if (reading.status() == StickReading::ResultValid) {
+        debug << ", " << TSL2585::gainString(reading.gain()) << ", " << reading.reading();
+    }
+
+    debug << ')';
+    return debug;
+}

@@ -230,14 +230,23 @@ float StickInterface::lightCurrent() const
     return (currentMa * CURRENT_MULTIPLIER) / 1000.0F;
 }
 
-bool StickInterface::setSensorConfig(int gain, int sampleTime, int sampleCount)
+bool StickInterface::setSensorGain(int gain)
 {
     if (sensorRunning_) {
         if (!sensor_->setModGain(TSL2585_MOD0, TSL2585_STEP0, static_cast<tsl2585_gain_t>(gain))) {
             return false;
         }
         sensorGain_ = gain;
+        discardNextReading_ = true;
+    } else {
+        sensorGain_ = gain;
+    }
+    return true;
+}
 
+bool StickInterface::setSensorIntegration(int sampleTime, int sampleCount)
+{
+    if (sensorRunning_) {
         if (!sensor_->setSampleTime(sampleTime)) {
             return false;
         }
@@ -247,9 +256,8 @@ bool StickInterface::setSensorConfig(int gain, int sampleTime, int sampleCount)
             return false;
         }
         sensorSampleCount_ = sampleCount;
-
+        discardNextReading_ = true;
     } else {
-        sensorGain_ = gain;
         sensorSampleTime_ = sampleTime;
         sensorSampleCount_ = sampleCount;
     }
@@ -268,6 +276,7 @@ bool StickInterface::setSensorAgcEnable(int sampleCount)
             return false;
         }
         sensorAgcEnabled_ = true;
+        discardNextReading_ = true;
     } else {
         sensorAgcCount_ = sampleCount;
         sensorAgcEnabled_ = true;
@@ -287,6 +296,8 @@ bool StickInterface::setSensorAgcDisable()
             return false;
         }
         sensorAgcEnabled_ = false;
+        agcDisabledResetGain_ = true;
+        discardNextReading_ = true;
     } else {
         sensorAgcCount_ = 0;
         sensorAgcEnabled_ = false;
@@ -359,6 +370,8 @@ bool StickInterface::sensorStart()
         // Enable the sensor
         if (!sensor_->enable()) { break; }
 
+        discardNextReading_ = true;
+        agcDisabledResetGain_ = false;
         sensorRunning_ = true;
     } while (0);
 
@@ -383,22 +396,39 @@ bool StickInterface::sensorStop()
 void StickInterface::onSensorInterrupt()
 {
     uint8_t status = 0;
+    StickReading result;
+    bool notifyReading = false;
     if (!sensor_->getStatus(&status)) {
         qWarning() << "Unable to get interrupt status";
         return;
     }
 
     if ((status & TSL2585_STATUS_AINT) != 0) {
-        StickReading result = readSensor();
-        if (result.status() != StickReading::ResultInvalid) {
-            emit sensorReading(result);
+        result = readSensor();
+        if (discardNextReading_) {
+            discardNextReading_ = false;
+        } else if (result.status() != StickReading::ResultInvalid) {
+            sensorGain_ = result.gain();
+            notifyReading = true;
         }
+    }
+
+    if (agcDisabledResetGain_) {
+        if (!sensor_->setModGain(TSL2585_MOD0, TSL2585_STEP0, static_cast<tsl2585_gain_t>(sensorGain_))) {
+            qWarning() << "Unable to reset gain after disabling AGC";
+        }
+        agcDisabledResetGain_ = false;
+        discardNextReading_ = true;
     }
 
     if (status != 0) {
         if (!sensor_->setStatus(status)) {
             qWarning() << "Unable to clear interrupt status";
         }
+    }
+
+    if (notifyReading) {
+        emit sensorReading(result);
     }
 }
 

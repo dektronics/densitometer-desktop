@@ -1,5 +1,7 @@
 #include "stickrunner.h"
 
+#include <QDateTime>
+#include <QTimer>
 #include <QDebug>
 
 #include "sticksettings.h"
@@ -9,13 +11,12 @@ namespace
 static const tsl2585_gain_t STARTING_GAIN = TSL2585_GAIN_256X;
 static const quint16 SAMPLE_TIME = 719;
 static const quint16 SAMPLE_COUNT = 199;
-static const quint16 AGC_SAMPLE_COUNT = 49;
-static const int SKIP_COUNT = 2;
+static const quint16 AGC_SAMPLE_COUNT = 19;
 static const int READING_COUNT = 2;
 }
 
 StickRunner::StickRunner(StickInterface *stickInterface, QObject *parent)
-    : QObject{parent}, stickInterface_(stickInterface)
+    : QObject{parent}, stickInterface_(stickInterface), measStartTime_(0), agcStep_(0)
 {
     if (stickInterface_ && !stickInterface_->parent()) {
         stickInterface_->setParent(this);
@@ -65,18 +66,23 @@ void StickRunner::onSensorReading(const StickReading& reading)
 {
     if (!measuring_) { return; }
 
-    if (skipCount_ > 0) {
-        skipCount_--;
-        return;
-    }
+    qDebug() << reading << (QDateTime::currentMSecsSinceEpoch() - measStartTime_);
 
     if (reading.status() != StickReading::ResultValid) {
         readingList_.clear();
         return;
     }
 
-    if (readingList_.size() > 0 && readingList_.last().gain() != reading.gain()) {
-        readingList_.clear();
+    if (agcStep_ == 1) {
+        // Disable AGC
+        stickInterface_->setSensorAgcDisable();
+        agcStep_++;
+        return;
+    } else if (agcStep_ == 2) {
+        // Set measurement sample time
+        stickInterface_->setSensorIntegration(SAMPLE_TIME, SAMPLE_COUNT);
+        agcStep_ = 0;
+        return;
     }
 
     readingList_.append(reading);
@@ -89,14 +95,16 @@ void StickRunner::onSensorReading(const StickReading& reading)
 void StickRunner::startMeasurement()
 {
     qDebug() << "Measuring target";
+    measStartTime_ = QDateTime::currentMSecsSinceEpoch();
     stickInterface_->setLightBrightness(0);
-    stickInterface_->setSensorConfig(STARTING_GAIN, SAMPLE_TIME, SAMPLE_COUNT);
+    stickInterface_->setSensorGain(STARTING_GAIN);
+    stickInterface_->setSensorIntegration(SAMPLE_TIME, AGC_SAMPLE_COUNT);
     stickInterface_->setSensorAgcEnable(AGC_SAMPLE_COUNT);
 
     stickInterface_->setLightEnable(true);
     stickInterface_->sensorStart();
-    skipCount_ = SKIP_COUNT;
     readingList_.clear();
+    agcStep_ = 1;
     measuring_ = true;
 }
 
@@ -107,6 +115,9 @@ void StickRunner::finishMeasurement()
     stickInterface_->sensorStop();
     stickInterface_->setLightBrightness(127);
     stickInterface_->setLightEnable(true);
+
+    qint64 measDuration = QDateTime::currentMSecsSinceEpoch() - measStartTime_;
+    qDebug() << "Measurement completed in" << measDuration << "ms";
 
     float sum = 0;
     size_t count = 0;
@@ -129,7 +140,7 @@ void StickRunner::finishMeasurement()
     float alsReading = (float)rawReading / 16.0F;
     float basicReading = alsReading / (timeMs * gainValue);
 
-    qDebug() << "Reading:" << rawReading << basicReading;
+    qDebug() << "Reading:" << Qt::fixed << rawReading << basicReading;
     emit targetMeasurement(basicReading);
 
     const Tsl2585CalTarget calTarget = calData_.targetCalibration();
@@ -144,6 +155,6 @@ void StickRunner::finishMeasurement()
 
     /* Calculate the measured density */
     float meas_d = (m * (meas_ll - cal_lo_ll)) + calTarget.loDensity();
-    qDebug() << "Target density:" << meas_d;
+    qDebug() << "Target density:" << Qt::fixed << meas_d;
     emit targetDensity(meas_d);
 }
