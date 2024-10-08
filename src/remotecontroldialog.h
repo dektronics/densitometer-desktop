@@ -50,7 +50,7 @@ private slots:
     void onSensorModeIndexChanged(int index);
     void onSensorGainIndexChanged(int index);
     void onSensorIntIndexChanged(int index);
-    void onAgcCheckBoxStateChanged(int state);
+    void onAgcCheckBoxStateChanged(Qt::CheckState state);
     void onReflReadClicked();
     void onTranReadClicked();
     void onTranUvReadClicked();

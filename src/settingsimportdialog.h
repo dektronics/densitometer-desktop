@@ -23,7 +23,7 @@ public:
     void sendSelectedSettings(DensInterface *densInterface);
 
 private slots:
-    void onCheckBoxChanged();
+    void onCheckBoxChanged(Qt::CheckState state);
 
 private:
     bool parseHeader(const QJsonObject &root);

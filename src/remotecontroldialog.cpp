@@ -43,7 +43,7 @@ RemoteControlDialog::RemoteControlDialog(DensInterface *densInterface, QWidget *
     connect(ui->modeComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &RemoteControlDialog::onSensorModeIndexChanged);
     connect(ui->gainComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &RemoteControlDialog::onSensorGainIndexChanged);
     connect(ui->intComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &RemoteControlDialog::onSensorIntIndexChanged);
-    connect(ui->agcCheckBox, &QCheckBox::stateChanged, this, &RemoteControlDialog::onAgcCheckBoxStateChanged);
+    connect(ui->agcCheckBox, &QCheckBox::checkStateChanged, this, &RemoteControlDialog::onAgcCheckBoxStateChanged);
     connect(ui->reflReadPushButton, &QPushButton::clicked, this, &RemoteControlDialog::onReflReadClicked);
     connect(ui->tranReadPushButton, &QPushButton::clicked, this, &RemoteControlDialog::onTranReadClicked);
     connect(ui->tranUvReadPushButton, &QPushButton::clicked, this, &RemoteControlDialog::onTranUvReadClicked);
@@ -304,7 +304,7 @@ void RemoteControlDialog::onSensorIntIndexChanged(int index)
     }
 }
 
-void RemoteControlDialog::onAgcCheckBoxStateChanged(int state)
+void RemoteControlDialog::onAgcCheckBoxStateChanged(Qt::CheckState state)
 {
     Q_UNUSED(state)
     if (sensorStarted_) {

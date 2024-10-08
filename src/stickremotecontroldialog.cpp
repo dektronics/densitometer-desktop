@@ -29,7 +29,7 @@ StickRemoteControlDialog::StickRemoteControlDialog(StickInterface *stickInterfac
     connect(ui->sensorStopPushButton, &QPushButton::clicked, this, &StickRemoteControlDialog::onSensorStopClicked);
     connect(ui->gainComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &StickRemoteControlDialog::onSensorGainIndexChanged);
     connect(ui->intComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &StickRemoteControlDialog::onSensorIntIndexChanged);
-    connect(ui->agcCheckBox, &QCheckBox::stateChanged, this, &StickRemoteControlDialog::onAgcCheckBoxStateChanged);
+    connect(ui->agcCheckBox, &QCheckBox::checkStateChanged, this, &StickRemoteControlDialog::onAgcCheckBoxStateChanged);
     connect(ui->reflReadPushButton, &QPushButton::clicked, this, &StickRemoteControlDialog::onReflReadClicked);
 
     connect(stickInterface_, &StickInterface::sensorReading, this, &StickRemoteControlDialog::onSensorReading);
@@ -182,7 +182,7 @@ void StickRemoteControlDialog::onSensorIntIndexChanged(int index)
     sensorControlState(true);
 }
 
-void StickRemoteControlDialog::onAgcCheckBoxStateChanged(int state)
+void StickRemoteControlDialog::onAgcCheckBoxStateChanged(Qt::CheckState state)
 {
     Q_UNUSED(state)
     if (sensorStarted_) {

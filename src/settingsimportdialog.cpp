@@ -47,15 +47,15 @@ SettingsImportDialog::SettingsImportDialog(QWidget *parent) :
     ui->importReflCheckBox->setEnabled(false);
     ui->importTranCheckBox->setEnabled(false);
 
-    connect(ui->importGainCheckBox, &QCheckBox::stateChanged, this, &SettingsImportDialog::onCheckBoxChanged);
-    connect(ui->importSlopeCheckBox, &QCheckBox::stateChanged, this, &SettingsImportDialog::onCheckBoxChanged);
-    connect(ui->importReflCheckBox, &QCheckBox::stateChanged, this, &SettingsImportDialog::onCheckBoxChanged);
-    connect(ui->importTranCheckBox, &QCheckBox::stateChanged, this, &SettingsImportDialog::onCheckBoxChanged);
+    connect(ui->importGainCheckBox, &QCheckBox::checkStateChanged, this, &SettingsImportDialog::onCheckBoxChanged);
+    connect(ui->importSlopeCheckBox, &QCheckBox::checkStateChanged, this, &SettingsImportDialog::onCheckBoxChanged);
+    connect(ui->importReflCheckBox, &QCheckBox::checkStateChanged, this, &SettingsImportDialog::onCheckBoxChanged);
+    connect(ui->importTranCheckBox, &QCheckBox::checkStateChanged, this, &SettingsImportDialog::onCheckBoxChanged);
 
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &QDialog::accept);
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
-    onCheckBoxChanged();
+    onCheckBoxChanged(Qt::Unchecked);
 }
 
 SettingsImportDialog::~SettingsImportDialog()
@@ -99,7 +99,7 @@ bool SettingsImportDialog::loadFile(const QString &filename)
         }
     }
 
-    onCheckBoxChanged();
+    onCheckBoxChanged(Qt::Unchecked);
 
     return true;
 }
@@ -278,8 +278,9 @@ void SettingsImportDialog::parseCalTarget(const QJsonObject &jsonCalTarget)
     ui->importTranCheckBox->setEnabled(calTransmission_.isValidTransmission());
 }
 
-void SettingsImportDialog::onCheckBoxChanged()
+void SettingsImportDialog::onCheckBoxChanged(Qt::CheckState state)
 {
+    Q_UNUSED(state)
     if (ui->importGainCheckBox->isChecked() || ui->importSlopeCheckBox->isChecked()
             || ui->importReflCheckBox->isChecked() || ui->importTranCheckBox->isChecked()) {
         ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);

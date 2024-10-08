@@ -33,7 +33,7 @@ private slots:
     void onSensorStopClicked();
     void onSensorGainIndexChanged(int index);
     void onSensorIntIndexChanged(int index);
-    void onAgcCheckBoxStateChanged(int state);
+    void onAgcCheckBoxStateChanged(Qt::CheckState state);
     void onReflReadClicked();
 
     void onSensorReading(const StickReading& reading);
