@@ -477,8 +477,10 @@ void MainWindow::onConnectionOpened()
     }
 
     if (stickRunner_) {
+        calibrationTab_->reloadAll();
         stickRunner_->reloadCalibration();
         stickRunner_->setEnabled(true);
+        connect(calibrationTab_, &CalibrationTab::calibrationSaved, stickRunner_, &StickRunner::reloadCalibration);
         connect(stickRunner_, &StickRunner::targetDensity, this, &MainWindow::onTargetDensity);
     } else {
         densInterface_->sendSetMeasurementFormat(DensInterface::FormatExtended);

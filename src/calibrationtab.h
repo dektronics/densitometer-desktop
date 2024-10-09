@@ -15,8 +15,13 @@ public:
     virtual ~CalibrationTab();
 
     virtual DensInterface::DeviceType deviceType() const = 0;
+
+public slots:
     virtual void clear() = 0;
     virtual void reloadAll() = 0;
+
+signals:
+    void calibrationSaved();
 
 protected:
     void updateLineEditDirtyState(QLineEdit *lineEdit, int value);

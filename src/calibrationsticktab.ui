@@ -135,13 +135,6 @@
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="gainGetPushButton">
-            <property name="text">
-             <string>Get</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QPushButton" name="gainSetPushButton">
             <property name="enabled">
              <bool>false</bool>
@@ -262,13 +255,6 @@
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="slopeGetPushButton">
-            <property name="text">
-             <string>Get</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QPushButton" name="slopeSetPushButton">
             <property name="enabled">
              <bool>false</bool>
@@ -363,13 +349,6 @@
            </spacer>
           </item>
           <item>
-           <widget class="QPushButton" name="reflGetPushButton">
-            <property name="text">
-             <string>Get</string>
-            </property>
-           </widget>
-          </item>
-          <item>
            <widget class="QPushButton" name="reflSetPushButton">
             <property name="enabled">
              <bool>false</bool>
@@ -433,7 +412,7 @@
      <item>
       <widget class="QPushButton" name="calGetAllPushButton">
        <property name="text">
-        <string>Get All Values</string>
+        <string>Reload All Values</string>
        </property>
       </widget>
      </item>

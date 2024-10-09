@@ -21,11 +21,8 @@ CalibrationStickTab::CalibrationStickTab(StickRunner *stickRunner, QWidget *pare
     // Calibration UI signals
     connect(ui->calGetAllPushButton, &QPushButton::clicked, this, &CalibrationStickTab::onCalGetAllValues);
     connect(ui->gainCalPushButton, &QPushButton::clicked, this, &CalibrationStickTab::onCalGainCalClicked);
-    //connect(ui->gainGetPushButton, &QPushButton::clicked, densInterface_, &DensInterface::sendGetCalGain);
     connect(ui->gainSetPushButton, &QPushButton::clicked, this, &CalibrationStickTab::onCalGainSetClicked);
-    //connect(ui->slopeGetPushButton, &QPushButton::clicked, densInterface_, &DensInterface::sendGetCalSlope);
     connect(ui->slopeSetPushButton, &QPushButton::clicked, this, &CalibrationStickTab::onCalSlopeSetClicked);
-    //connect(ui->reflGetPushButton, &QPushButton::clicked, densInterface_, &DensInterface::sendGetCalReflection);
     connect(ui->reflSetPushButton, &QPushButton::clicked, this, &CalibrationStickTab::onCalReflectionSetClicked);
     connect(ui->slopeCalPushButton, &QPushButton::clicked, this, &CalibrationStickTab::onSlopeCalibrationTool);
 
@@ -122,15 +119,9 @@ void CalibrationStickTab::refreshButtonState()
     if (connected) {
         ui->calGetAllPushButton->setEnabled(true);
         ui->gainCalPushButton->setEnabled(true);
-        ui->gainGetPushButton->setEnabled(true);
-        ui->slopeGetPushButton->setEnabled(true);
-        ui->reflGetPushButton->setEnabled(true);
     } else {
         ui->calGetAllPushButton->setEnabled(false);
         ui->gainCalPushButton->setEnabled(false);
-        ui->gainGetPushButton->setEnabled(false);
-        ui->slopeGetPushButton->setEnabled(false);
-        ui->reflGetPushButton->setEnabled(false);
     }
 
     // Make calibration values editable only if connected
@@ -228,6 +219,7 @@ void CalibrationStickTab::onCalGainSetClicked()
         stickRunner_->reloadCalibration();
         updateCalGain();
     }
+    emit calibrationSaved();
 }
 
 void CalibrationStickTab::onCalSlopeSetClicked()
@@ -246,6 +238,7 @@ void CalibrationStickTab::onCalSlopeSetClicked()
 
     calData_.setSlopeCalibration(calSlope);
     //densInterface_->sendSetCalSlope(calSlope);
+    emit calibrationSaved();
 }
 
 void CalibrationStickTab::onCalReflectionSetClicked()
@@ -273,6 +266,7 @@ void CalibrationStickTab::onCalReflectionSetClicked()
         stickRunner_->reloadCalibration();
         updateCalTarget();
     }
+    emit calibrationSaved();
 }
 
 void CalibrationStickTab::onCalGainTextChanged()

@@ -17,6 +17,7 @@ public:
     void setEnabled(bool enabled);
     bool enabled() const;
 
+public slots:
     void reloadCalibration();
 
 signals:
