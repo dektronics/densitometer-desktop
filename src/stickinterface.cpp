@@ -36,8 +36,6 @@ StickInterface::~StickInterface()
 
 bool StickInterface::open()
 {
-    quint8 data;
-
     if (!ft260_) { return false; }
 
     if (connected_) {

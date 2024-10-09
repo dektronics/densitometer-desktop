@@ -42,7 +42,7 @@ QByteArray M24C08::readBuffer(uint16_t address, size_t len)
     QByteArray buf;
     buf.reserve(static_cast<int>(len));
 
-    size_t offset = 0;
+    uint16_t offset = 0;
 
     while (offset < len) {
         const uint16_t readAddress = address + offset;
@@ -76,8 +76,8 @@ bool M24C08::writeBuffer(uint16_t address, const QByteArray &data)
 
     size_t offset = 0;
 
-    while (offset < data.size()) {
-        const uint16_t writeAddress = address + offset;
+    while (offset < static_cast<size_t>(data.size())) {
+        const uint16_t writeAddress = address + static_cast<uint16_t>(offset);
         const quint8 writeLen = static_cast<quint8>(qMin(data.size() - offset, static_cast<size_t>(M24C08_PAGE_SIZE)));
 
         const uint8_t i2cAddress = static_cast<uint8_t>((uint16_t)deviceAddress_ | ((writeAddress & 0x0300) >> 8));
