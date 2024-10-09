@@ -11,6 +11,7 @@ namespace
 static const tsl2585_gain_t STARTING_GAIN = TSL2585_GAIN_256X;
 static const quint16 SAMPLE_TIME = 719;
 static const quint16 SAMPLE_COUNT = 199;
+static const quint16 PRE_SAMPLE_COUNT = 29;
 static const quint16 AGC_SAMPLE_COUNT = 19;
 static const int READING_COUNT = 2;
 }
@@ -98,7 +99,7 @@ void StickRunner::startMeasurement()
     measStartTime_ = QDateTime::currentMSecsSinceEpoch();
     stickInterface_->setLightBrightness(0);
     stickInterface_->setSensorGain(STARTING_GAIN);
-    stickInterface_->setSensorIntegration(SAMPLE_TIME, AGC_SAMPLE_COUNT);
+    stickInterface_->setSensorIntegration(SAMPLE_TIME, PRE_SAMPLE_COUNT);
     stickInterface_->setSensorAgcEnable(AGC_SAMPLE_COUNT);
 
     stickInterface_->setLightEnable(true);
