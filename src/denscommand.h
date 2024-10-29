@@ -15,6 +15,7 @@ public:
         TypeInvoke,
         TypeDensityReflection,
         TypeDensityTransmission,
+        TypeDensityUvTransmission,
         TypeUnknown = -1
     };
     enum CommandCategory {

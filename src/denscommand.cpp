@@ -65,7 +65,7 @@ bool DensCommand::isMatch(const DensCommand &other)
 
 bool DensCommand::isDensity() const
 {
-    return (d->type == TypeDensityReflection || d->type == TypeDensityTransmission)
+    return (d->type == TypeDensityReflection || d->type == TypeDensityTransmission || d->type == TypeDensityUvTransmission)
             && d->action.isEmpty() && !d->args.isEmpty();
 }
 
@@ -96,12 +96,15 @@ DensCommand DensCommand::parse(const QByteArray &data)
             case 'T':
                 type = TypeDensityTransmission;
                 break;
+            case 'U':
+                type = TypeDensityUvTransmission;
+                break;
             default:
                 type = TypeUnknown;
                 break;
             }
         }
-        if (type == TypeDensityReflection || type == TypeDensityTransmission) {
+        if (type == TypeDensityReflection || type == TypeDensityTransmission || type == TypeDensityUvTransmission) {
             if (cmd.length() > 1) {
                 args.append(cmd.mid(1));
             }
@@ -135,7 +138,7 @@ DensCommand DensCommand::parse(const QByteArray &data)
         args.append(elements.mid(1));
     }
 
-    if ((type == TypeDensityReflection || type == TypeDensityTransmission) && !args.isEmpty()) {
+    if ((type == TypeDensityReflection || type == TypeDensityTransmission || type == TypeDensityUvTransmission) && !args.isEmpty()) {
         return DensCommand(type, CategoryUnknown, QString(), args);
     } else if (type != TypeUnknown && category != CategoryUnknown && !action.isEmpty()) {
         return DensCommand(type, category, action, args);
@@ -195,6 +198,9 @@ QString DensCommand::toString() const
     case TypeDensityTransmission:
         t_ch = QLatin1Char('T');
         break;
+    case TypeDensityUvTransmission:
+        t_ch = QLatin1Char('U');
+        break;
     default:
         t_ch = QLatin1Char('?');
         break;
@@ -219,7 +225,7 @@ QString DensCommand::toString() const
     }
 
     QString result;
-    if (d->type == TypeDensityReflection || d->type == TypeDensityTransmission) {
+    if (d->type == TypeDensityReflection || d->type == TypeDensityTransmission || d->type == TypeDensityUvTransmission) {
         result = QString("%1%2").arg(t_ch, d->args.join(QLatin1Char(',')));
     } else {
         result = QString("%1%2 %3").arg(t_ch, c_ch, d->action);

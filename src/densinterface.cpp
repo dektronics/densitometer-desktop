@@ -658,6 +658,8 @@ void DensInterface::readDensityResponse(const DensCommand &response)
             densityType = DensityReflection;
         } else if (response.type() == DensCommand::TypeDensityTransmission) {
             densityType = DensityTransmission;
+        } else if (response.type() == DensCommand::TypeDensityUvTransmission) {
+            densityType = DensityUvTransmission;
         } else {
             return;
         }

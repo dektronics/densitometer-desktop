@@ -21,6 +21,7 @@ public:
     enum DensityType {
         DensityReflection,
         DensityTransmission,
+        DensityUvTransmission,
         DensityUnknown = -1
     };
     Q_ENUM(DensityType)

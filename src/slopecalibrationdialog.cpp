@@ -126,7 +126,7 @@ void SlopeCalibrationDialog::onDensityReading(DensInterface::DensityType type, f
     Q_UNUSED(dZero)
     Q_UNUSED(corrValue)
 
-    // Only using transmission readings for this
+    // Only using VIS transmission readings for this
     if (type != DensInterface::DensityTransmission) {
         return;
     }

@@ -208,12 +208,17 @@ void CalibrationUvVisTab::onDensityReading(DensInterface::DensityType type, floa
         } else if (ui->reflHiReadingLineEdit->hasFocus()) {
             ui->reflHiReadingLineEdit->setText(QString::number(corrValue, 'f'));
         }
-    } else {
-        //FIXME Distinguish between VIS and UV transmission readings
+    } else if (type == DensInterface::DensityTransmission) {
         if (ui->tranLoReadingLineEdit->hasFocus()) {
             ui->tranLoReadingLineEdit->setText(QString::number(corrValue, 'f'));
         } else if (ui->tranHiReadingLineEdit->hasFocus()) {
             ui->tranHiReadingLineEdit->setText(QString::number(corrValue, 'f'));
+        }
+    } else if (type == DensInterface::DensityUvTransmission) {
+        if (ui->tranUvLoReadingLineEdit->hasFocus()) {
+            ui->tranUvLoReadingLineEdit->setText(QString::number(corrValue, 'f'));
+        } else if (ui->tranUvHiReadingLineEdit->hasFocus()) {
+            ui->tranUvHiReadingLineEdit->setText(QString::number(corrValue, 'f'));
         }
     }
 }

@@ -675,6 +675,9 @@ void MainWindow::measTableAddReading(DensInterface::DensityType type, float dens
     } else if (type == DensInterface::DensityTransmission) {
         typeIcon = QIcon(tranTypePixmap);
         typeStr = QLatin1String("T");
+    } else if (type == DensInterface::DensityUvTransmission) {
+        typeIcon = QIcon(tranTypePixmap);
+        typeStr = QLatin1String("U");
     }
 
     if (!qIsNaN(offset)) {
