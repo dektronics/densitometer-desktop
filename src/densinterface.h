@@ -77,12 +77,15 @@ public slots:
     void sendSetCalLight(const DensCalLight &calLight);
     void sendGetCalGain();
     void sendSetCalGain(const DensCalGain &calGain);
+    void sendSetUvVisCalGain(const DensUvVisCalGain &calGain);
     void sendGetCalSlope();
     void sendSetCalSlope(const DensCalSlope &calSlope);
     void sendGetCalReflection();
     void sendSetCalReflection(const DensCalTarget &calTarget);
     void sendGetCalTransmission();
     void sendSetCalTransmission(const DensCalTarget &calTarget);
+    void sendGetCalUvTransmission();
+    void sendSetCalUvTransmission(const DensCalTarget &calTarget);
 
 public:
     bool connected() const;
@@ -115,10 +118,12 @@ public:
 
     DensCalLight calLight() const;
     DensCalGain calGain() const;
+    DensUvVisCalGain calUvVisGain() const;
     DensCalSlope calSlope() const;
 
     DensCalTarget calReflection() const;
     DensCalTarget calTransmission() const;
+    DensCalTarget calUvTransmission() const;
 
 signals:
     void connectionOpened();
@@ -162,6 +167,8 @@ signals:
     void calReflectionSetComplete();
     void calTransmissionResponse();
     void calTransmissionSetComplete();
+    void calUvTransmissionResponse();
+    void calUvTransmissionSetComplete();
 
 private slots:
     void readData();
@@ -208,9 +215,11 @@ private:
     QString sensorTemp_;
     DensCalLight calLight_;
     DensCalGain calGain_;
+    DensUvVisCalGain calUvVisGain_;
     DensCalSlope calSlope_;
     DensCalTarget calReflection_;
     DensCalTarget calTransmission_;
+    DensCalTarget calUvTransmission_;
 };
 
 #endif // DENSINTERFACE_H

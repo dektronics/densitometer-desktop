@@ -315,7 +315,7 @@ void DensInterface::sendInvokeUvDiagRead(DensInterface::SensorLight light, int m
         args.append("R");
     } else if (light == SensorLight::SensorLightTransmission) {
         args.append("T");
-    } else if (light == SensorLightUvTransmission) {
+    } else if (light == SensorLight::SensorLightUvTransmission) {
         args.append("U");
     } else {
         args.append("0");
@@ -373,6 +373,8 @@ void DensInterface::sendGetCalGain()
 
 void DensInterface::sendSetCalGain(const DensCalGain &calGain)
 {
+    if (deviceType_ != DeviceBaseline) { return; }
+
     QStringList args;
     args.append(util::encode_f32(calGain.med0()));
     args.append(util::encode_f32(calGain.med1()));
@@ -380,6 +382,26 @@ void DensInterface::sendSetCalGain(const DensCalGain &calGain)
     args.append(util::encode_f32(calGain.high1()));
     args.append(util::encode_f32(calGain.max0()));
     args.append(util::encode_f32(calGain.max1()));
+
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "GAIN", args);
+    sendCommand(command);
+}
+
+void DensInterface::sendSetUvVisCalGain(const DensUvVisCalGain &calGain)
+{
+    if (deviceType_ != DeviceUvVis) { return; }
+
+    QStringList args;
+    args.append(util::encode_f32(calGain.gainValue(DensUvVisCalGain::Gain0_5X)));
+    args.append(util::encode_f32(calGain.gainValue(DensUvVisCalGain::Gain1X)));
+    args.append(util::encode_f32(calGain.gainValue(DensUvVisCalGain::Gain2X)));
+    args.append(util::encode_f32(calGain.gainValue(DensUvVisCalGain::Gain4X)));
+    args.append(util::encode_f32(calGain.gainValue(DensUvVisCalGain::Gain8X)));
+    args.append(util::encode_f32(calGain.gainValue(DensUvVisCalGain::Gain16X)));
+    args.append(util::encode_f32(calGain.gainValue(DensUvVisCalGain::Gain32X)));
+    args.append(util::encode_f32(calGain.gainValue(DensUvVisCalGain::Gain64X)));
+    args.append(util::encode_f32(calGain.gainValue(DensUvVisCalGain::Gain128X)));
+    args.append(util::encode_f32(calGain.gainValue(DensUvVisCalGain::Gain256X)));
 
     DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "GAIN", args);
     sendCommand(command);
@@ -442,6 +464,28 @@ void DensInterface::sendSetCalTransmission(const DensCalTarget &calTarget)
     sendCommand(command);
 }
 
+void DensInterface::sendGetCalUvTransmission()
+{
+    if (deviceType_ != DeviceUvVis) { return; }
+
+    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryCalibration, "UVTR");
+    sendCommand(command);
+}
+
+void DensInterface::sendSetCalUvTransmission(const DensCalTarget &calTarget)
+{
+    if (deviceType_ != DeviceUvVis) { return; }
+
+    QStringList args;
+    args.append(util::encode_f32(calTarget.loDensity()));
+    args.append(util::encode_f32(calTarget.loReading()));
+    args.append(util::encode_f32(calTarget.hiDensity()));
+    args.append(util::encode_f32(calTarget.hiReading()));
+
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "UVTR", args);
+    sendCommand(command);
+}
+
 bool DensInterface::connected() const { return connected_; }
 bool DensInterface::deviceUnrecognized() const { return deviceUnrecognized_; }
 bool DensInterface::remoteControlEnabled() const { return remoteControlEnabled_; }
@@ -471,10 +515,12 @@ QString DensInterface::sensorTemp() const { return sensorTemp_; }
 
 DensCalLight DensInterface::calLight() const { return calLight_; }
 DensCalGain DensInterface::calGain() const { return calGain_; }
+DensUvVisCalGain DensInterface::calUvVisGain() const { return calUvVisGain_; }
 DensCalSlope DensInterface::calSlope() const { return calSlope_; }
 
 DensCalTarget DensInterface::calReflection() const { return calReflection_; }
 DensCalTarget DensInterface::calTransmission() const { return calTransmission_; }
+DensCalTarget DensInterface::calUvTransmission() const { return calUvTransmission_; }
 
 void DensInterface::readData()
 {
@@ -783,17 +829,32 @@ void DensInterface::readCalibrationResponse(const DensCommand &response)
     } else if (isResponseSetOk(response, QLatin1String("LIGHT"))) {
         emit calLightSetComplete();
     } else if (response.type() == DensCommand::TypeGet
-               && response.action() == QLatin1String("GAIN")
-               && response.args().length() == 8) {
-        calGain_.setLow0(util::decode_f32(response.args().at(0)));
-        calGain_.setLow1(util::decode_f32(response.args().at(1)));
-        calGain_.setMed0(util::decode_f32(response.args().at(2)));
-        calGain_.setMed1(util::decode_f32(response.args().at(3)));
-        calGain_.setHigh0(util::decode_f32(response.args().at(4)));
-        calGain_.setHigh1(util::decode_f32(response.args().at(5)));
-        calGain_.setMax0(util::decode_f32(response.args().at(6)));
-        calGain_.setMax1(util::decode_f32(response.args().at(7)));
-        emit calGainResponse();
+               && response.action() == QLatin1String("GAIN")) {
+        if (deviceType_ == DeviceBaseline && response.args().size() >= 8) {
+            calGain_.setLow0(util::decode_f32(response.args().at(0)));
+            calGain_.setLow1(util::decode_f32(response.args().at(1)));
+            calGain_.setMed0(util::decode_f32(response.args().at(2)));
+            calGain_.setMed1(util::decode_f32(response.args().at(3)));
+            calGain_.setHigh0(util::decode_f32(response.args().at(4)));
+            calGain_.setHigh1(util::decode_f32(response.args().at(5)));
+            calGain_.setMax0(util::decode_f32(response.args().at(6)));
+            calGain_.setMax1(util::decode_f32(response.args().at(7)));
+            emit calGainResponse();
+        } else if (deviceType_ == DeviceUvVis && response.args().size() >= 10) {
+            calUvVisGain_.setGainValue(DensUvVisCalGain::Gain0_5X, util::decode_f32(response.args().at(0)));
+            calUvVisGain_.setGainValue(DensUvVisCalGain::Gain1X, util::decode_f32(response.args().at(1)));
+            calUvVisGain_.setGainValue(DensUvVisCalGain::Gain2X, util::decode_f32(response.args().at(2)));
+            calUvVisGain_.setGainValue(DensUvVisCalGain::Gain4X, util::decode_f32(response.args().at(3)));
+            calUvVisGain_.setGainValue(DensUvVisCalGain::Gain8X, util::decode_f32(response.args().at(4)));
+            calUvVisGain_.setGainValue(DensUvVisCalGain::Gain16X, util::decode_f32(response.args().at(5)));
+            calUvVisGain_.setGainValue(DensUvVisCalGain::Gain32X, util::decode_f32(response.args().at(6)));
+            calUvVisGain_.setGainValue(DensUvVisCalGain::Gain64X, util::decode_f32(response.args().at(7)));
+            calUvVisGain_.setGainValue(DensUvVisCalGain::Gain128X, util::decode_f32(response.args().at(8)));
+            calUvVisGain_.setGainValue(DensUvVisCalGain::Gain256X, util::decode_f32(response.args().at(9)));
+            emit calGainResponse();
+        } else {
+            qDebug() << response.toString();
+        }
     } else if (isResponseSetOk(response, QLatin1String("GAIN"))) {
         emit calGainSetComplete();
     } else if (response.type() == DensCommand::TypeGet
@@ -830,6 +891,16 @@ void DensInterface::readCalibrationResponse(const DensCommand &response)
         emit calTransmissionResponse();
     } else if (isResponseSetOk(response, QLatin1String("TRAN"))) {
         emit calTransmissionSetComplete();
+    } else if (response.type() == DensCommand::TypeGet
+               && response.action() == QLatin1String("UVTR")
+               && response.args().length() == 4) {
+        calUvTransmission_.setLoDensity(util::decode_f32(response.args().at(0)));
+        calUvTransmission_.setLoReading(util::decode_f32(response.args().at(1)));
+        calUvTransmission_.setHiDensity(util::decode_f32(response.args().at(2)));
+        calUvTransmission_.setHiReading(util::decode_f32(response.args().at(3)));
+        emit calUvTransmissionResponse();
+    } else if (isResponseSetOk(response, QLatin1String("UVTR"))) {
+        emit calUvTransmissionSetComplete();
     }
 }
 

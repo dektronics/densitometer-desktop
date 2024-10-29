@@ -2,9 +2,11 @@
 #define DENSCALVALUES_H
 
 #include <QSharedDataPointer>
+#include <QVector>
 
 class DensCalLightData;
 class DensCalGainData;
+class DensUvVisCalGainData;
 class DensCalSlopeData;
 class DensCalTargetData;
 
@@ -66,6 +68,39 @@ private:
     QSharedDataPointer<DensCalGainData> data;
 };
 
+class DensUvVisCalGain
+{
+public:
+    enum GainLevel {
+        Gain0_5X = 0,
+        Gain1X   = 1,
+        Gain2X   = 2,
+        Gain4X   = 3,
+        Gain8X   = 4,
+        Gain16X  = 5,
+        Gain32X  = 6,
+        Gain64X  = 7,
+        Gain128X = 8,
+        Gain256X = 9,
+    };
+
+    DensUvVisCalGain();
+    DensUvVisCalGain(const DensUvVisCalGain &);
+    DensUvVisCalGain &operator=(const DensUvVisCalGain &);
+    ~DensUvVisCalGain();
+
+    bool isEmpty() const;
+
+    float gainValue(GainLevel gainLevel) const;
+    void setGainValue(GainLevel gainLevel, float value);
+
+    bool isValid() const;
+
+private:
+    QSharedDataPointer<DensUvVisCalGainData> data;
+};
+
+
 class DensCalSlope
 {
 public:
@@ -115,8 +150,9 @@ public:
     bool isValidReflection() const;
     bool isValidTransmission() const;
 
-private:
     bool isValid() const;
+
+private:
     QSharedDataPointer<DensCalTargetData> data;
 };
 

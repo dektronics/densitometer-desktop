@@ -283,31 +283,31 @@ void CalibrationBaselineTab::onCalGainCalClicked()
 
 void CalibrationBaselineTab::onCalGainSetClicked()
 {
-    DensCalGain calSlope;
+    DensCalGain calGain;
     bool ok;
 
-    calSlope.setLow0(1.0F);
-    calSlope.setLow1(1.0F);
+    calGain.setLow0(1.0F);
+    calGain.setLow1(1.0F);
 
-    calSlope.setMed0(ui->med0LineEdit->text().toFloat(&ok));
+    calGain.setMed0(ui->med0LineEdit->text().toFloat(&ok));
     if (!ok) { return; }
 
-    calSlope.setMed1(ui->med1LineEdit->text().toFloat(&ok));
+    calGain.setMed1(ui->med1LineEdit->text().toFloat(&ok));
     if (!ok) { return; }
 
-    calSlope.setHigh0(ui->high0LineEdit->text().toFloat(&ok));
+    calGain.setHigh0(ui->high0LineEdit->text().toFloat(&ok));
     if (!ok) { return; }
 
-    calSlope.setHigh1(ui->high1LineEdit->text().toFloat(&ok));
+    calGain.setHigh1(ui->high1LineEdit->text().toFloat(&ok));
     if (!ok) { return; }
 
-    calSlope.setMax0(ui->max0LineEdit->text().toFloat(&ok));
+    calGain.setMax0(ui->max0LineEdit->text().toFloat(&ok));
     if (!ok) { return; }
 
-    calSlope.setMax1(ui->max1LineEdit->text().toFloat(&ok));
+    calGain.setMax1(ui->max1LineEdit->text().toFloat(&ok));
     if (!ok) { return; }
 
-    densInterface_->sendSetCalGain(calSlope);
+    densInterface_->sendSetCalGain(calGain);
 }
 
 void CalibrationBaselineTab::onCalSlopeSetClicked()

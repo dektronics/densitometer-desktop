@@ -20,6 +20,19 @@ public:
     float max1 = qSNaN();
 };
 
+class DensUvVisCalGainData : public QSharedData
+{
+public:
+    DensUvVisCalGainData() : empty(true)
+    {
+        for (size_t i = 0; i <= static_cast<size_t>(DensUvVisCalGain::Gain256X); i++) {
+            values.append(qSNaN());
+        }
+    }
+    bool empty;
+    QVector<float> values;
+};
+
 class DensCalSlopeData : public QSharedData
 {
 public:
@@ -152,6 +165,58 @@ bool DensCalGain::isValid() const
     }
 
     return true;
+}
+
+DensUvVisCalGain::DensUvVisCalGain() : data(new DensUvVisCalGainData)
+{
+}
+
+DensUvVisCalGain::DensUvVisCalGain(const DensUvVisCalGain &rhs)
+    : data{rhs.data}
+{
+}
+
+DensUvVisCalGain &DensUvVisCalGain::operator=(const DensUvVisCalGain &rhs)
+{
+    if (this != &rhs)
+        data.operator=(rhs.data);
+    return *this;
+}
+
+bool DensUvVisCalGain::isEmpty() const
+{
+    return data->empty;
+}
+
+float DensUvVisCalGain::gainValue(DensUvVisCalGain::GainLevel gainLevel) const
+{
+    if (gainLevel > Gain256X) { return qSNaN(); }
+    return data->values[static_cast<size_t>(gainLevel)];
+}
+
+void DensUvVisCalGain::setGainValue(DensUvVisCalGain::GainLevel gainLevel, float value)
+{
+    if (gainLevel > Gain256X) { return; }
+    data->empty = false;
+    data->values[static_cast<size_t>(gainLevel)] = value;
+}
+
+bool DensUvVisCalGain::isValid() const
+{
+    if (data->empty) { return false; }
+
+    for (size_t i = 0; i < static_cast<size_t>(DensUvVisCalGain::Gain256X); i++) {
+        const float curValue = data->values[i];
+        const float nextValue = data->values[i + 1];
+        if (qIsNaN(curValue)) { return false; }
+        if (curValue >= nextValue) { return false; }
+    }
+
+    return true;
+}
+
+DensUvVisCalGain::~DensUvVisCalGain()
+{
 }
 
 DensCalSlope::DensCalSlope() : data(new DensCalSlopeData)

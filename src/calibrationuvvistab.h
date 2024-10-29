@@ -38,16 +38,19 @@ private slots:
     void onCalSlopeSetClicked();
     void onCalReflectionSetClicked();
     void onCalTransmissionSetClicked();
+    void onCalUvTransmissionSetClicked();
 
     void onCalGainTextChanged();
     void onCalSlopeTextChanged();
     void onCalReflectionTextChanged();
     void onCalTransmissionTextChanged();
+    void onCalUvTransmissionTextChanged();
 
     void onCalGainResponse();
     void onCalSlopeResponse();
     void onCalReflectionResponse();
     void onCalTransmissionResponse();
+    void onCalUvTransmissionResponse();
 
     void onSlopeCalibrationTool();
     void onSlopeCalibrationToolFinished(int result);
