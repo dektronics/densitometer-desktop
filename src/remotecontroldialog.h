@@ -29,6 +29,7 @@ private slots:
     void onDiagSensorUvGetReading(unsigned int ch0, int gain, int sampleTime, int sampleCount);
     void onDiagSensorBaselineInvokeReading(int ch0, int ch1);
     void onDiagSensorUvInvokeReading(unsigned int ch0);
+    void onDiagSensorUvInvokeMeasurement(float ch0Basic);
 
     void onReflOffClicked();
     void onReflOnClicked();
@@ -51,6 +52,7 @@ private slots:
     void onSensorGainIndexChanged(int index);
     void onSensorIntIndexChanged(int index);
     void onAgcCheckBoxStateChanged(Qt::CheckState state);
+    void onBasicReadingRadioButtonToggled();
     void onReflReadClicked();
     void onTranReadClicked();
     void onTranUvReadClicked();

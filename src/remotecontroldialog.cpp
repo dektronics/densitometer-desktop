@@ -22,6 +22,7 @@ RemoteControlDialog::RemoteControlDialog(DensInterface *densInterface, QWidget *
     connect(densInterface_, &DensInterface::diagSensorUvGetReading, this, &RemoteControlDialog::onDiagSensorUvGetReading);
     connect(densInterface_, &DensInterface::diagSensorBaselineInvokeReading, this, &RemoteControlDialog::onDiagSensorBaselineInvokeReading);
     connect(densInterface_, &DensInterface::diagSensorUvInvokeReading, this, &RemoteControlDialog::onDiagSensorUvInvokeReading);
+    connect(densInterface_, &DensInterface::diagSensorUvInvokeMeasurement, this, &RemoteControlDialog::onDiagSensorUvInvokeMeasurement);
 
     connect(ui->reflOffPushButton, &QPushButton::clicked, this, &RemoteControlDialog::onReflOffClicked);
     connect(ui->reflOnPushButton, &QPushButton::clicked, this, &RemoteControlDialog::onReflOnClicked);
@@ -47,6 +48,7 @@ RemoteControlDialog::RemoteControlDialog(DensInterface *densInterface, QWidget *
     connect(ui->reflReadPushButton, &QPushButton::clicked, this, &RemoteControlDialog::onReflReadClicked);
     connect(ui->tranReadPushButton, &QPushButton::clicked, this, &RemoteControlDialog::onTranReadClicked);
     connect(ui->tranUvReadPushButton, &QPushButton::clicked, this, &RemoteControlDialog::onTranUvReadClicked);
+    connect(ui->basicReadingRadioButton, &QRadioButton::toggled, this, &RemoteControlDialog::onBasicReadingRadioButtonToggled);
 
     if (densInterface->deviceType() == DensInterface::DeviceUvVis) {
         ui->reflGroupBox->setTitle(tr("VIS Reflection Light"));
@@ -59,17 +61,20 @@ RemoteControlDialog::RemoteControlDialog(DensInterface *densInterface, QWidget *
                           << "16x" << "32x" << "64x" << "128x" << "256x");
         ui->gainComboBox->setCurrentIndex(8);
 
+        ui->rawReadingRadioButton->setVisible(true);
+        ui->basicReadingRadioButton->setVisible(true);
         ui->reflReadPushButton->setText(tr("VIS Reflection Read"));
         ui->tranReadPushButton->setText(tr("VIS Transmission Read"));
         ui->ch1Label->setVisible(false);
         ui->ch1LineEdit->setVisible(false);
-
     } else {
         ui->tranUvGroupBox->setVisible(false);
         ui->tranUvReadPushButton->setVisible(false);
         ui->modeLabel->setVisible(false);
         ui->modeComboBox->setVisible(false);
         ui->agcCheckBox->setVisible(false);
+        ui->rawReadingRadioButton->setVisible(false);
+        ui->basicReadingRadioButton->setVisible(false);
     }
 
     ledControlState(true);
@@ -315,6 +320,11 @@ void RemoteControlDialog::onAgcCheckBoxStateChanged(Qt::CheckState state)
     }
 }
 
+void RemoteControlDialog::onBasicReadingRadioButtonToggled()
+{
+    sensorControlState(true);
+}
+
 void RemoteControlDialog::onReflReadClicked()
 {
     ledControlState(false);
@@ -355,10 +365,14 @@ void RemoteControlDialog::onTranUvReadClicked()
 void RemoteControlDialog::sendInvokeDiagRead(DensInterface::SensorLight light)
 {
     if (densInterface_->deviceType() == DensInterface::DeviceUvVis) {
-        densInterface_->sendInvokeUvDiagRead(light,
-                                             ui->modeComboBox->currentIndex(),
-                                             ui->gainComboBox->currentIndex(),
-                                             719, ((ui->intComboBox->currentIndex() + 1) * 100) - 1);
+        if (ui->basicReadingRadioButton->isChecked()) {
+            densInterface_->sendInvokeUvDiagMeasure(light, 128);
+        } else {
+            densInterface_->sendInvokeUvDiagRead(light, 128,
+                                                 ui->modeComboBox->currentIndex(),
+                                                 ui->gainComboBox->currentIndex(),
+                                                 719, ((ui->intComboBox->currentIndex() + 1) * 100) - 1);
+        }
     } else {
         densInterface_->sendInvokeBaselineDiagRead(light,
                                                    ui->gainComboBox->currentIndex(),
@@ -377,6 +391,8 @@ void RemoteControlDialog::sensorControlState(bool enabled)
         } else {
             ui->gainComboBox->setEnabled(enabled);
         }
+        ui->basicReadingRadioButton->setEnabled(enabled ? !sensorStarted_ : false);
+        ui->rawReadingRadioButton->setEnabled(enabled ? !sensorStarted_ : false);
     } else {
         ui->gainComboBox->setEnabled(enabled);
     }
@@ -434,6 +450,18 @@ void RemoteControlDialog::onDiagSensorBaselineInvokeReading(int ch0, int ch1)
 void RemoteControlDialog::onDiagSensorUvInvokeReading(unsigned int ch0)
 {
     updateSensorReading(ch0, 0);
+    ui->reflSpinBox->setValue(0);
+    ui->tranSpinBox->setValue(0);
+    ui->tranUvSpinBox->setValue(0);
+    ui->ch0LineEdit->setEnabled(true);
+    ui->ch1LineEdit->setEnabled(true);
+    sensorControlState(true);
+    ledControlState(true);
+}
+
+void RemoteControlDialog::onDiagSensorUvInvokeMeasurement(float ch0Basic)
+{
+    ui->ch0LineEdit->setText(QString::number(ch0Basic, 'f', 6));
     ui->reflSpinBox->setValue(0);
     ui->tranSpinBox->setValue(0);
     ui->tranUvSpinBox->setValue(0);
