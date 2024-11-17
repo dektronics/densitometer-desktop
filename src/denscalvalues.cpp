@@ -42,6 +42,14 @@ public:
     float b2 = qSNaN();
 };
 
+class DensCalTemperatureData : public QSharedData
+{
+public:
+    CoefficientSet b0 = std::make_tuple(qSNaN(), qSNaN(), qSNaN());
+    CoefficientSet b1 = std::make_tuple(qSNaN(), qSNaN(), qSNaN());
+    CoefficientSet b2 = std::make_tuple(qSNaN(), qSNaN(), qSNaN());
+};
+
 class DensCalTargetData : public QSharedData
 {
 public:
@@ -261,6 +269,50 @@ bool DensCalSlope::isValid() const
     return true;
 }
 
+DensCalTemperature::DensCalTemperature() : data(new DensCalTemperatureData)
+{
+}
+
+DensCalTemperature::DensCalTemperature(const DensCalTemperature &rhs)
+    : data{rhs.data}
+{
+}
+
+DensCalTemperature &DensCalTemperature::operator=(const DensCalTemperature &rhs)
+{
+    if (this != &rhs)
+        data.operator=(rhs.data);
+    return *this;
+}
+
+DensCalTemperature::~DensCalTemperature()
+{
+}
+
+void DensCalTemperature::setB0(CoefficientSet b0) { data->b0 = b0; }
+CoefficientSet DensCalTemperature::b0() const { return data->b0; }
+
+void DensCalTemperature::setB1(CoefficientSet b1) { data->b1 = b1; }
+CoefficientSet DensCalTemperature::b1() const { return data->b1; }
+
+void DensCalTemperature::setB2(CoefficientSet b2) { data->b2 = b2; }
+CoefficientSet DensCalTemperature::b2() const { return data->b2; }
+
+bool DensCalTemperature::isValid() const
+{
+    // Invalid if any values are NaN
+    if (qIsNaN(std::get<0>(data->b0)) || qIsNaN(std::get<1>(data->b0)) || qIsNaN(std::get<2>(data->b0))) {
+        return false;
+    }
+    if (qIsNaN(std::get<0>(data->b1)) || qIsNaN(std::get<1>(data->b1)) || qIsNaN(std::get<2>(data->b1))) {
+        return false;
+    }
+    if (qIsNaN(std::get<0>(data->b2)) || qIsNaN(std::get<1>(data->b2)) || qIsNaN(std::get<2>(data->b2))) {
+        return false;
+    }
+
+    return true;
+}
 
 DensCalTarget::DensCalTarget() : data(new DensCalTargetData)
 {

@@ -25,7 +25,7 @@ signals:
 
 protected:
     void updateLineEditDirtyState(QLineEdit *lineEdit, int value);
-    void updateLineEditDirtyState(QLineEdit *lineEdit, float value, int prec);
+    void updateLineEditDirtyState(QLineEdit *lineEdit, float value, int prec = -1);
 
     DensInterface *densInterface_ = nullptr;
 };

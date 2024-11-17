@@ -82,6 +82,10 @@ public slots:
     void sendSetUvVisCalGain(const DensUvVisCalGain &calGain);
     void sendGetCalSlope();
     void sendSetCalSlope(const DensCalSlope &calSlope);
+    void sendGetCalVisTemperature();
+    void sendSetCalVisTemperature(const DensCalTemperature &calTemperature);
+    void sendGetCalUvTemperature();
+    void sendSetCalUvTemperature(const DensCalTemperature &calTemperature);
     void sendGetCalReflection();
     void sendSetCalReflection(const DensCalTarget &calTarget);
     void sendGetCalTransmission();
@@ -122,6 +126,8 @@ public:
     DensCalGain calGain() const;
     DensUvVisCalGain calUvVisGain() const;
     DensCalSlope calSlope() const;
+    DensCalTemperature calVisTemperature() const;
+    DensCalTemperature calUvTemperature() const;
 
     DensCalTarget calReflection() const;
     DensCalTarget calTransmission() const;
@@ -166,6 +172,10 @@ signals:
     void calGainSetComplete();
     void calSlopeResponse();
     void calSlopeSetComplete();
+    void calVisTemperatureResponse();
+    void calVisTemperatureSetComplete();
+    void calUvTemperatureResponse();
+    void calUvTemperatureSetComplete();
     void calReflectionResponse();
     void calReflectionSetComplete();
     void calTransmissionResponse();
@@ -220,6 +230,8 @@ private:
     DensCalGain calGain_;
     DensUvVisCalGain calUvVisGain_;
     DensCalSlope calSlope_;
+    DensCalTemperature calVisTemperature_;
+    DensCalTemperature calUvTemperature_;
     DensCalTarget calReflection_;
     DensCalTarget calTransmission_;
     DensCalTarget calUvTransmission_;

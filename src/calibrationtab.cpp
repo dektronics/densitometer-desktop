@@ -35,7 +35,8 @@ void CalibrationTab::updateLineEditDirtyState(QLineEdit *lineEdit, float value, 
     if (!lineEdit) { return; }
 
     if (lineEdit->text().isNull() || lineEdit->text().isEmpty()
-        || lineEdit->text() == QString::number(value, 'f', prec)) {
+        || (prec < 0 && lineEdit->text().toFloat() == QString::number(value).toFloat())
+        || (lineEdit->text() == QString::number(value, 'f', prec))) {
         lineEdit->setStyleSheet(styleSheet());
     } else {
         if (QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark) {

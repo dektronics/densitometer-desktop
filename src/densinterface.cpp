@@ -5,6 +5,12 @@
 #include "denscommand.h"
 #include "util.h"
 
+namespace
+{
+static QStringList encodeCoefficientSet(const CoefficientSet &values);
+static CoefficientSet decodeCoefficientSet(const QStringList &values);
+}
+
 DensInterface::DensInterface(QObject *parent)
     : QObject(parent)
     , serialPort_(nullptr)
@@ -456,6 +462,50 @@ void DensInterface::sendSetCalSlope(const DensCalSlope &calSlope)
     sendCommand(command);
 }
 
+void DensInterface::sendGetCalVisTemperature()
+{
+    if (deviceType_ != DeviceUvVis) { return; }
+
+    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryCalibration, "VTEMP");
+    sendCommand(command);
+}
+
+void DensInterface::sendSetCalVisTemperature(const DensCalTemperature &calTemperature)
+{
+    if (deviceType_ != DeviceUvVis) { return; }
+
+    QStringList args;
+    args.reserve(9);
+    args.append(encodeCoefficientSet(calTemperature.b0()));
+    args.append(encodeCoefficientSet(calTemperature.b1()));
+    args.append(encodeCoefficientSet(calTemperature.b2()));
+
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "VTEMP", args);
+    sendCommand(command);
+}
+
+void DensInterface::sendGetCalUvTemperature()
+{
+    if (deviceType_ != DeviceUvVis) { return; }
+
+    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryCalibration, "UTEMP");
+    sendCommand(command);
+}
+
+void DensInterface::sendSetCalUvTemperature(const DensCalTemperature &calTemperature)
+{
+    if (deviceType_ != DeviceUvVis) { return; }
+
+    QStringList args;
+    args.reserve(9);
+    args.append(encodeCoefficientSet(calTemperature.b0()));
+    args.append(encodeCoefficientSet(calTemperature.b1()));
+    args.append(encodeCoefficientSet(calTemperature.b2()));
+
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "UTEMP", args);
+    sendCommand(command);
+}
+
 void DensInterface::sendGetCalReflection()
 {
     DensCommand command(DensCommand::TypeGet, DensCommand::CategoryCalibration, "REFL");
@@ -545,6 +595,8 @@ DensCalLight DensInterface::calLight() const { return calLight_; }
 DensCalGain DensInterface::calGain() const { return calGain_; }
 DensUvVisCalGain DensInterface::calUvVisGain() const { return calUvVisGain_; }
 DensCalSlope DensInterface::calSlope() const { return calSlope_; }
+DensCalTemperature DensInterface::calVisTemperature() const { return calVisTemperature_; }
+DensCalTemperature DensInterface::calUvTemperature() const { return calUvTemperature_; }
 
 DensCalTarget DensInterface::calReflection() const { return calReflection_; }
 DensCalTarget DensInterface::calTransmission() const { return calTransmission_; }
@@ -902,6 +954,24 @@ void DensInterface::readCalibrationResponse(const DensCommand &response)
     } else if (isResponseSetOk(response, QLatin1String("SLOPE"))) {
         emit calSlopeSetComplete();
     } else if (response.type() == DensCommand::TypeGet
+               && response.action() == QLatin1String("VTEMP")
+               && response.args().length() >= 9) {
+        calVisTemperature_.setB0(decodeCoefficientSet(response.args().mid(0, 3)));
+        calVisTemperature_.setB1(decodeCoefficientSet(response.args().mid(3, 3)));
+        calVisTemperature_.setB2(decodeCoefficientSet(response.args().mid(6, 3)));
+        emit calVisTemperatureResponse();
+    } else if (isResponseSetOk(response, QLatin1String("VTEMP"))) {
+        emit calVisTemperatureSetComplete();
+    } else if (response.type() == DensCommand::TypeGet
+               && response.action() == QLatin1String("UTEMP")
+               && response.args().length() >= 9) {
+        calUvTemperature_.setB0(decodeCoefficientSet(response.args().mid(0, 3)));
+        calUvTemperature_.setB1(decodeCoefficientSet(response.args().mid(3, 3)));
+        calUvTemperature_.setB2(decodeCoefficientSet(response.args().mid(6, 3)));
+        emit calUvTemperatureResponse();
+    } else if (isResponseSetOk(response, QLatin1String("UTEMP"))) {
+        emit calUvTemperatureSetComplete();
+    } else if (response.type() == DensCommand::TypeGet
                && response.action() == QLatin1String("REFL")
                && response.args().length() == 4) {
         calReflection_.setLoDensity(util::decode_f32(response.args().at(0)));
@@ -1031,4 +1101,40 @@ bool DensInterface::sendCommand(const DensCommand &command)
     QByteArray commandBytes = command.toString().toLatin1();
     commandBytes.append("\r\n");
     return serialPort_->write(commandBytes) != -1;
+}
+
+namespace
+{
+
+QStringList encodeCoefficientSet(const CoefficientSet &values)
+{
+    QStringList list;
+    list.reserve(3);
+
+    list.append(util::encode_f32(std::get<0>(values)));
+    list.append(util::encode_f32(std::get<1>(values)));
+    list.append(util::encode_f32(std::get<2>(values)));
+
+    return list;
+}
+
+CoefficientSet decodeCoefficientSet(const QStringList &values)
+{
+    float v0 = qSNaN();
+    float v1 = qSNaN();
+    float v2 = qSNaN();
+
+    if (values.size() > 0) {
+        v0 = util::decode_f32(values[0]);
+    }
+    if (values.size() > 1) {
+        v1 = util::decode_f32(values[1]);
+    }
+    if (values.size() > 2) {
+        v2 = util::decode_f32(values[2]);
+    }
+
+    return { v0, v1, v2 };
+}
+
 }

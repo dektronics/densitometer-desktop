@@ -20,6 +20,10 @@ CalibrationUvVisTab::CalibrationUvVisTab(DensInterface *densInterface, QWidget *
     connect(densInterface_, &DensInterface::densityReading, this, &CalibrationUvVisTab::onDensityReading);
     connect(densInterface_, &DensInterface::calGainResponse, this, &CalibrationUvVisTab::onCalGainResponse);
     connect(densInterface_, &DensInterface::calSlopeResponse, this, &CalibrationUvVisTab::onCalSlopeResponse);
+    connect(densInterface_, &DensInterface::calVisTemperatureResponse, this, &CalibrationUvVisTab::onCalVisTempResponse);
+    connect(densInterface_, &DensInterface::calVisTemperatureSetComplete, this, &CalibrationUvVisTab::onCalVisTempSetComplete);
+    connect(densInterface_, &DensInterface::calUvTemperatureResponse, this, &CalibrationUvVisTab::onCalUvTempResponse);
+    connect(densInterface_, &DensInterface::calUvTemperatureSetComplete, this, &CalibrationUvVisTab::onCalUvTempSetComplete);
     connect(densInterface_, &DensInterface::calReflectionResponse, this, &CalibrationUvVisTab::onCalReflectionResponse);
     connect(densInterface_, &DensInterface::calTransmissionResponse, this, &CalibrationUvVisTab::onCalTransmissionResponse);
     connect(densInterface_, &DensInterface::calUvTransmissionResponse, this, &CalibrationUvVisTab::onCalUvTransmissionResponse);
@@ -31,6 +35,10 @@ CalibrationUvVisTab::CalibrationUvVisTab(DensInterface *densInterface, QWidget *
     connect(ui->gainSetPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onCalGainSetClicked);
     connect(ui->slopeGetPushButton, &QPushButton::clicked, densInterface_, &DensInterface::sendGetCalSlope);
     connect(ui->slopeSetPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onCalSlopeSetClicked);
+    connect(ui->visTempGetPushButton, &QPushButton::clicked, densInterface_, &DensInterface::sendGetCalVisTemperature);
+    connect(ui->visTempSetPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onCalVisTempSetClicked);
+    connect(ui->uvTempGetPushButton, &QPushButton::clicked, densInterface_, &DensInterface::sendGetCalUvTemperature);
+    connect(ui->uvTempSetPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onCalUvTempSetClicked);
     connect(ui->reflGetPushButton, &QPushButton::clicked, densInterface_, &DensInterface::sendGetCalReflection);
     connect(ui->reflSetPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onCalReflectionSetClicked);
     connect(ui->tranGetPushButton, &QPushButton::clicked, densInterface_, &DensInterface::sendGetCalTransmission);
@@ -56,6 +64,30 @@ CalibrationUvVisTab::CalibrationUvVisTab(DensInterface *densInterface, QWidget *
     connect(ui->b0LineEdit, &QLineEdit::textChanged, this, &CalibrationUvVisTab::onCalSlopeTextChanged);
     connect(ui->b1LineEdit, &QLineEdit::textChanged, this, &CalibrationUvVisTab::onCalSlopeTextChanged);
     connect(ui->b2LineEdit, &QLineEdit::textChanged, this, &CalibrationUvVisTab::onCalSlopeTextChanged);
+
+    // Calibration (VIS temperature) field validation
+    for (int i = 0; i < ui->visTempTableWidget->rowCount(); i++) {
+        for (int j = 0; j < ui->visTempTableWidget->columnCount(); j++) {
+            QLineEdit *lineEdit = new QLineEdit();
+            QDoubleValidator *validator = new QDoubleValidator(this);
+            validator->setNotation(QDoubleValidator::ScientificNotation);
+            lineEdit->setValidator(validator);
+            ui->visTempTableWidget->setCellWidget(i, j, lineEdit);
+            connect(lineEdit, &QLineEdit::textChanged, this, &CalibrationUvVisTab::onCalVisTempTextChanged);
+        }
+    }
+
+    // Calibration (UV temperature) field validation
+    for (int i = 0; i < ui->uvTempTableWidget->rowCount(); i++) {
+        for (int j = 0; j < ui->visTempTableWidget->columnCount(); j++) {
+            QLineEdit *lineEdit = new QLineEdit();
+            QDoubleValidator *validator = new QDoubleValidator(this);
+            validator->setNotation(QDoubleValidator::ScientificNotation);
+            lineEdit->setValidator(validator);
+            ui->uvTempTableWidget->setCellWidget(i, j, lineEdit);
+            connect(lineEdit, &QLineEdit::textChanged, this, &CalibrationUvVisTab::onCalUvTempTextChanged);
+        }
+    }
 
     // Calibration (VIS reflection density) field validation
     ui->reflLoDensityLineEdit->setValidator(util::createFloatValidator(0.0, 2.5, 2, this));
@@ -147,6 +179,8 @@ void CalibrationUvVisTab::refreshButtonState()
         ui->gainCalPushButton->setEnabled(true);
         ui->gainGetPushButton->setEnabled(true);
         ui->slopeGetPushButton->setEnabled(true);
+        ui->visTempGetPushButton->setEnabled(true);
+        ui->uvTempGetPushButton->setEnabled(true);
         ui->reflGetPushButton->setEnabled(true);
         ui->tranGetPushButton->setEnabled(true);
 
@@ -164,6 +198,8 @@ void CalibrationUvVisTab::refreshButtonState()
         ui->gainCalPushButton->setEnabled(false);
         ui->gainGetPushButton->setEnabled(false);
         ui->slopeGetPushButton->setEnabled(false);
+        ui->visTempGetPushButton->setEnabled(false);
+        ui->uvTempGetPushButton->setEnabled(false);
         ui->reflGetPushButton->setEnabled(false);
         ui->tranGetPushButton->setEnabled(false);
     }
@@ -173,6 +209,24 @@ void CalibrationUvVisTab::refreshButtonState()
         QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
         if (lineEdit) {
             lineEdit->setReadOnly(!connected);
+        }
+    }
+
+    for (int i = 0; i < ui->visTempTableWidget->rowCount(); i++) {
+        for (int j = 0; j < ui->visTempTableWidget->columnCount(); j++) {
+            QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->visTempTableWidget->cellWidget(i, j));
+            if (lineEdit) {
+                lineEdit->setReadOnly(!connected);
+            }
+        }
+    }
+
+    for (int i = 0; i < ui->uvTempTableWidget->rowCount(); i++) {
+        for (int j = 0; j < ui->uvTempTableWidget->columnCount(); j++) {
+            QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->uvTempTableWidget->cellWidget(i, j));
+            if (lineEdit) {
+                lineEdit->setReadOnly(!connected);
+            }
         }
     }
 
@@ -227,6 +281,8 @@ void CalibrationUvVisTab::onCalGetAllValues()
 {
     densInterface_->sendGetCalGain();
     densInterface_->sendGetCalSlope();
+    densInterface_->sendGetCalVisTemperature();
+    densInterface_->sendGetCalUvTemperature();
     densInterface_->sendGetCalReflection();
     densInterface_->sendGetCalTransmission();
     densInterface_->sendGetCalUvTransmission();
@@ -306,6 +362,38 @@ void CalibrationUvVisTab::onCalSlopeSetClicked()
     }
 
     densInterface_->sendSetCalSlope(calSlope);
+}
+
+void CalibrationUvVisTab::onCalVisTempSetClicked()
+{
+    DensCalTemperature calTemperature;
+
+    calTemperature.setB0(coefficientSetCollectRow(ui->visTempTableWidget, 0));
+    calTemperature.setB1(coefficientSetCollectRow(ui->visTempTableWidget, 1));
+    calTemperature.setB2(coefficientSetCollectRow(ui->visTempTableWidget, 2));
+
+    if (!calTemperature.isValid()) {
+        QMessageBox::warning(this, tr("Invalid Values"), tr("Cannot set invalid temperature correction values!"));
+        return;
+    }
+
+    densInterface_->sendSetCalVisTemperature(calTemperature);
+}
+
+void CalibrationUvVisTab::onCalUvTempSetClicked()
+{
+    DensCalTemperature calTemperature;
+
+    calTemperature.setB0(coefficientSetCollectRow(ui->uvTempTableWidget, 0));
+    calTemperature.setB1(coefficientSetCollectRow(ui->uvTempTableWidget, 1));
+    calTemperature.setB2(coefficientSetCollectRow(ui->uvTempTableWidget, 2));
+
+    if (!calTemperature.isValid()) {
+        QMessageBox::warning(this, tr("Invalid Values"), tr("Cannot set invalid temperature correction values!"));
+        return;
+    }
+
+    densInterface_->sendSetCalUvTemperature(calTemperature);
 }
 
 void CalibrationUvVisTab::onCalReflectionSetClicked()
@@ -428,6 +516,54 @@ void CalibrationUvVisTab::onCalSlopeTextChanged()
     updateLineEditDirtyState(ui->b2LineEdit, calSlope.b2(), 6);
 }
 
+void CalibrationUvVisTab::onCalVisTempTextChanged()
+{
+    bool enableSet = true;
+    if (densInterface_->connected()) {
+        for (int i = 0; i < ui->visTempTableWidget->rowCount(); i++) {
+            for (int j = 0; j < ui->visTempTableWidget->columnCount(); j++) {
+                QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->visTempTableWidget->cellWidget(i, j));
+                if (lineEdit && (lineEdit->text().isEmpty() || !lineEdit->hasAcceptableInput())) {
+                    enableSet = false;
+                    break;
+                }
+            }
+        }
+    } else {
+        enableSet = false;
+    }
+    ui->visTempSetPushButton->setEnabled(enableSet);
+
+    const DensCalTemperature calTemperature = densInterface_->calVisTemperature();
+    coefficientSetCheckDirtyRow(ui->visTempTableWidget, 0, calTemperature.b0());
+    coefficientSetCheckDirtyRow(ui->visTempTableWidget, 1, calTemperature.b1());
+    coefficientSetCheckDirtyRow(ui->visTempTableWidget, 2, calTemperature.b2());
+}
+
+void CalibrationUvVisTab::onCalUvTempTextChanged()
+{
+    bool enableSet = true;
+    if (densInterface_->connected()) {
+        for (int i = 0; i < ui->uvTempTableWidget->rowCount(); i++) {
+            for (int j = 0; j < ui->uvTempTableWidget->columnCount(); j++) {
+                QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->uvTempTableWidget->cellWidget(i, j));
+                if (lineEdit && (lineEdit->text().isEmpty() || !lineEdit->hasAcceptableInput())) {
+                    enableSet = false;
+                    break;
+                }
+            }
+        }
+    } else {
+        enableSet = false;
+    }
+    ui->uvTempSetPushButton->setEnabled(enableSet);
+
+    const DensCalTemperature calTemperature = densInterface_->calUvTemperature();
+    coefficientSetCheckDirtyRow(ui->uvTempTableWidget, 0, calTemperature.b0());
+    coefficientSetCheckDirtyRow(ui->uvTempTableWidget, 1, calTemperature.b1());
+    coefficientSetCheckDirtyRow(ui->uvTempTableWidget, 2, calTemperature.b2());
+}
+
 void CalibrationUvVisTab::onCalReflectionTextChanged()
 {
     if (densInterface_->connected()
@@ -514,6 +650,38 @@ void CalibrationUvVisTab::onCalSlopeResponse()
     onCalSlopeTextChanged();
 }
 
+void CalibrationUvVisTab::onCalVisTempResponse()
+{
+    const DensCalTemperature calTemperature = densInterface_->calVisTemperature();
+
+    coefficientSetAssignRow(ui->visTempTableWidget, 0, calTemperature.b0());
+    coefficientSetAssignRow(ui->visTempTableWidget, 1, calTemperature.b1());
+    coefficientSetAssignRow(ui->visTempTableWidget, 2, calTemperature.b2());
+
+    onCalVisTempTextChanged();
+}
+
+void CalibrationUvVisTab::onCalVisTempSetComplete()
+{
+    densInterface_->sendGetCalVisTemperature();
+}
+
+void CalibrationUvVisTab::onCalUvTempResponse()
+{
+    const DensCalTemperature calTemperature = densInterface_->calUvTemperature();
+
+    coefficientSetAssignRow(ui->uvTempTableWidget, 0, calTemperature.b0());
+    coefficientSetAssignRow(ui->uvTempTableWidget, 1, calTemperature.b1());
+    coefficientSetAssignRow(ui->uvTempTableWidget, 2, calTemperature.b2());
+
+    onCalUvTempTextChanged();
+}
+
+void CalibrationUvVisTab::onCalUvTempSetComplete()
+{
+    densInterface_->sendGetCalUvTemperature();
+}
+
 void CalibrationUvVisTab::onCalReflectionResponse()
 {
     const DensCalTarget calReflection = densInterface_->calReflection();
@@ -575,4 +743,69 @@ void CalibrationUvVisTab::onSlopeCalibrationToolFinished(int result)
         ui->b1LineEdit->setText(QString::number(std::get<1>(result), 'f'));
         ui->b2LineEdit->setText(QString::number(std::get<2>(result), 'f'));
     }
+}
+
+void CalibrationUvVisTab::coefficientSetCheckDirtyRow(QTableWidget *table, int row, const CoefficientSet &sourceValues)
+{
+    if (!table || table->rowCount() <= row || table->columnCount() < 3) { return; }
+
+    QLineEdit *lineEdit;
+
+    lineEdit = qobject_cast<QLineEdit *>(table->cellWidget(row, 0));
+    updateLineEditDirtyState(lineEdit, std::get<0>(sourceValues));
+
+    lineEdit = qobject_cast<QLineEdit *>(table->cellWidget(row, 1));
+    updateLineEditDirtyState(lineEdit, std::get<1>(sourceValues));
+
+    lineEdit = qobject_cast<QLineEdit *>(table->cellWidget(row, 2));
+    updateLineEditDirtyState(lineEdit, std::get<2>(sourceValues));
+}
+
+void CalibrationUvVisTab::coefficientSetAssignRow(QTableWidget *table, int row, const CoefficientSet &sourceValues)
+{
+    if (!table || table->rowCount() <= row || table->columnCount() < 3) { return; }
+
+    QLineEdit *lineEdit;
+
+    lineEdit = qobject_cast<QLineEdit *>(table->cellWidget(row, 0));
+    if (lineEdit) { lineEdit->setText(QString::number(std::get<0>(sourceValues))); }
+
+    lineEdit = qobject_cast<QLineEdit *>(table->cellWidget(row, 1));
+    if (lineEdit) { lineEdit->setText(QString::number(std::get<1>(sourceValues))); }
+
+    lineEdit = qobject_cast<QLineEdit *>(table->cellWidget(row, 2));
+    if (lineEdit) { lineEdit->setText(QString::number(std::get<2>(sourceValues))); }
+}
+
+CoefficientSet CalibrationUvVisTab::coefficientSetCollectRow(QTableWidget *table, int row)
+{
+    bool ok;
+    float v0 = qSNaN();;
+    float v1 = qSNaN();;
+    float v2 = qSNaN();;
+
+    if (!table || table->rowCount() <= row || table->columnCount() < 3) { return { v0, v1, v2 }; }
+
+    QLineEdit *lineEdit;
+
+    lineEdit = qobject_cast<QLineEdit *>(table->cellWidget(row, 0));
+    if (lineEdit) {
+        v0 = lineEdit->text().toFloat(&ok);
+        if (!ok) { v0 = qSNaN(); }
+    }
+
+    lineEdit = qobject_cast<QLineEdit *>(table->cellWidget(row, 1));
+    if (lineEdit) {
+        v1 = lineEdit->text().toFloat(&ok);
+        if (!ok) { v1 = qSNaN(); }
+    }
+
+    lineEdit = qobject_cast<QLineEdit *>(table->cellWidget(row, 2));
+    if (lineEdit) {
+        v2 = lineEdit->text().toFloat(&ok);
+        if (!ok) { v2 = qSNaN(); }
+    }
+
+
+    return { v0, v1, v2 };
 }

@@ -7,6 +7,7 @@
 #include "densinterface.h"
 
 class QLineEdit;
+class QTableWidget;
 
 namespace Ui {
 class CalibrationUvVisTab;
@@ -36,18 +37,26 @@ private slots:
     void onCalGainCalClicked();
     void onCalGainSetClicked();
     void onCalSlopeSetClicked();
+    void onCalVisTempSetClicked();
+    void onCalUvTempSetClicked();
     void onCalReflectionSetClicked();
     void onCalTransmissionSetClicked();
     void onCalUvTransmissionSetClicked();
 
     void onCalGainTextChanged();
     void onCalSlopeTextChanged();
+    void onCalVisTempTextChanged();
+    void onCalUvTempTextChanged();
     void onCalReflectionTextChanged();
     void onCalTransmissionTextChanged();
     void onCalUvTransmissionTextChanged();
 
     void onCalGainResponse();
     void onCalSlopeResponse();
+    void onCalVisTempResponse();
+    void onCalVisTempSetComplete();
+    void onCalUvTempResponse();
+    void onCalUvTempSetComplete();
     void onCalReflectionResponse();
     void onCalTransmissionResponse();
     void onCalUvTransmissionResponse();
@@ -57,6 +66,9 @@ private slots:
 
 private:
     void refreshButtonState();
+    void coefficientSetCheckDirtyRow(QTableWidget *table, int row, const CoefficientSet &sourceValues);
+    void coefficientSetAssignRow(QTableWidget *table, int row, const CoefficientSet &sourceValues);
+    CoefficientSet coefficientSetCollectRow(QTableWidget *table, int row);
 
     Ui::CalibrationUvVisTab *ui;
 };
