@@ -435,6 +435,24 @@ void MainWindow::onMenuEditAboutToShow()
                     }
                 }
             }
+
+            const QTableWidget *tableWidget = qobject_cast<const QTableWidget *>(focusWidget);
+            if (tableWidget) {
+                bool hasContent = false;
+                if (tableWidget->selectionModel()->hasSelection()) {
+                    auto itemList = tableWidget->selectedItems();
+                    for (auto item : itemList) {
+                        if (item && !item->text().isEmpty()) {
+                            hasContent = true;
+                            break;
+                        }
+                    }
+                }
+                hasCut = hasContent;
+                hasCopy = hasContent;
+                hasPaste = true;
+                hasDelete = hasContent;
+            }
         }
     }
 
@@ -597,6 +615,13 @@ void MainWindow::onActionCut()
                 && focusWidget == ui->measTableView
                 && !ui->measTableView->selectionModel()->selectedRows(1).isEmpty()) {
             measTableCut();
+            return;
+        }
+
+        // Handle the common case for a table widget selection
+        QTableWidget *tableWidget = qobject_cast<QTableWidget *>(focusWidget);
+        if (tableWidget) {
+            tableWidgetCut(tableWidget);
         }
     }
 }
@@ -617,6 +642,13 @@ void MainWindow::onActionCopy()
                 && focusWidget == ui->measTableView
                 && !ui->measTableView->selectionModel()->selectedRows(1).isEmpty()) {
             measTableCopy();
+            return;
+        }
+
+        // Handle the common case for a table widget selection
+        const QTableWidget *tableWidget = qobject_cast<const QTableWidget *>(focusWidget);
+        if (tableWidget) {
+            tableWidgetCopy(tableWidget);
         }
     }
 }
@@ -637,6 +669,13 @@ void MainWindow::onActionPaste()
                 && focusWidget == ui->measTableView
                 && !ui->measTableView->selectionModel()->selectedRows(1).isEmpty()) {
             measTablePaste();
+            return;
+        }
+
+        // Handle the common case for a table widget selection
+        QTableWidget *tableWidget = qobject_cast<QTableWidget *>(focusWidget);
+        if (tableWidget) {
+            tableWidgetPaste(tableWidget);
         }
     }
 }
@@ -657,6 +696,13 @@ void MainWindow::onActionDelete()
                 && focusWidget == ui->measTableView
                 && !ui->measTableView->selectionModel()->selectedRows(1).isEmpty()) {
             measTableDelete();
+            return;
+        }
+
+        // Handle the common case for a table widget selection
+        QTableWidget *tableWidget = qobject_cast<QTableWidget *>(focusWidget);
+        if (tableWidget) {
+            tableWidgetDelete(tableWidget);
         }
     }
 }
@@ -826,6 +872,135 @@ void MainWindow::measTableDelete()
         item = measModel_->item(index.row(), 2);
         if (item) { item->setText(QString()); }
     }
+}
+
+void MainWindow::tableWidgetCut(QTableWidget *tableWidget)
+{
+    tableWidgetCopy(tableWidget);
+    tableWidgetDelete(tableWidget);
+}
+
+void MainWindow::tableWidgetCopy(const QTableWidget *tableWidget)
+{
+    QString copiedText;
+    for (int i = 0; i < tableWidget->rowCount(); i++) {
+        QString copiedLine;
+        for (int j = 0; j < tableWidget->columnCount(); j++) {
+            QTableWidgetItem *item = tableWidget->item(i, j);
+            if (!item || !item->isSelected()) { continue; }
+            if (!copiedLine.isEmpty()) {
+                copiedLine.append(QLatin1String("\t"));
+            }
+            copiedLine.append(item->text());
+        }
+        if (!copiedLine.isEmpty()) {
+            if (!copiedText.isEmpty()) {
+#if defined(Q_OS_WIN)
+                copiedText.append(QLatin1String("\r\n"));
+#else
+                copiedText.append(QLatin1String("\n"));
+#endif
+            }
+            copiedText.append(copiedLine);
+        }
+    }
+
+    // Move to the clipboard
+    QClipboard *clipboard = QApplication::clipboard();
+    clipboard->setText(copiedText, QClipboard::Clipboard);
+
+    if (clipboard->supportsSelection()) {
+        clipboard->setText(copiedText, QClipboard::Selection);
+    }
+
+#if defined(Q_OS_UNIX)
+    QThread::msleep(1);
+#endif
+}
+
+void MainWindow::tableWidgetPaste(QTableWidget *tableWidget)
+{
+    static QRegularExpression reLine("\n|\r\n|\r");
+    static QRegularExpression reRow("[,;]\\s*|\\s+");
+
+    // Capture and split the text to be pasted
+    // This keeps valid floats in string representation, so the target widget
+    // can decide how it wants to format them.
+    const QClipboard *clipboard = QApplication::clipboard();
+    const QMimeData *mimeData = clipboard->mimeData();
+    QList<QList<QString>> numList;
+    if (mimeData->hasText()) {
+        const QString text = mimeData->text();
+        const QStringList elements = text.split(reLine, Qt::SkipEmptyParts);
+        for (const QString& element : elements) {
+            QStringList rowElements = element.split(reRow, Qt::SkipEmptyParts);
+            float num;
+            bool ok;
+            bool hasNums = false;
+
+            QList<QString> rowNumList;
+            for (const QString& rowElement : rowElements) {
+                rowElement.toFloat(&ok);
+
+                if (ok) {
+                    rowNumList.append(rowElement);
+                    hasNums = true;
+                } else {
+                    rowNumList.append(QString());
+                }
+            }
+
+            if (hasNums) {
+                numList.append(rowNumList);
+            }
+        }
+    }
+
+    // Find the upper-left corner of the paste area
+    int row = -1;
+    int col = -1;
+    QModelIndexList selected = tableWidget->selectionModel()->selectedIndexes();
+    selected.append(tableWidget->selectionModel()->currentIndex());
+    for (const QModelIndex &index : std::as_const(selected)) {
+        if (row == -1 || index.row() < row) {
+            row = index.row();
+        }
+        if (col == -1 || index.column() < col) {
+            col = index.column();
+        }
+    }
+
+    // Paste the values
+    if (!numList.isEmpty() && row >= 0 && col >= 0) {
+        for (auto rowNumList : numList) {
+            if (row >= tableWidget->rowCount()) { break; }
+
+            for (int i = 0; i < rowNumList.size(); i++) {
+                if (col + i >= tableWidget->columnCount()) { break; }
+                QTableWidgetItem *item = tableWidget->item(row, col + i);
+                if (!item) {
+                    item = new QTableWidgetItem();
+                    tableWidget->setItem(row, col + i, item);
+                }
+                item->setText(rowNumList[i]);
+            }
+
+            row++;
+        }
+    }
+}
+
+void MainWindow::tableWidgetDelete(QTableWidget *tableWidget)
+{
+    for (int i = 0; i < tableWidget->rowCount(); i++) {
+        for (int j = 0; j < tableWidget->columnCount(); j++) {
+            QTableWidgetItem *item = tableWidget->item(i, j);
+            if (item && item->isSelected()) {
+                tableWidget->setItem(i, j, nullptr);
+            }
+        }
+    }
+    tableWidget->clearSelection();
 }
 
 void MainWindow::onAddReadingClicked()
