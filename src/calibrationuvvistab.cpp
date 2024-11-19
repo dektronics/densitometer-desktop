@@ -183,9 +183,15 @@ void CalibrationUvVisTab::refreshButtonState()
     }
 
     // Make calibration values editable only if connected
-    ui->gainTableWidget->setEnabled(connected);
-    ui->visTempTableWidget->setEnabled(connected);
-    ui->uvTempTableWidget->setEnabled(connected);
+    if (connected) {
+        ui->gainTableWidget->setEditTriggers(QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::AnyKeyPressed);
+        ui->visTempTableWidget->setEditTriggers(QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::AnyKeyPressed);
+        ui->uvTempTableWidget->setEditTriggers(QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::AnyKeyPressed);
+    } else {
+        ui->gainTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        ui->visTempTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        ui->uvTempTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    }
 
     ui->zLineEdit->setReadOnly(!connected);
     ui->b0LineEdit->setReadOnly(!connected);
