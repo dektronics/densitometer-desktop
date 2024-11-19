@@ -8,6 +8,7 @@
 
 class QLineEdit;
 class QTableWidget;
+class QTableWidgetItem;
 
 namespace Ui {
 class CalibrationUvVisTab;
@@ -43,7 +44,7 @@ private slots:
     void onCalTransmissionSetClicked();
     void onCalUvTransmissionSetClicked();
 
-    void onCalGainTextChanged();
+    void onCalGainItemChanged(QTableWidgetItem *item);
     void onCalSlopeTextChanged();
     void onCalVisTempTextChanged();
     void onCalUvTempTextChanged();

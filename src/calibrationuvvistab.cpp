@@ -6,6 +6,7 @@
 
 #include "gaincalibrationdialog.h"
 #include "slopecalibrationdialog.h"
+#include "floatitemdelegate.h"
 #include "util.h"
 
 CalibrationUvVisTab::CalibrationUvVisTab(DensInterface *densInterface, QWidget *parent)
@@ -47,13 +48,9 @@ CalibrationUvVisTab::CalibrationUvVisTab(DensInterface *densInterface, QWidget *
     connect(ui->tranUvSetPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onCalUvTransmissionSetClicked);
     connect(ui->slopeCalPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onSlopeCalibrationTool);
 
-    // Calibration (gain) field validation
-    for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
-        QLineEdit *lineEdit = new QLineEdit();
-        lineEdit->setValidator(util::createFloatValidator(0.0, 512.0, 6, this));
-        ui->gainTableWidget->setCellWidget(i, 0, lineEdit);
-        connect(lineEdit, &QLineEdit::textChanged, this, &CalibrationUvVisTab::onCalGainTextChanged);
-    }
+    // Calibration (gain) field
+    ui->gainTableWidget->setItemDelegate(new FloatItemDelegate(0.0, 512.0, 6));
+    connect(ui->gainTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalGainItemChanged);
 
     // Calibration (slope) field validation
     ui->zLineEdit->setValidator(util::createFloatValidator(-100.0, 100.0, 6, this));
@@ -125,12 +122,7 @@ CalibrationUvVisTab::~CalibrationUvVisTab()
 
 void CalibrationUvVisTab::clear()
 {
-    for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
-        QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
-        if (lineEdit) {
-            lineEdit->clear();
-        }
-    }
+    ui->gainTableWidget->clearContents();
 
     ui->zLineEdit->clear();
     ui->b0LineEdit->clear();
@@ -205,12 +197,7 @@ void CalibrationUvVisTab::refreshButtonState()
     }
 
     // Make calibration values editable only if connected
-    for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
-        QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
-        if (lineEdit) {
-            lineEdit->setReadOnly(!connected);
-        }
-    }
+    ui->gainTableWidget->setEnabled(connected);
 
     for (int i = 0; i < ui->visTempTableWidget->rowCount(); i++) {
         for (int j = 0; j < ui->visTempTableWidget->columnCount(); j++) {
@@ -320,15 +307,15 @@ void CalibrationUvVisTab::onCalGainSetClicked()
     bool ok;
 
     for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
-        QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
-        if (lineEdit) {
-            DensUvVisCalGain::GainLevel gainLevel = static_cast<DensUvVisCalGain::GainLevel>(i);
+        QTableWidgetItem *item = ui->gainTableWidget->item(i, 0);
+        if (!item) { return; }
 
-            float gainValue = lineEdit->text().toFloat(&ok);
-            if (!ok) { return; }
+        DensUvVisCalGain::GainLevel gainLevel = static_cast<DensUvVisCalGain::GainLevel>(i);
 
-            calGain.setGainValue(gainLevel, gainValue);
-        }
+        float gainValue = item->text().toFloat(&ok);
+        if (!ok) { return; }
+
+        calGain.setGainValue(gainLevel, gainValue);
     }
 
     if (!calGain.isValid()) {
@@ -469,13 +456,13 @@ void CalibrationUvVisTab::onCalUvTransmissionSetClicked()
     densInterface_->sendSetCalUvTransmission(calTarget);
 }
 
-void CalibrationUvVisTab::onCalGainTextChanged()
+void CalibrationUvVisTab::onCalGainItemChanged(QTableWidgetItem *item)
 {
     bool enableSet = true;
     if (densInterface_->connected()) {
         for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
-            QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
-            if (lineEdit && (lineEdit->text().isEmpty() || !lineEdit->hasAcceptableInput())) {
+            QTableWidgetItem *item = ui->gainTableWidget->item(i, 0);
+            if (!item || item->text().isEmpty()) {
                 enableSet = false;
                 break;
             }
@@ -488,11 +475,9 @@ void CalibrationUvVisTab::onCalGainTextChanged()
     const DensUvVisCalGain calGain = densInterface_->calUvVisGain();
 
     for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
-        QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
+        QTableWidgetItem *item = ui->gainTableWidget->item(i, 0);
         float gainValue = calGain.gainValue(static_cast<DensUvVisCalGain::GainLevel>(i));
-        if (lineEdit) {
-            updateLineEditDirtyState(lineEdit, gainValue, 6);
-        }
+        updateItemDirtyState(item, gainValue, 6);
     }
 }
 
@@ -623,19 +608,27 @@ void CalibrationUvVisTab::onCalGainResponse()
 {
     const DensUvVisCalGain calGain = densInterface_->calUvVisGain();
 
+    disconnect(ui->gainTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalGainItemChanged);
+
     for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
-        QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
+        QTableWidgetItem *item = ui->gainTableWidget->item(i, 0);
+        if (!item) {
+            item = new QTableWidgetItem();
+            ui->gainTableWidget->setItem(i, 0, item);
+        }
         float gainValue = calGain.gainValue(static_cast<DensUvVisCalGain::GainLevel>(i));
-        if (lineEdit) {
+        if (item) {
             if (qIsNaN(gainValue) || !qIsFinite(gainValue) || gainValue <= 0.0F) {
-                lineEdit->setText(QString());
+                item->setText(QString());
             } else {
-                lineEdit->setText(QString::number(gainValue, 'f'));
+                item->setText(QString::number(gainValue, 'f'));
             }
         }
     }
 
-    onCalGainTextChanged();
+    onCalGainItemChanged(nullptr);
+
+    connect(ui->gainTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalGainItemChanged);
 }
 
 void CalibrationUvVisTab::onCalSlopeResponse()

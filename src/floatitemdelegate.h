@@ -7,6 +7,7 @@ class FloatItemDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
 public:
+    explicit FloatItemDelegate(QObject *parent = nullptr);
     explicit FloatItemDelegate(double min, double max, int decimals, QObject *parent = nullptr);
 
     QWidget *createEditor(QWidget *parent,

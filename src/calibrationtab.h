@@ -6,6 +6,7 @@
 #include "densinterface.h"
 
 class QLineEdit;
+class QTableWidgetItem;
 
 class CalibrationTab : public QWidget
 {
@@ -26,6 +27,7 @@ signals:
 protected:
     void updateLineEditDirtyState(QLineEdit *lineEdit, int value);
     void updateLineEditDirtyState(QLineEdit *lineEdit, float value, int prec = -1);
+    void updateItemDirtyState(QTableWidgetItem *item, float value, int prec = -1);
 
     DensInterface *densInterface_ = nullptr;
 };

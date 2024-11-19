@@ -3,6 +3,11 @@
 #include <QLineEdit>
 #include <QDebug>
 
+FloatItemDelegate::FloatItemDelegate(QObject *parent)
+    : FloatItemDelegate(-HUGE_VAL, HUGE_VAL, -1, parent)
+{
+}
+
 FloatItemDelegate::FloatItemDelegate(double min, double max, int decimals, QObject *parent) :
     QStyledItemDelegate(parent),
     min_(min), max_(max), decimals_(decimals)
@@ -17,7 +22,11 @@ QWidget *FloatItemDelegate::createEditor(QWidget *parent,
     QLineEdit *lineEdit = dynamic_cast<QLineEdit *>(widget);
     if (lineEdit) {
         QDoubleValidator *validator = new QDoubleValidator(min_, max_, decimals_);
-        validator->setNotation(QDoubleValidator::StandardNotation);
+        if (decimals_ < 0) {
+            validator->setNotation(QDoubleValidator::ScientificNotation);
+        } else {
+            validator->setNotation(QDoubleValidator::StandardNotation);
+        }
         lineEdit->setValidator(validator);
     }
     return widget;
