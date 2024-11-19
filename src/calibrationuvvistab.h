@@ -46,8 +46,8 @@ private slots:
 
     void onCalGainItemChanged(QTableWidgetItem *item);
     void onCalSlopeTextChanged();
-    void onCalVisTempTextChanged();
-    void onCalUvTempTextChanged();
+    void onCalVisTempItemChanged(QTableWidgetItem *item);
+    void onCalUvTempItemChanged(QTableWidgetItem *item);
     void onCalReflectionTextChanged();
     void onCalTransmissionTextChanged();
     void onCalUvTransmissionTextChanged();
@@ -67,6 +67,8 @@ private slots:
 
 private:
     void refreshButtonState();
+    bool tableHasEmptyCells(QTableWidget *table);
+    QTableWidgetItem *tableWidgetItem(QTableWidget *table, int row, int column);
     void coefficientSetCheckDirtyRow(QTableWidget *table, int row, const CoefficientSet &sourceValues);
     void coefficientSetAssignRow(QTableWidget *table, int row, const CoefficientSet &sourceValues);
     CoefficientSet coefficientSetCollectRow(QTableWidget *table, int row);
