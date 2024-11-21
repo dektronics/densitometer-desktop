@@ -41,8 +41,6 @@ private slots:
 
 private:
     void addRawMeasurement(float rawValue);
-    std::tuple<float, float, float> polyfit(const QList<float> &xList, const QList<float> &yList);
-    void gaussEliminationLS(int m, int n, double **a /*[m][n]*/, double *x /*[n-1]*/);
     QPair<int, int> upperLeftActiveIndex() const;
     float itemValueAsFloat(int row, int col) const;
 

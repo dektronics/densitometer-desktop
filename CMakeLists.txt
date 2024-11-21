@@ -58,6 +58,7 @@ set(PROJECT_SOURCES
     src/settingsexporter.cpp src/settingsexporter.h
     src/settingsimportdialog.cpp src/settingsimportdialog.h src/settingsimportdialog.ui
     src/slopecalibrationdialog.cpp src/slopecalibrationdialog.h src/slopecalibrationdialog.ui
+    src/tempcalibrationdialog.cpp src/tempcalibrationdialog.h src/tempcalibrationdialog.ui
     src/util.cpp src/util.h
     src/qsimplesignalaggregator.cpp src/qsimplesignalaggregator.h src/qsignalaggregator.h
     src/ft260deviceinfo.cpp src/ft260deviceinfo.h src/ft260deviceinfo_p.h

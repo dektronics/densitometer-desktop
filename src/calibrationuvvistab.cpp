@@ -6,6 +6,7 @@
 
 #include "gaincalibrationdialog.h"
 #include "slopecalibrationdialog.h"
+#include "tempcalibrationdialog.h"
 #include "floatitemdelegate.h"
 #include "util.h"
 
@@ -47,6 +48,8 @@ CalibrationUvVisTab::CalibrationUvVisTab(DensInterface *densInterface, QWidget *
     connect(ui->tranUvGetPushButton, &QPushButton::clicked, densInterface_, &DensInterface::sendGetCalUvTransmission);
     connect(ui->tranUvSetPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onCalUvTransmissionSetClicked);
     connect(ui->slopeCalPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onSlopeCalibrationTool);
+    connect(ui->visTempCalPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onTempCalibrationTool);
+    connect(ui->uvTempCalPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onTempCalibrationTool);
 
     // Calibration (gain) field
     ui->gainTableWidget->setItemDelegate(new FloatItemDelegate(0.0, 512.0, 6));
@@ -691,6 +694,50 @@ void CalibrationUvVisTab::onSlopeCalibrationToolFinished(int result)
         ui->b0LineEdit->setText(QString::number(std::get<0>(result), 'f'));
         ui->b1LineEdit->setText(QString::number(std::get<1>(result), 'f'));
         ui->b2LineEdit->setText(QString::number(std::get<2>(result), 'f'));
+    }
+}
+
+void CalibrationUvVisTab::onTempCalibrationTool()
+{
+    TempCalibrationDialog *dialog = new TempCalibrationDialog(this);
+    if (sender() == ui->visTempCalPushButton) {
+        dialog->setModeVis();
+        dialog->setProperty("mode", QLatin1String("vis"));
+    } else if (sender() == ui->uvTempCalPushButton) {
+        dialog->setModeUv();
+        dialog->setProperty("mode", QLatin1String("uv"));
+    }
+    connect(dialog, &QDialog::finished, this, &CalibrationUvVisTab::onTempCalibrationToolFinished);
+    dialog->show();
+
+}
+
+void CalibrationUvVisTab::onTempCalibrationToolFinished(int result)
+{
+    TempCalibrationDialog *dialog = dynamic_cast<TempCalibrationDialog *>(sender());
+    dialog->deleteLater();
+
+    if (result == QDialog::Accepted) {
+        const QString mode = dialog->property("mode").toString();
+        if (mode == QLatin1String("vis")) {
+            disconnect(ui->visTempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalVisTempItemChanged);
+
+            coefficientSetAssignRow(ui->visTempTableWidget, 0, dialog->b0Values());
+            coefficientSetAssignRow(ui->visTempTableWidget, 1, dialog->b1Values());
+            coefficientSetAssignRow(ui->visTempTableWidget, 2, dialog->b2Values());
+
+            onCalVisTempItemChanged(nullptr);
+            connect(ui->visTempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalVisTempItemChanged);
+        } else if (mode == QLatin1String("uv")) {
+            disconnect(ui->uvTempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalUvTempItemChanged);
+
+            coefficientSetAssignRow(ui->uvTempTableWidget, 0, dialog->b0Values());
+            coefficientSetAssignRow(ui->uvTempTableWidget, 1, dialog->b1Values());
+            coefficientSetAssignRow(ui->uvTempTableWidget, 2, dialog->b2Values());
+
+            onCalUvTempItemChanged(nullptr);
+            connect(ui->uvTempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalUvTempItemChanged);
+        }
     }
 }
 

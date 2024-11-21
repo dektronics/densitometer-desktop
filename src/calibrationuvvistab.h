@@ -65,6 +65,9 @@ private slots:
     void onSlopeCalibrationTool();
     void onSlopeCalibrationToolFinished(int result);
 
+    void onTempCalibrationTool();
+    void onTempCalibrationToolFinished(int result);
+
 private:
     void refreshButtonState();
     bool tableHasEmptyCells(QTableWidget *table);

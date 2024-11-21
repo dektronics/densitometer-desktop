@@ -10,6 +10,7 @@ class QValidator;
 class QWidget;
 class QPixmap;
 class QSvgWidget;
+class QTableWidget;
 
 namespace util
 {
@@ -28,11 +29,18 @@ uint16_t calculateFtdiChecksum(const uint8_t *data, size_t len);
 double **make2DArray(const size_t rows, const size_t cols);
 void free2DArray(double **array, const size_t rows);
 
+std::tuple<float, float, float> polyfit(const QList<float> &xList, const QList<float> &yList);
+
 QValidator *createIntValidator(int min, int max, QObject *parent = nullptr);
 QValidator *createFloatValidator(double min, double max, int decimals, QObject *parent = nullptr);
 
 QPixmap createThemeColoredPixmap(const QWidget *refWidget, const QString &fileName);
 QSvgWidget *createThemeColoredSvgWidget(const QWidget *refWidget, const QString &fileName);
+
+void tableWidgetCut(QTableWidget *tableWidget);
+void tableWidgetCopy(const QTableWidget *tableWidget);
+void tableWidgetPaste(QTableWidget *tableWidget);
+void tableWidgetDelete(QTableWidget *tableWidget);
 
 }
 

@@ -76,10 +76,6 @@ private:
     void measTableCopyList(const QModelIndexList &indexList, bool includeEmpty);
     void measTablePaste();
     void measTableDelete();
-    void tableWidgetCut(QTableWidget *tableWidget);
-    void tableWidgetCopy(const QTableWidget *tableWidget);
-    void tableWidgetPaste(QTableWidget *tableWidget);
-    void tableWidgetDelete(QTableWidget *tableWidget);
 
     Ui::MainWindow *ui = nullptr;
     QLabel *statusLabel_ = nullptr;

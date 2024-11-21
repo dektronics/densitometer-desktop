@@ -730,6 +730,13 @@
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout">
                 <item>
+                 <widget class="QPushButton" name="visTempCalPushButton">
+                  <property name="text">
+                   <string>Calibration Tool</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
                  <spacer name="horizontalSpacer">
                   <property name="orientation">
                    <enum>Qt::Orientation::Horizontal</enum>
@@ -818,6 +825,13 @@
               </item>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_2">
+                <item>
+                 <widget class="QPushButton" name="uvTempCalPushButton">
+                  <property name="text">
+                   <string>Calibration Tool</string>
+                  </property>
+                 </widget>
+                </item>
                 <item>
                  <spacer name="horizontalSpacer_2">
                   <property name="orientation">
