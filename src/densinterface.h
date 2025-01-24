@@ -53,6 +53,7 @@ public slots:
     void sendGetSystemInternalSensors();
     void sendInvokeSystemRemoteControl(bool enabled);
     void sendSetSystemDisplayText(const QString &text);
+    void sendSetSystemDisplayEnable(bool enabled);
 
     void sendSetMeasurementFormat(DensInterface::DensityFormat format);
     void sendSetAllowUncalibratedMeasurements(bool allow);
@@ -149,6 +150,7 @@ signals:
     void systemUniqueId();
     void systemInternalSensors();
     void systemRemoteControl(bool enabled);
+    void systemDisplaySetComplete();
 
     void diagDisplayScreenshot(const QByteArray &data);
     void diagLightReflChanged();

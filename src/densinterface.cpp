@@ -122,8 +122,23 @@ void DensInterface::sendSetSystemDisplayText(const QString &text)
     sendText.replace(QChar('\\'), QLatin1String("\\\\"));
     sendText.replace(QChar('\n'), QLatin1String("\\n"));
 
+    if (deviceType_ == DeviceType::DeviceUvVis) {
+        sendText = QChar('"') + sendText + QChar('"');
+    }
+
     QStringList args;
     args.append(sendText);
+
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategorySystem, "DISP", args);
+    sendCommand(command);
+}
+
+void DensInterface::sendSetSystemDisplayEnable(bool enabled)
+{
+    if (deviceType_ != DeviceType::DeviceUvVis) { return; }
+
+    QStringList args;
+    args.append(enabled ? "1" : "0");
 
     DensCommand command(DensCommand::TypeSet, DensCommand::CategorySystem, "DISP", args);
     sendCommand(command);
@@ -861,6 +876,10 @@ void DensInterface::readSystemResponse(const DensCommand &response)
                 sensorTemp_ = args.at(2);
             }
             emit systemInternalSensors();
+        }
+    } else if (response.type() == DensCommand::TypeSet) {
+        if (isResponseSetOk(response, QLatin1String("DISP"))) {
+            emit systemDisplaySetComplete();
         }
     } else if (response.type() == DensCommand::TypeInvoke) {
         const QStringList args = response.args();
