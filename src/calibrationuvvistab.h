@@ -38,16 +38,14 @@ private slots:
     void onCalGainCalClicked();
     void onCalGainSetClicked();
     void onCalSlopeSetClicked();
-    void onCalVisTempSetClicked();
-    void onCalUvTempSetClicked();
+    void onCalTempSetClicked();
     void onCalReflectionSetClicked();
     void onCalTransmissionSetClicked();
     void onCalUvTransmissionSetClicked();
 
     void onCalGainItemChanged(QTableWidgetItem *item);
     void onCalSlopeTextChanged();
-    void onCalVisTempItemChanged(QTableWidgetItem *item);
-    void onCalUvTempItemChanged(QTableWidgetItem *item);
+    void onCalTempItemChanged(QTableWidgetItem *item);
     void onCalReflectionTextChanged();
     void onCalTransmissionTextChanged();
     void onCalUvTransmissionTextChanged();

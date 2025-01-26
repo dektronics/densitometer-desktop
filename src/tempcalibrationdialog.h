@@ -3,6 +3,7 @@
 
 #include <QDialog>
 #include <QList>
+#include <QJsonArray>
 
 #include "denscalvalues.h"
 
@@ -21,12 +22,17 @@ public:
     explicit TempCalibrationDialog(QWidget *parent = nullptr);
     ~TempCalibrationDialog();
 
-    void setModeVis();
-    void setModeUv();
+    void setUniqueId(const QString &uniqueId);
 
-    CoefficientSet b0Values() const;
-    CoefficientSet b1Values() const;
-    CoefficientSet b2Values() const;
+    bool hasVisValues() const;
+    CoefficientSet b0VisValues() const;
+    CoefficientSet b1VisValues() const;
+    CoefficientSet b2VisValues() const;
+
+    bool hasUvValues() const;
+    CoefficientSet b0UvValues() const;
+    CoefficientSet b1UvValues() const;
+    CoefficientSet b2UvValues() const;
 
 private slots:
     void onActionCut();
@@ -38,11 +44,18 @@ private slots:
     void onCalculateClicked();
 
 private:
-    void calculateCorrections(const QList<QList<double>> &tableData, int refTempRow);
+    bool processImportData(const QByteArray &importData);
+    void populateImportDataSequence(QTableWidget *inputTableWidget, const QJsonArray &sequence);
+    QList<QList<double>> collectInputData(QTableWidget *inputTableWidget);
+    int findReferenceRow(const QList<QList<double>> &tableData);
+    void calculateCorrections(const QList<QList<double>> &tableData, int refTempRow, QTableWidget *resultsTableWidget);
     QTableWidgetItem *tableWidgetItem(QTableWidget *table, int row, int column);
     void coefficientSetAssignRow(QTableWidget *table, int row, const CoefficientSet &sourceValues);
     CoefficientSet coefficientSetCollectRow(const QTableWidget *table, int row) const;
 
+    QString uniqueId_;
+    bool hasVisValues_ = false;
+    bool hasUvValues_ = false;
     Ui::TempCalibrationDialog *ui;
 };
 

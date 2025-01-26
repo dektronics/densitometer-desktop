@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>516</width>
-    <height>642</height>
+    <width>568</width>
+    <height>730</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -376,11 +376,11 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>460</width>
-            <height>624</height>
+            <width>526</width>
+            <height>631</height>
            </rect>
           </property>
-          <layout class="QGridLayout" name="gridLayout" columnstretch="1,1">
+          <layout class="QGridLayout" name="gridLayout">
            <item row="0" column="0">
             <widget class="QGroupBox" name="gainGroupBox">
              <property name="sizePolicy">
@@ -673,64 +673,158 @@
             </widget>
            </item>
            <item row="1" column="0" colspan="2">
-            <widget class="QGroupBox" name="visTempGroupBox">
+            <widget class="QGroupBox" name="tempGroupBox">
              <property name="title">
-              <string>VIS Temperature Calibration</string>
+              <string>Temperature Calibration</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout">
               <item>
-               <widget class="QTableWidget" name="visTempTableWidget">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
+               <widget class="QLabel" name="label">
+                <property name="text">
+                 <string>VIS Coefficients</string>
                 </property>
-                <property name="sizeAdjustPolicy">
-                 <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
-                </property>
-                <property name="alternatingRowColors">
-                 <bool>true</bool>
-                </property>
-                <attribute name="verticalHeaderStretchLastSection">
-                 <bool>false</bool>
-                </attribute>
-                <row>
-                 <property name="text">
-                  <string>B0</string>
-                 </property>
-                </row>
-                <row>
-                 <property name="text">
-                  <string>B1</string>
-                 </property>
-                </row>
-                <row>
-                 <property name="text">
-                  <string>B2</string>
-                 </property>
-                </row>
-                <column>
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>1</string>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>2</string>
-                 </property>
-                </column>
                </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_4">
+                <item>
+                 <widget class="QTableWidget" name="visTempTableWidget">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="sizeAdjustPolicy">
+                   <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
+                  </property>
+                  <property name="alternatingRowColors">
+                   <bool>true</bool>
+                  </property>
+                  <attribute name="verticalHeaderStretchLastSection">
+                   <bool>false</bool>
+                  </attribute>
+                  <row>
+                   <property name="text">
+                    <string>B0</string>
+                   </property>
+                  </row>
+                  <row>
+                   <property name="text">
+                    <string>B1</string>
+                   </property>
+                  </row>
+                  <row>
+                   <property name="text">
+                    <string>B2</string>
+                   </property>
+                  </row>
+                  <column>
+                   <property name="text">
+                    <string>0</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>1</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>2</string>
+                   </property>
+                  </column>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_3">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <widget class="QLabel" name="label_2">
+                <property name="text">
+                 <string>UV Coefficients</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_5">
+                <item>
+                 <widget class="QTableWidget" name="uvTempTableWidget">
+                  <property name="sizePolicy">
+                   <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                    <horstretch>0</horstretch>
+                    <verstretch>0</verstretch>
+                   </sizepolicy>
+                  </property>
+                  <property name="sizeAdjustPolicy">
+                   <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
+                  </property>
+                  <property name="alternatingRowColors">
+                   <bool>true</bool>
+                  </property>
+                  <row>
+                   <property name="text">
+                    <string>B0</string>
+                   </property>
+                  </row>
+                  <row>
+                   <property name="text">
+                    <string>B1</string>
+                   </property>
+                  </row>
+                  <row>
+                   <property name="text">
+                    <string>B2</string>
+                   </property>
+                  </row>
+                  <column>
+                   <property name="text">
+                    <string>0</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>1</string>
+                   </property>
+                  </column>
+                  <column>
+                   <property name="text">
+                    <string>2</string>
+                   </property>
+                  </column>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_4">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
               </item>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout">
                 <item>
-                 <widget class="QPushButton" name="visTempCalPushButton">
+                 <widget class="QPushButton" name="tempCalPushButton">
                   <property name="text">
                    <string>Calibration Tool</string>
                   </property>
@@ -750,110 +844,14 @@
                  </spacer>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="visTempGetPushButton">
+                 <widget class="QPushButton" name="tempGetPushButton">
                   <property name="text">
                    <string>Get</string>
                   </property>
                  </widget>
                 </item>
                 <item>
-                 <widget class="QPushButton" name="visTempSetPushButton">
-                  <property name="enabled">
-                   <bool>false</bool>
-                  </property>
-                  <property name="text">
-                   <string>Set</string>
-                  </property>
-                 </widget>
-                </item>
-               </layout>
-              </item>
-             </layout>
-            </widget>
-           </item>
-           <item row="2" column="0" colspan="2">
-            <widget class="QGroupBox" name="uvTempGroupBox">
-             <property name="title">
-              <string>UV Temperature Calibration</string>
-             </property>
-             <layout class="QVBoxLayout" name="verticalLayout_2">
-              <item>
-               <widget class="QTableWidget" name="uvTempTableWidget">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
-                  <horstretch>0</horstretch>
-                  <verstretch>0</verstretch>
-                 </sizepolicy>
-                </property>
-                <property name="sizeAdjustPolicy">
-                 <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
-                </property>
-                <property name="alternatingRowColors">
-                 <bool>true</bool>
-                </property>
-                <row>
-                 <property name="text">
-                  <string>B0</string>
-                 </property>
-                </row>
-                <row>
-                 <property name="text">
-                  <string>B1</string>
-                 </property>
-                </row>
-                <row>
-                 <property name="text">
-                  <string>B2</string>
-                 </property>
-                </row>
-                <column>
-                 <property name="text">
-                  <string>0</string>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>1</string>
-                 </property>
-                </column>
-                <column>
-                 <property name="text">
-                  <string>2</string>
-                 </property>
-                </column>
-               </widget>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="horizontalLayout_2">
-                <item>
-                 <widget class="QPushButton" name="uvTempCalPushButton">
-                  <property name="text">
-                   <string>Calibration Tool</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer_2">
-                  <property name="orientation">
-                   <enum>Qt::Orientation::Horizontal</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>40</width>
-                    <height>20</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="uvTempGetPushButton">
-                  <property name="text">
-                   <string>Get</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QPushButton" name="uvTempSetPushButton">
+                 <widget class="QPushButton" name="tempSetPushButton">
                   <property name="enabled">
                    <bool>false</bool>
                   </property>
@@ -936,12 +934,8 @@
   <tabstop>b2LineEdit</tabstop>
   <tabstop>slopeGetPushButton</tabstop>
   <tabstop>slopeSetPushButton</tabstop>
-  <tabstop>visTempTableWidget</tabstop>
-  <tabstop>visTempGetPushButton</tabstop>
-  <tabstop>visTempSetPushButton</tabstop>
-  <tabstop>uvTempTableWidget</tabstop>
-  <tabstop>uvTempGetPushButton</tabstop>
-  <tabstop>uvTempSetPushButton</tabstop>
+  <tabstop>tempGetPushButton</tabstop>
+  <tabstop>tempSetPushButton</tabstop>
   <tabstop>calGetAllPushButton</tabstop>
  </tabstops>
  <resources/>
