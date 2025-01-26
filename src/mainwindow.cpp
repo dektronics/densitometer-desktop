@@ -165,6 +165,12 @@ MainWindow::MainWindow(QWidget *parent)
     ui->readingLayout->insertWidget(1, tranTypeWidget_);
 
     refreshButtonState();
+
+    QSettings settings;
+    const bool editAdvanced = settings.value("config/edit_advanced_cal", false).toBool();
+    ui->actionEditAdvCalibration->setChecked(editAdvanced);
+    updateAdvCalibrationEditable(editAdvanced);
+    connect(ui->actionEditAdvCalibration, &QAction::triggered, this, &MainWindow::onEditAdvCalibration);
 }
 
 MainWindow::~MainWindow()
@@ -369,6 +375,40 @@ void MainWindow::onLoggerClosed()
     }
 }
 
+void MainWindow::onEditAdvCalibration(bool checked)
+{
+    QSettings settings;
+
+    if (checked) {
+        auto result = QMessageBox::warning(
+            this, tr("Edit Advanced Calibration"),
+            tr("Advanced calibration values are typically set as part of device manufacture, "
+               "and the process for correctly updating them may require tools and equipment "
+               "that are not shipped with your device.\n\n"
+               "Are you sure you want to be able to change them?\n"),
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+        if (result != QMessageBox::Yes) {
+            disconnect(ui->actionEditAdvCalibration, &QAction::triggered, this, &MainWindow::onEditAdvCalibration);
+            ui->actionEditAdvCalibration->setChecked(false);
+            connect(ui->actionEditAdvCalibration, &QAction::triggered, this, &MainWindow::onEditAdvCalibration);
+        } else {
+            settings.setValue("config/edit_advanced_cal", true);
+            updateAdvCalibrationEditable(true);
+        }
+    } else {
+        settings.setValue("config/edit_advanced_cal", false);
+        updateAdvCalibrationEditable(false);
+    }
+}
+
+void MainWindow::updateAdvCalibrationEditable(bool editable)
+{
+    if (calibrationTab_) {
+        calibrationTab_->setAdvancedCalibrationEditable(editable);
+    }
+
+}
+
 void MainWindow::about()
 {
     QMessageBox::about(this, tr("About"),
@@ -487,6 +527,8 @@ void MainWindow::onConnectionOpened()
         } else if (densInterface_->deviceType() == DensInterface::DeviceUvVis) {
             calibrationTab_ = new CalibrationUvVisTab(densInterface_);
         }
+
+        calibrationTab_->setAdvancedCalibrationEditable(ui->actionEditAdvCalibration->isChecked());
 
         if (calibrationTab_) {
             ui->tabCalibrationLayout->replaceWidget(ui->tabCalibrationWidget, calibrationTab_);

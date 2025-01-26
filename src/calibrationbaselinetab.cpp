@@ -93,6 +93,16 @@ CalibrationBaselineTab::~CalibrationBaselineTab()
     delete ui;
 }
 
+void CalibrationBaselineTab::setAdvancedCalibrationEditable(bool editable)
+{
+    editable_ = editable;
+    refreshButtonState();
+    onCalLightTextChanged();
+    onCalGainTextChanged();
+    onCalSlopeTextChanged();
+    ui->slopeCalPushButton->setEnabled(editable_);
+}
+
 void CalibrationBaselineTab::clear()
 {
     ui->reflLightLineEdit->clear();
@@ -146,7 +156,7 @@ void CalibrationBaselineTab::refreshButtonState()
     if (connected) {
         ui->calGetAllPushButton->setEnabled(true);
         ui->lightGetPushButton->setEnabled(true);
-        ui->gainCalPushButton->setEnabled(true);
+        ui->gainCalPushButton->setEnabled(editable_);
         ui->gainGetPushButton->setEnabled(true);
         ui->slopeGetPushButton->setEnabled(true);
         ui->reflGetPushButton->setEnabled(true);
@@ -184,19 +194,19 @@ void CalibrationBaselineTab::refreshButtonState()
     }
 
     // Make calibration values editable only if connected
-    ui->reflLightLineEdit->setReadOnly(!connected);
-    ui->tranLightLineEdit->setReadOnly(!connected);
+    ui->reflLightLineEdit->setReadOnly(!connected || !editable_);
+    ui->tranLightLineEdit->setReadOnly(!connected || !editable_);
 
-    ui->med0LineEdit->setReadOnly(!connected);
-    ui->med1LineEdit->setReadOnly(!connected);
-    ui->high0LineEdit->setReadOnly(!connected);
-    ui->high1LineEdit->setReadOnly(!connected);
-    ui->max0LineEdit->setReadOnly(!connected);
-    ui->max1LineEdit->setReadOnly(!connected);
+    ui->med0LineEdit->setReadOnly(!connected || !editable_);
+    ui->med1LineEdit->setReadOnly(!connected || !editable_);
+    ui->high0LineEdit->setReadOnly(!connected || !editable_);
+    ui->high1LineEdit->setReadOnly(!connected || !editable_);
+    ui->max0LineEdit->setReadOnly(!connected || !editable_);
+    ui->max1LineEdit->setReadOnly(!connected || !editable_);
 
-    ui->b0LineEdit->setReadOnly(!connected);
-    ui->b1LineEdit->setReadOnly(!connected);
-    ui->b2LineEdit->setReadOnly(!connected);
+    ui->b0LineEdit->setReadOnly(!connected || !editable_);
+    ui->b1LineEdit->setReadOnly(!connected || !editable_);
+    ui->b2LineEdit->setReadOnly(!connected || !editable_);
 
     ui->reflLoDensityLineEdit->setReadOnly(!connected);
     ui->reflLoReadingLineEdit->setReadOnly(!connected);
@@ -371,7 +381,7 @@ void CalibrationBaselineTab::onCalLightTextChanged()
     if (densInterface_->connected()
         && ui->reflLightLineEdit->hasAcceptableInput()
         && ui->tranLightLineEdit->hasAcceptableInput()) {
-        ui->lightSetPushButton->setEnabled(true);
+        ui->lightSetPushButton->setEnabled(editable_);
     } else {
         ui->lightSetPushButton->setEnabled(false);
     }
@@ -392,7 +402,7 @@ void CalibrationBaselineTab::onCalGainTextChanged()
         && ui->high1LineEdit->hasAcceptableInput()
         && ui->max0LineEdit->hasAcceptableInput()
         && ui->max1LineEdit->hasAcceptableInput()) {
-        ui->gainSetPushButton->setEnabled(true);
+        ui->gainSetPushButton->setEnabled(editable_);
     } else {
         ui->gainSetPushButton->setEnabled(false);
     }
@@ -412,7 +422,7 @@ void CalibrationBaselineTab::onCalSlopeTextChanged()
         && ui->b0LineEdit->hasAcceptableInput()
         && ui->b1LineEdit->hasAcceptableInput()
         && ui->b2LineEdit->hasAcceptableInput()) {
-        ui->slopeSetPushButton->setEnabled(true);
+        ui->slopeSetPushButton->setEnabled(editable_);
     } else {
         ui->slopeSetPushButton->setEnabled(false);
     }

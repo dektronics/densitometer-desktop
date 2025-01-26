@@ -24,8 +24,10 @@ public:
 
     virtual DensInterface::DeviceType deviceType() const { return DensInterface::DeviceUvVis; }
 
-    virtual void clear();
+    virtual void setAdvancedCalibrationEditable(bool editable);
 
+public slots:
+    virtual void clear();
     virtual void reloadAll();
 
 private slots:
@@ -74,6 +76,7 @@ private:
     void coefficientSetAssignRow(QTableWidget *table, int row, const CoefficientSet &sourceValues);
     CoefficientSet coefficientSetCollectRow(QTableWidget *table, int row);
 
+    bool editable_ = false;
     Ui::CalibrationUvVisTab *ui;
 };
 

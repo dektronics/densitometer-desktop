@@ -23,8 +23,10 @@ public:
 
     virtual DensInterface::DeviceType deviceType() const { return DensInterface::DeviceUvVis; }
 
-    virtual void clear();
+    virtual void setAdvancedCalibrationEditable(bool editable);
 
+public slots:
+    virtual void clear();
     virtual void reloadAll();
 
 private slots:
@@ -54,6 +56,7 @@ private:
     void updateCalSlope();
     void updateCalTarget();
 
+    bool editable_ = false;
     Ui::CalibrationStickTab *ui;
     StickRunner *stickRunner_ = nullptr;
     Tsl2585Calibration calData_;

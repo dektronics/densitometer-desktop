@@ -46,6 +46,7 @@ private slots:
     void onLogger(bool checked);
     void onLoggerOpened();
     void onLoggerClosed();
+    void onEditAdvCalibration(bool checked);
     void about();
 
     void onMenuEditAboutToShow();
@@ -70,6 +71,7 @@ private:
     void openConnectionToSerialPort(const QSerialPortInfo &info);
     void openConnectionToFt260(const Ft260DeviceInfo &info);
     void refreshButtonState();
+    void updateAdvCalibrationEditable(bool editable);
     void measTableAddReading(DensInterface::DensityType type, float density, float offset);
     void measTableCut();
     void measTableCopy();

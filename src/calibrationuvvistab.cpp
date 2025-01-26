@@ -103,6 +103,17 @@ CalibrationUvVisTab::~CalibrationUvVisTab()
     delete ui;
 }
 
+void CalibrationUvVisTab::setAdvancedCalibrationEditable(bool editable)
+{
+    editable_ = editable;
+    refreshButtonState();
+    onCalGainItemChanged(nullptr);
+    onCalSlopeTextChanged();
+    ui->slopeCalPushButton->setEnabled(editable_);
+    onCalTempItemChanged(nullptr);
+    ui->tempCalPushButton->setEnabled(editable_);
+}
+
 void CalibrationUvVisTab::clear()
 {
     ui->gainTableWidget->clearContents();
@@ -153,7 +164,7 @@ void CalibrationUvVisTab::refreshButtonState()
     const bool connected = densInterface_->connected();
     if (connected) {
         ui->calGetAllPushButton->setEnabled(true);
-        ui->gainCalPushButton->setEnabled(true);
+        ui->gainCalPushButton->setEnabled(editable_);
         ui->gainGetPushButton->setEnabled(true);
         ui->slopeGetPushButton->setEnabled(true);
         ui->tempGetPushButton->setEnabled(true);
@@ -180,7 +191,7 @@ void CalibrationUvVisTab::refreshButtonState()
     }
 
     // Make calibration values editable only if connected
-    if (connected) {
+    if (connected && editable_) {
         ui->gainTableWidget->setEditTriggers(QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::AnyKeyPressed);
         ui->visTempTableWidget->setEditTriggers(QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::AnyKeyPressed);
         ui->uvTempTableWidget->setEditTriggers(QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::AnyKeyPressed);
@@ -190,10 +201,10 @@ void CalibrationUvVisTab::refreshButtonState()
         ui->uvTempTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     }
 
-    ui->zLineEdit->setReadOnly(!connected);
-    ui->b0LineEdit->setReadOnly(!connected);
-    ui->b1LineEdit->setReadOnly(!connected);
-    ui->b2LineEdit->setReadOnly(!connected);
+    ui->zLineEdit->setReadOnly(!connected || !editable_);
+    ui->b0LineEdit->setReadOnly(!connected || !editable_);
+    ui->b1LineEdit->setReadOnly(!connected || !editable_);
+    ui->b2LineEdit->setReadOnly(!connected || !editable_);
 
     ui->reflLoDensityLineEdit->setReadOnly(!connected);
     ui->reflLoReadingLineEdit->setReadOnly(!connected);
@@ -434,7 +445,7 @@ void CalibrationUvVisTab::onCalUvTransmissionSetClicked()
 void CalibrationUvVisTab::onCalGainItemChanged(QTableWidgetItem *item)
 {
     bool enableSet = true;
-    if (densInterface_->connected()) {
+    if (densInterface_->connected() && editable_) {
         enableSet = !tableHasEmptyCells(ui->gainTableWidget);
     } else {
         enableSet = false;
@@ -458,7 +469,7 @@ void CalibrationUvVisTab::onCalSlopeTextChanged()
         && ui->b0LineEdit->hasAcceptableInput()
         && ui->b1LineEdit->hasAcceptableInput()
         && ui->b2LineEdit->hasAcceptableInput()) {
-        ui->slopeSetPushButton->setEnabled(true);
+        ui->slopeSetPushButton->setEnabled(editable_);
     } else {
         ui->slopeSetPushButton->setEnabled(false);
     }
@@ -482,7 +493,7 @@ void CalibrationUvVisTab::onCalTempItemChanged(QTableWidgetItem *item)
         uvEnableSet = false;
     }
 
-    ui->tempSetPushButton->setEnabled(visEnableSet || uvEnableSet);
+    ui->tempSetPushButton->setEnabled(editable_ && (visEnableSet || uvEnableSet));
 
     const DensCalTemperature visCalTemperature = densInterface_->calVisTemperature();
     coefficientSetCheckDirtyRow(ui->visTempTableWidget, 0, visCalTemperature.b0());

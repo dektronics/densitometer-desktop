@@ -69,6 +69,14 @@ CalibrationStickTab::~CalibrationStickTab()
     delete ui;
 }
 
+void CalibrationStickTab::setAdvancedCalibrationEditable(bool editable)
+{
+    editable_ = editable;
+    refreshButtonState();
+    onCalGainTextChanged();
+    onCalSlopeTextChanged();
+}
+
 void CalibrationStickTab::clear()
 {
     for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
@@ -118,7 +126,7 @@ void CalibrationStickTab::refreshButtonState()
     const bool connected = stickRunner_ && stickRunner_->stickInterface()->connected()  && stickRunner_->stickInterface()->hasSettings();
     if (connected) {
         ui->calGetAllPushButton->setEnabled(true);
-        ui->gainCalPushButton->setEnabled(true);
+        ui->gainCalPushButton->setEnabled(editable_);
     } else {
         ui->calGetAllPushButton->setEnabled(false);
         ui->gainCalPushButton->setEnabled(false);
@@ -128,13 +136,13 @@ void CalibrationStickTab::refreshButtonState()
     for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
         QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
         if (lineEdit) {
-            lineEdit->setReadOnly(!connected);
+            lineEdit->setReadOnly(!connected || !editable_);
         }
     }
 
-    ui->b0LineEdit->setReadOnly(!connected);
-    ui->b1LineEdit->setReadOnly(!connected);
-    ui->b2LineEdit->setReadOnly(!connected);
+    ui->b0LineEdit->setReadOnly(!connected || !editable_);
+    ui->b1LineEdit->setReadOnly(!connected || !editable_);
+    ui->b2LineEdit->setReadOnly(!connected || !editable_);
 
     ui->reflLoDensityLineEdit->setReadOnly(!connected);
     ui->reflLoReadingLineEdit->setReadOnly(!connected);
@@ -272,7 +280,7 @@ void CalibrationStickTab::onCalReflectionSetClicked()
 void CalibrationStickTab::onCalGainTextChanged()
 {
     bool enableSet = true;
-    if (stickRunner_ && stickRunner_->stickInterface()->connected() && stickRunner_->stickInterface()->hasSettings()) {
+    if (stickRunner_ && stickRunner_->stickInterface()->connected() && stickRunner_->stickInterface()->hasSettings() && editable_) {
         for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
             QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
             if (lineEdit && (lineEdit->text().isEmpty() || !lineEdit->hasAcceptableInput())) {
@@ -299,7 +307,8 @@ void CalibrationStickTab::onCalSlopeTextChanged()
     if (stickRunner_ && stickRunner_->stickInterface()->connected() && stickRunner_->stickInterface()->hasSettings()
         && ui->b0LineEdit->hasAcceptableInput()
         && ui->b1LineEdit->hasAcceptableInput()
-        && ui->b2LineEdit->hasAcceptableInput()) {
+        && ui->b2LineEdit->hasAcceptableInput()
+        && editable_) {
         ui->slopeSetPushButton->setEnabled(true);
     } else {
         ui->slopeSetPushButton->setEnabled(false);

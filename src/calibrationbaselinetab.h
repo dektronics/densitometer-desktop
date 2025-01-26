@@ -22,8 +22,10 @@ public:
 
     virtual DensInterface::DeviceType deviceType() const { return DensInterface::DeviceBaseline; }
 
-    virtual void clear();
+    virtual void setAdvancedCalibrationEditable(bool editable);
 
+public slots:
+    virtual void clear();
     virtual void reloadAll();
 
 private slots:
@@ -58,6 +60,7 @@ private slots:
 private:
     void refreshButtonState();
 
+    bool editable_ = false;
     Ui::CalibrationBaselineTab *ui;
 };
 
