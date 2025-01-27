@@ -48,28 +48,33 @@ void HeadlessTask::run()
 
 bool HeadlessTask::connectToDevice()
 {
+    QSerialPortInfo selectedPort;
+
+    const auto infos = QSerialPortInfo::availablePorts();
+
     if (portName_.isEmpty()) {
-        const auto infos = QSerialPortInfo::availablePorts();
-        QSerialPortInfo selectedPort;
         for (const QSerialPortInfo &info : infos) {
-            // Filter the list to only contain devices that match the VID/PID
-            // actually assigned to the Printalyzer Densitometer
-            if (!(info.vendorIdentifier() == 0x16D0 && info.productIdentifier() == 0x10EB)) {
-                continue;
+            if (DensInterface::portDeviceType(info) != DensInterface::DeviceUnknown) {
+                selectedPort = info;
             }
-            selectedPort = info;
             break;
         }
-
-        if (!selectedPort.isNull()) {
-            qDebug() << "Detected device at:" << selectedPort.portName();
-            serialPort_->setPort(selectedPort);
-        } else  {
-            qWarning() << "No devices found";
-        }
     } else {
-        qDebug() << "Connecting to:" << portName_;
-        serialPort_->setPortName(portName_);
+        for (const QSerialPortInfo &info : infos) {
+            qDebug() << portName_ << info.portName();
+            if (DensInterface::portDeviceType(info) != DensInterface::DeviceUnknown && info.portName() == portName_) {
+                selectedPort = info;
+            }
+            break;
+        }
+    }
+
+    if (!selectedPort.isNull()) {
+        qDebug() << "Detected device at:" << selectedPort.portName();
+        serialPort_->setPort(selectedPort);
+    } else  {
+        qWarning() << "No devices found";
+        return false;
     }
 
     serialPort_->setBaudRate(QSerialPort::Baud115200);
@@ -80,7 +85,7 @@ bool HeadlessTask::connectToDevice()
 
     if (serialPort_->open(QIODevice::ReadWrite)) {
         serialPort_->setDataTerminalReady(true);
-        if (densInterface_->connectToDevice(serialPort_)) {
+        if (densInterface_->connectToDevice(serialPort_, DensInterface::portDeviceType(selectedPort))) {
             qDebug() << "Connected to device";
             return true;
         } else {

@@ -228,7 +228,7 @@ void MainWindow::openConnectionToSerialPort(const QSerialPortInfo &info)
     serialPort_->setFlowControl(QSerialPort::NoFlowControl);
     if (serialPort_->open(QIODevice::ReadWrite)) {
         serialPort_->setDataTerminalReady(true);
-        if (densInterface_->connectToDevice(serialPort_)) {
+        if (densInterface_->connectToDevice(serialPort_, DensInterface::portDeviceType(info))) {
             ui->actionConnect->setEnabled(false);
             ui->actionDisconnect->setEnabled(true);
             statusLabel_->setText(tr("Connected to %1").arg(info.portName()));

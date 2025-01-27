@@ -27,7 +27,18 @@ DensInterface::DensInterface(QObject *parent)
 {
 }
 
-bool DensInterface::connectToDevice(QSerialPort *serialPort)
+DensInterface::DeviceType DensInterface::portDeviceType(const QSerialPortInfo &info)
+{
+    if (info.vendorIdentifier() == 0x16D0 && info.productIdentifier() == 0x10EB) {
+        return DeviceBaseline;
+    } else if (info.vendorIdentifier() == 0x16D0 && info.productIdentifier() == 0x13E7) {
+        return DeviceUvVis;
+    } else {
+        return DeviceUnknown;
+    }
+}
+
+bool DensInterface::connectToDevice(QSerialPort *serialPort, DeviceType deviceType)
 {
     if (serialPort_) { return false; }
     if (!serialPort || !serialPort->isOpen()) {
@@ -43,7 +54,11 @@ bool DensInterface::connectToDevice(QSerialPort *serialPort)
     remoteControlEnabled_ = false;
 
     // Connect to signals for non-blocking command use
+    if (serialPort->parent() == nullptr) {
+        serialPort->setParent(this);
+    }
     serialPort_ = serialPort;
+    deviceType_ = deviceType;
     connect(serialPort_, &QSerialPort::errorOccurred, this, &DensInterface::handleError);
     connect(serialPort_, &QSerialPort::readyRead, this, &DensInterface::readData);
 
@@ -58,7 +73,13 @@ void DensInterface::disconnectFromDevice()
     if (serialPort_) {
         disconnect(serialPort_, &QSerialPort::errorOccurred, this, &DensInterface::handleError);
         disconnect(serialPort_, &QSerialPort::readyRead, this, &DensInterface::readData);
-        serialPort_ = nullptr;
+        if (serialPort_->parent() == this) {
+            if (serialPort_->isOpen()) {
+                serialPort_->close();
+            }
+			serialPort_->deleteLater();
+        }
+		serialPort_ = nullptr;
     }
     multilineResponse_ = DensCommand();
     multilineBuffer_.clear();
@@ -647,15 +668,6 @@ void DensInterface::readData()
 
                 // Call the normal command parser
                 readCommandResponse(response);
-
-                // Assign the device type based on the project name
-                if (projectName_ == QLatin1String("Printalyzer Densitometer")) {
-                    deviceType_ = DeviceType::DeviceBaseline;
-                } else if (projectName_ == QLatin1String("Printalyzer UV/VIS Densitometer")) {
-                    deviceType_ = DeviceType::DeviceUvVis;
-                } else {
-                    deviceType_ = DeviceType::DeviceUnknown;
-                }
 
                 if (!projectName_.isEmpty() && !version_.isEmpty()) {
                     connecting_ = false;

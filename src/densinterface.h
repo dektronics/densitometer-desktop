@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <QObject>
 #include <QSerialPort>
+#include <QSerialPortInfo>
 #include <QDateTime>
 #include "denscommand.h"
 #include "denscalvalues.h"
@@ -41,7 +42,10 @@ public:
     Q_ENUM(SensorLight)
 
     explicit DensInterface(QObject *parent = nullptr);
-    bool connectToDevice(QSerialPort *serialPort);
+
+    static DeviceType portDeviceType(const QSerialPortInfo &info);
+
+    bool connectToDevice(QSerialPort *serialPort, DeviceType deviceType);
     void disconnectFromDevice();
 
 public slots:

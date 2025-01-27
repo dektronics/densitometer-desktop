@@ -4,6 +4,7 @@
 #include <QSerialPortInfo>
 #include <QPushButton>
 
+#include "densinterface.h"
 #include "ft260.h"
 
 static const char blankString[] = QT_TRANSLATE_NOOP("ConnectDialog", "N/A");
@@ -70,13 +71,12 @@ void ConnectDialog::fillPortsInfo()
 
     const auto serInfos = QSerialPortInfo::availablePorts();
     for (const QSerialPortInfo &info : serInfos) {
-        // Filter the list to only contain devices that match the VID/PID
-        // actually assigned to the Printalyzer Densitometer
-        if (!(info.vendorIdentifier() == 0x16D0 && info.productIdentifier() == 0x10EB)) {
-            continue;
+        // Filter the list to only contain entries that match the VID/PID
+        // values assigned to Printalyzer Densitometer devices
+        if (DensInterface::portDeviceType(info) != DensInterface::DeviceUnknown) {
+            const QString displayName = info.portName();
+            ui->serialPortInfoListBox->addItem(displayName, QVariant::fromValue(info));
         }
-        const QString displayName = info.portName();
-        ui->serialPortInfoListBox->addItem(displayName, QVariant::fromValue(info));
     }
 
     const auto ftInfos = Ft260::listDevices();

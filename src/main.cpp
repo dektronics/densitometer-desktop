@@ -51,9 +51,7 @@ bool handleCommandLine(const QCoreApplication &app)
         bool hasDevices = false;
         const auto infos = QSerialPortInfo::availablePorts();
         for (const QSerialPortInfo &info : infos) {
-            // Filter the list to only contain devices that match the VID/PID
-            // actually assigned to the Printalyzer Densitometer
-            if (!(info.vendorIdentifier() == 0x16D0 && info.productIdentifier() == 0x10EB)) {
+            if (DensInterface::portDeviceType(info) == DensInterface::DeviceUnknown) {
                 continue;
             }
             std::cout << info.portName().toStdString()
