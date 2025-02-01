@@ -204,7 +204,7 @@ void StickGainCalibrationDialog::timerEvent(QTimerEvent *event)
         if (readingList_.size() < GAIN_SAMPLE_READINGS) { return; }
         double sum = 0;
         size_t count = 0;
-        for (const DensiStickReading& reading : readingList_) {
+        for (const DensiStickReading& reading : std::as_const(readingList_)) {
             if (reading.status() == DensiStickReading::ResultValid) {
                 sum += (double)reading.reading();
                 count++;

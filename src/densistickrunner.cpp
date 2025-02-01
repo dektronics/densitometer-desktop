@@ -122,7 +122,7 @@ void DensiStickRunner::finishMeasurement()
 
     float sum = 0;
     size_t count = 0;
-    for (const DensiStickReading& reading : readingList_) {
+    for (const DensiStickReading& reading : std::as_const(readingList_)) {
         if (reading.status() == DensiStickReading::ResultValid) {
             sum += (float)reading.reading();
             count++;

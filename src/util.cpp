@@ -356,7 +356,7 @@ void tableWidgetPaste(QTableWidget *tableWidget)
             bool hasNums = false;
 
             QList<QString> rowNumList;
-            for (const QString& rowElement : rowElements) {
+            for (const QString& rowElement : std::as_const(rowElements)) {
                 rowElement.toFloat(&ok);
 
                 if (ok) {

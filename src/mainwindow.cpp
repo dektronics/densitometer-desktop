@@ -481,7 +481,7 @@ void MainWindow::onMenuEditAboutToShow()
                 bool hasContent = false;
                 if (tableWidget->selectionModel()->hasSelection()) {
                     auto itemList = tableWidget->selectedItems();
-                    for (auto item : itemList) {
+                    for (const auto item : std::as_const(itemList)) {
                         if (item && !item->text().isEmpty()) {
                             hasContent = true;
                             break;
