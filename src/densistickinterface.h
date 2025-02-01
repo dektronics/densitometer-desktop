@@ -23,6 +23,10 @@ public:
     bool hasSettings() const;
     bool running() const;
 
+    QString version() const;
+    QString systemClock() const;
+    QString serialNumber() const;
+
     DensiStickSettings *settings();
 
     bool setLightEnable(bool enable);
@@ -55,6 +59,8 @@ private:
     bool connected_ = false;
     Ft260 *ft260_ = nullptr;
     M24C08 *eeprom_ = nullptr;
+    QString ft260Version_;
+    QString ft260SystemClock_;
     DensiStickSettings *settings_ = nullptr;
     TSL2585 *sensor_ = nullptr;
     bool hasSettings_ = false;

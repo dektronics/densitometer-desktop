@@ -187,7 +187,7 @@ bool Ft260LibUsb::open()
     do {
         uint8_t bus_status;
         uint16_t speed;
-        if (!chipVersion()) {
+        if (!chipVersion(nullptr)) {
             qWarning() << "Unable to query chip version";
             r = -1;
             break;
@@ -338,33 +338,45 @@ bool Ft260LibUsb::hasInterrupts() const
     return true;
 }
 
-bool Ft260LibUsb::chipVersion()
+bool Ft260LibUsb::chipVersion(Ft260ChipVersion *chipVersion)
 {
-    if (!handle_[0]) { return false; }
+    if (chipVersion && (chipVersion_.chip[0] != 0 || chipVersion_.chip[1] != 0)) {
+        memcpy(chipVersion, &chipVersion_, sizeof(Ft260ChipVersion));
+        return true;
+    } else {
+        if (!handle_[0]) { return false; }
 
-    int ret;
-    uint8_t buf[13];
+        int ret;
+        uint8_t buf[13];
 
-    memset(buf, 0, sizeof(buf));
+        memset(buf, 0, sizeof(buf));
 
-    ret = libusb_control_transfer(handle_[0],
-                                  LIBUSB_REQUEST_TYPE_CLASS|LIBUSB_RECIPIENT_INTERFACE|LIBUSB_ENDPOINT_IN,
-                                  0x01 /*HID get_report*/,
-                                  (0x03/*HID feature*/ << 8) | HID_REPORT_FT260_CHIP_CODE,
-                                  0,
-                                  (unsigned char *)buf, 13,
-                                  1000/*timeout millis*/);
-    if (ret < 0) {
-        qWarning() << "chipVersion libusb_control_transfer error:" << libusb_strerror(ret);
-        return false;
+        ret = libusb_control_transfer(handle_[0],
+                                      LIBUSB_REQUEST_TYPE_CLASS|LIBUSB_RECIPIENT_INTERFACE|LIBUSB_ENDPOINT_IN,
+                                      0x01 /*HID get_report*/,
+                                      (0x03/*HID feature*/ << 8) | HID_REPORT_FT260_CHIP_CODE,
+                                      0,
+                                      (unsigned char *)buf, 13,
+                                      1000/*timeout millis*/);
+        if (ret < 0) {
+            qWarning() << "chipVersion libusb_control_transfer error:" << libusb_strerror(ret);
+            return false;
+        }
+
+        qDebug().nospace() << "Chip version; Report ID: 0x" << Qt::hex << buf[0];
+        qDebug().nospace() << "Chip code: " << Qt::hex << buf[1] << buf[2] << " " << buf[3] << " " << buf[4];
+
+        chipVersion_.chip[0] = buf[1];
+        chipVersion_.chip[1] = buf[2];
+        chipVersion_.minor = buf[3];
+        chipVersion_.major = buf[4];
+
+        if (chipVersion) {
+            memcpy(chipVersion, &chipVersion_, sizeof(Ft260ChipVersion));
+        }
+
+        return true;
     }
-
-    qDebug().nospace() << "Chip version; Report ID: 0x" << Qt::hex << buf[0];
-    qDebug().nospace() << "Chip code: " << Qt::hex << buf[1] << buf[2] << " " << buf[3] << " " << buf[4];
-
-    //TODO collect this in a data structure that can be returned
-
-    return true;
 }
 
 bool Ft260LibUsb::systemStatus()
@@ -394,15 +406,19 @@ bool Ft260LibUsb::systemStatus()
     switch (buf[2]) {
     case 0:
         qDebug() << "Clock: 12MHz";
+        systemClock_ = FT260_CLOCK_12MHZ;
         break;
     case 1:
         qDebug() << "Clock: 24MHz";
+        systemClock_ = FT260_CLOCK_24MHZ;
         break;
     case 2:
         qDebug() << "Clock: 48MHz";
+        systemClock_ = FT260_CLOCK_48MHZ;
         break;
     default:
         qDebug().nospace() << "Clock: [" << buf[2] << "]";
+        systemClock_ = FT260_CLOCK_MAX;
         break;
     }
 
@@ -441,6 +457,11 @@ bool Ft260LibUsb::systemStatus()
     //TODO collect this in a data structure that can be returned
 
     return true;
+}
+
+Ft260SystemClock Ft260LibUsb::systemClock() const
+{
+    return systemClock_;
 }
 
 bool Ft260LibUsb::i2cStatus(uint8_t *busStatus, uint16_t *speed)

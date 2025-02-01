@@ -98,7 +98,7 @@ bool Ft260HidApi::open()
 
         uint8_t bus_status;
         uint16_t speed;
-        if (!chipVersion()) {
+        if (!chipVersion(nullptr)) {
             qWarning() << "Unable to query chip version";
             break;
         }
@@ -230,29 +230,41 @@ void Ft260HidApi::onIntThreadFinished()
     }
 }
 
-bool Ft260HidApi::chipVersion()
+bool Ft260HidApi::chipVersion(Ft260ChipVersion *chipVersion)
 {
-    if (!handle_[0]) { return false; }
+    if (chipVersion && (chipVersion_.chip[0] != 0 || chipVersion_.chip[1] != 0)) {
+        memcpy(chipVersion, &chipVersion_, sizeof(Ft260ChipVersion));
+        return true;
+    } else {
+        if (!handle_[0]) { return false; }
 
-    int ret;
-    uint8_t buf[REQUEST_BUF_SIZE];
+        int ret;
+        uint8_t buf[REQUEST_BUF_SIZE];
 
-    memset(buf, 0, sizeof(buf));
+        memset(buf, 0, sizeof(buf));
 
-    buf[0] = HID_REPORT_FT260_CHIP_CODE;
-    ret = hid_get_feature_report(handle_[0], buf, sizeof(buf));
+        buf[0] = HID_REPORT_FT260_CHIP_CODE;
+        ret = hid_get_feature_report(handle_[0], buf, sizeof(buf));
 
-    if (ret < 0) {
-        qWarning() << "chipVersion hid_get_feature_report error:" << QString::fromWCharArray(hid_error(handle_[0]));
-        return false;
+        if (ret < 0) {
+            qWarning() << "chipVersion hid_get_feature_report error:" << QString::fromWCharArray(hid_error(handle_[0]));
+            return false;
+        }
+
+        qDebug().nospace() << "Chip version; Report ID: 0x" << Qt::hex << buf[0];
+        qDebug().nospace() << "Chip code: " << Qt::hex << buf[1] << buf[2] << " " << buf[3] << " " << buf[4];
+
+        chipVersion_.chip[0] = buf[1];
+        chipVersion_.chip[1] = buf[2];
+        chipVersion_.minor = buf[3];
+        chipVersion_.major = buf[4];
+
+        if (chipVersion) {
+            memcpy(chipVersion, &chipVersion_, sizeof(Ft260ChipVersion));
+        }
+
+        return true;
     }
-
-    qDebug().nospace() << "Chip version; Report ID: 0x" << Qt::hex << buf[0];
-    qDebug().nospace() << "Chip code: " << Qt::hex << buf[1] << buf[2] << " " << buf[3] << " " << buf[4];
-
-    //TODO collect this in a data structure that can be returned
-
-    return true;
 }
 
 bool Ft260HidApi::systemStatus()
@@ -278,15 +290,19 @@ bool Ft260HidApi::systemStatus()
     switch (buf[2]) {
     case 0:
         qDebug() << "Clock: 12MHz";
+        systemClock_ = FT260_CLOCK_12MHZ;
         break;
     case 1:
         qDebug() << "Clock: 24MHz";
+        systemClock_ = FT260_CLOCK_24MHZ;
         break;
     case 2:
         qDebug() << "Clock: 48MHz";
+        systemClock_ = FT260_CLOCK_48MHZ;
         break;
     default:
         qDebug().nospace() << "Clock: [" << buf[2] << "]";
+        systemClock_ = FT260_CLOCK_MAX;
         break;
     }
 
@@ -325,6 +341,11 @@ bool Ft260HidApi::systemStatus()
     //TODO collect this in a data structure that can be returned
 
     return true;
+}
+
+Ft260SystemClock Ft260HidApi::systemClock() const
+{
+    return systemClock_;
 }
 
 bool Ft260HidApi::i2cStatus(uint8_t *busStatus, uint16_t *speed)

@@ -70,6 +70,34 @@ bool DensiStickInterface::open()
         return false;
     }
 
+    // Populate the version string
+    Ft260ChipVersion chipVersion;
+    if (ft260_->chipVersion(&chipVersion)) {
+        ft260Version_ = QString("%1%2-%3.%4")
+                            .arg(chipVersion.chip[0], 2, 16, QChar('0'))
+                            .arg(chipVersion.chip[1], 2, 16, QChar('0'))
+                            .arg(chipVersion.major)
+                            .arg(chipVersion.minor);
+    } else {
+        ft260Version_.clear();
+    }
+
+    // Populate the system clock string
+    switch (ft260_->systemClock()) {
+    case FT260_CLOCK_12MHZ:
+        ft260SystemClock_ = QLatin1String("12 MHz");
+        break;
+    case FT260_CLOCK_24MHZ:
+        ft260SystemClock_ = QLatin1String("24 MHz");
+        break;
+    case FT260_CLOCK_48MHZ:
+        ft260SystemClock_ = QLatin1String("48 MHz");
+        break;
+    case FT260_CLOCK_MAX:
+    default:
+        ft260SystemClock_.clear();
+    }
+
     // Read initial GPIO state
     if (!ft260_->gpioRead(&gpioReport_)) {
         qWarning() << "Unable to read initial GPIO state";
@@ -159,6 +187,25 @@ bool DensiStickInterface::hasSettings() const
 bool DensiStickInterface::running() const
 {
     return sensorRunning_;
+}
+
+QString DensiStickInterface::version() const
+{
+    return ft260Version_;
+}
+
+QString DensiStickInterface::systemClock() const
+{
+    return ft260SystemClock_;
+}
+
+QString DensiStickInterface::serialNumber() const
+{
+    if (ft260_) {
+        return ft260_->deviceInfo().serialNumber();
+    } else {
+        return QString();
+    }
 }
 
 DensiStickSettings *DensiStickInterface::settings()

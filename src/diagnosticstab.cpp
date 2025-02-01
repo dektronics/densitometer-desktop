@@ -85,8 +85,11 @@ void DiagnosticsTab::onConnectionClosed()
 void DiagnosticsTab::onSystemVersionResponse()
 {
     if (stickRunner_) {
-        ui->nameLabel->setText("Printalyzer DensiStick");
+        ui->nameLabel->setText("<b>Printalyzer DensiStick</b>");
         ui->versionLineEdit->clear();
+        ui->halVersionLineEdit->setText(stickRunner_->stickInterface()->version());
+        ui->mcuSysClockLineEdit->setText(stickRunner_->stickInterface()->systemClock());
+        ui->uniqueIdLineEdit->setText(stickRunner_->stickInterface()->serialNumber());
     } else {
         if (densInterface_->projectName().isEmpty()) {
             ui->nameLabel->setText("Printalyzer Densitometer");
@@ -186,11 +189,49 @@ void DiagnosticsTab::onRemoteControlFinished()
 
 void DiagnosticsTab::configureForDeviceType()
 {
+    // Clear all text fields
+    ui->nameLabel->setText("Printalyzer Densitometer");
+    ui->versionLineEdit->clear();
+    ui->buildDateLineEdit->clear();
+    ui->buildCommitLineEdit->clear();
+    ui->buildChecksumLineEdit->clear();
+    ui->halVersionLineEdit->clear();
+    ui->mcuDevIdLineEdit->clear();
+    ui->mcuRevIdLineEdit->clear();
+    ui->mcuSysClockLineEdit->clear();
+    ui->uniqueIdLineEdit->clear();
+    ui->mcuVddaLineEdit->clear();
+    ui->mcuTempLineEdit->clear();
+    ui->sensorTempLineEdit->clear();
+
     if (stickRunner_) {
         ui->refreshSensorsPushButton->setVisible(false);
         ui->screenshotButton->setVisible(false);
         ui->sensorTempLabel->setVisible(false);
         ui->sensorTempLineEdit->setVisible(false);
+
+        ui->halVersionLabel->setText(tr("Chip Version:"));
+        ui->mcuSysClockLabel->setText(tr("System Clock:"));
+        ui->uniqueIdLabel->setText(tr("Serial Number:"));
+
+        ui->versionLabel->setVisible(false);
+        ui->versionLineEdit->setVisible(false);
+        ui->buildDateLabel->setVisible(false);
+        ui->buildDateLineEdit->setVisible(false);
+        ui->buildCommitLabel->setVisible(false);
+        ui->buildCommitLineEdit->setVisible(false);
+        ui->buildChecksumLabel->setVisible(false);
+        ui->buildChecksumLineEdit->setVisible(false);
+
+        ui->mcuDevIdLabel->setVisible(false);
+        ui->mcuDevIdLineEdit->setVisible(false);
+        ui->mcuRevIdLabel->setVisible(false);
+        ui->mcuRevIdLineEdit->setVisible(false);
+        ui->mcuVddaLabel->setVisible(false);
+        ui->mcuVddaLineEdit->setVisible(false);
+        ui->mcuTempLabel->setVisible(false);
+        ui->mcuTempLineEdit->setVisible(false);
+
         onSystemVersionResponse();
     } else {
         ui->refreshSensorsPushButton->setVisible(true);
@@ -211,6 +252,28 @@ void DiagnosticsTab::configureForDeviceType()
             ui->sensorTempLabel->setVisible(false);
             ui->sensorTempLineEdit->setVisible(false);
         }
+
+        ui->halVersionLabel->setText(tr("HAL Version:"));
+        ui->mcuSysClockLabel->setText(tr("MCU SysClock:"));
+        ui->uniqueIdLabel->setText(tr("Unique ID:"));
+
+        ui->versionLabel->setVisible(true);
+        ui->versionLineEdit->setVisible(true);
+        ui->buildDateLabel->setVisible(true);
+        ui->buildDateLineEdit->setVisible(true);
+        ui->buildCommitLabel->setVisible(true);
+        ui->buildCommitLineEdit->setVisible(true);
+        ui->buildChecksumLabel->setVisible(true);
+        ui->buildChecksumLineEdit->setVisible(true);
+
+        ui->mcuDevIdLabel->setVisible(true);
+        ui->mcuDevIdLineEdit->setVisible(true);
+        ui->mcuRevIdLabel->setVisible(true);
+        ui->mcuRevIdLineEdit->setVisible(true);
+        ui->mcuVddaLabel->setVisible(true);
+        ui->mcuVddaLineEdit->setVisible(true);
+        ui->mcuTempLabel->setVisible(true);
+        ui->mcuTempLineEdit->setVisible(true);
     }
 }
 

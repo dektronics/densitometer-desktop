@@ -58,3 +58,8 @@ bool Ft260::isMatchingDevice(quint16 vid, quint16 pid)
 
     return false;
 }
+
+Ft260DeviceInfo Ft260::deviceInfo() const
+{
+    return deviceInfo_;
+}

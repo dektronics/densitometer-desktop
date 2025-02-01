@@ -6,6 +6,19 @@
 #include "ft260deviceinfo.h"
 
 typedef struct {
+    uint8_t chip[2];
+    uint8_t minor;
+    uint8_t major;
+} Ft260ChipVersion;
+
+typedef enum {
+    FT260_CLOCK_12MHZ = 0,
+    FT260_CLOCK_24MHZ,
+    FT260_CLOCK_48MHZ,
+    FT260_CLOCK_MAX
+} Ft260SystemClock;
+
+typedef struct {
     uint8_t gpio_value;
     uint8_t gpio_dir;
     uint8_t gpio_ex_value;
@@ -25,6 +38,9 @@ public:
 
     virtual bool open() = 0;
     virtual void close() = 0;
+
+    virtual bool chipVersion(Ft260ChipVersion *chipVersion) = 0;
+    virtual Ft260SystemClock systemClock() const = 0;
 
     virtual bool i2cStatus(uint8_t *busStatus, uint16_t *speed) = 0;
     virtual bool setI2cClockSpeed(uint16_t speed) = 0;

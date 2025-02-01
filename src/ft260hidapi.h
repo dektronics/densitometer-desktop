@@ -18,8 +18,9 @@ public:
 
     bool hasInterrupts() const;
 
-    bool chipVersion();
+    bool chipVersion(Ft260ChipVersion *chipVersion);
     bool systemStatus();
+    Ft260SystemClock systemClock() const;
     bool i2cStatus(uint8_t *busStatus, uint16_t *speed);
     bool setI2cClockSpeed(uint16_t speed);
 
@@ -50,6 +51,8 @@ private:
     QThread *thread_ = nullptr;
 	bool connected_ = false;
     std::atomic<bool> closing_ = false;
+    Ft260ChipVersion chipVersion_ = {0};
+    Ft260SystemClock systemClock_ = FT260_CLOCK_MAX;
 };
 
 #endif // FT260HIDAPI_H
