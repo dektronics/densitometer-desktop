@@ -86,49 +86,50 @@ void DiagnosticsTab::onSystemVersionResponse()
 {
     if (stickRunner_) {
         ui->nameLabel->setText("Printalyzer DensiStick");
-        ui->versionLabel->setText("");
+        ui->versionLineEdit->clear();
     } else {
         if (densInterface_->projectName().isEmpty()) {
             ui->nameLabel->setText("Printalyzer Densitometer");
         } else {
             ui->nameLabel->setText(QString("<b>%1</b>").arg(densInterface_->projectName()));
         }
-        ui->versionLabel->setText(tr("Version: %1").arg(densInterface_->version()));
+        ui->versionLineEdit->setText(densInterface_->version());
     }
 }
 
 void DiagnosticsTab::onSystemBuildResponse()
 {
-    ui->buildDateLabel->setText(tr("Date: %1").arg(densInterface_->buildDate().toString("yyyy-MM-dd hh:mm")));
-    ui->buildDescribeLabel->setText(tr("Commit: %1").arg(densInterface_->buildDescribe()));
+    ui->buildDateLineEdit->setText(densInterface_->buildDate().toString("yyyy-MM-dd hh:mm"));
+    ui->buildCommitLineEdit->setText(densInterface_->buildDescribe());
     if (densInterface_->buildChecksum() == 0) {
-        ui->checksumLabel->setText(tr("Checksum: %1").arg(""));
+        ui->buildChecksumLineEdit->clear();
     } else {
-        ui->checksumLabel->setText(tr("Checksum: %1").arg(densInterface_->buildChecksum(), 0, 16));
+        ui->buildChecksumLineEdit->setText(QString("%1").arg(densInterface_->buildChecksum(), 0, 16));
     }
 }
 
 void DiagnosticsTab::onSystemDeviceResponse()
 {
-    ui->halVersionLabel->setText(tr("HAL Version: %1").arg(densInterface_->halVersion()));
-    ui->mcuDevIdLabel->setText(tr("MCU Device ID: %1").arg(densInterface_->mcuDeviceId()));
-    ui->mcuRevIdLabel->setText(tr("MCU Revision ID: %1").arg(densInterface_->mcuRevisionId()));
-    ui->mcuSysClockLabel->setText(tr("MCU SysClock: %1").arg(densInterface_->mcuSysClock()));
+    ui->halVersionLineEdit->setText(densInterface_->halVersion());
+    ui->mcuDevIdLineEdit->setText(densInterface_->mcuDeviceId());
+    ui->mcuRevIdLineEdit->setText(densInterface_->mcuRevisionId());
+    ui->mcuSysClockLineEdit->setText(densInterface_->mcuSysClock());
 }
 
 void DiagnosticsTab::onSystemUniqueId()
 {
-    ui->uniqueIdLabel->setText(tr("UID: %1").arg(densInterface_->uniqueId()));
+    ui->uniqueIdLineEdit->setText(densInterface_->uniqueId());
 }
 
 void DiagnosticsTab::onSystemInternalSensors()
 {
-    ui->mcuVddaLabel->setText(tr("Vdda: %1").arg(densInterface_->mcuVdda()));
+    ui->mcuVddaLineEdit->setText(densInterface_->mcuVdda());
+    ui->mcuTempLineEdit->setText(formatDisplayTemp(densInterface_->mcuTemp()));
+
     if (densInterface_->deviceType() == DensInterface::DeviceUvVis) {
-        ui->mcuTempLabel->setText(tr("MCU Temperature: %1").arg(densInterface_->mcuTemp()));
-        ui->sensorTempLabel->setText(tr("Sensor Temperature: %1").arg(densInterface_->sensorTemp()));
+        ui->sensorTempLineEdit->setText(formatDisplayTemp(densInterface_->sensorTemp()));
     } else {
-        ui->mcuTempLabel->setText(tr("Temperature: %1").arg(densInterface_->mcuTemp()));
+        ui->sensorTempLineEdit->clear();
     }
 }
 
@@ -189,6 +190,7 @@ void DiagnosticsTab::configureForDeviceType()
         ui->refreshSensorsPushButton->setVisible(false);
         ui->screenshotButton->setVisible(false);
         ui->sensorTempLabel->setVisible(false);
+        ui->sensorTempLineEdit->setVisible(false);
         onSystemVersionResponse();
     } else {
         ui->refreshSensorsPushButton->setVisible(true);
@@ -204,8 +206,10 @@ void DiagnosticsTab::configureForDeviceType()
 
         if (deviceType == DensInterface::DeviceUvVis) {
             ui->sensorTempLabel->setVisible(true);
+            ui->sensorTempLineEdit->setVisible(true);
         } else {
             ui->sensorTempLabel->setVisible(false);
+            ui->sensorTempLineEdit->setVisible(false);
         }
     }
 }
@@ -229,4 +233,23 @@ void DiagnosticsTab::refreshButtonState()
         ui->screenshotButton->setEnabled(false);
         ui->remotePushButton->setEnabled(false);
     }
+}
+
+QString DiagnosticsTab::formatDisplayTemp(const QString &tempStr)
+{
+    bool ok;
+    QString text = tempStr;
+    if (text.isEmpty()) {
+        return text;
+    }
+    if (text.endsWith(QChar('C'))) {
+        text.chop(1);
+    }
+    float temp = text.toFloat(&ok);
+    if (ok) {
+        text = QString::number(temp, 'f', 1) + "\u00B0C";
+    } else {
+        text.clear();
+    }
+    return text;
 }

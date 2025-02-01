@@ -41,6 +41,7 @@ private slots:
 private:
     void configureForDeviceType();
     void refreshButtonState();
+    QString formatDisplayTemp(const QString &tempStr);
 
     Ui::DiagnosticsTab *ui;
     DensInterface *densInterface_ = nullptr;
