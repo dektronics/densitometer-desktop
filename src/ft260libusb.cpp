@@ -41,12 +41,18 @@ typedef enum {
 } FT260_I2C_COMMAND;
 }
 
+#if defined(LIBUSB_API_VERSION) && (LIBUSB_API_VERSION >= 0x01000108)
+#define LIBUSB_STRERROR(x) libusb_strerror(x)
+#else
+#define LIBUSB_STRERROR(x) libusb_strerror(static_cast<enum libusb_error>(x))
+#endif
+
 Ft260LibUsb::Ft260LibUsb(const Ft260DeviceInfo &device, QObject *parent) : Ft260(device, parent)
 {
     int r;
     r = libusb_init(&context_);
     if (r < 0) {
-        qWarning() << "libusb_init error:" << libusb_strerror(r);
+        qWarning() << "libusb_init error:" << LIBUSB_STRERROR(r);
         context_ = nullptr;
     }
 }
@@ -103,14 +109,14 @@ bool Ft260LibUsb::open()
 
             r = libusb_open(dev, &handle_[0]);
             if (r < 0) {
-                qWarning() << "libusb_open error:" << libusb_strerror(r);
+                qWarning() << "libusb_open error:" << LIBUSB_STRERROR(r);
                 handle_[0] = nullptr;
             }
 
             if (conf_desc->bNumInterfaces > 1) {
                 r = libusb_open(dev, &handle_[1]);
                 if (r < 0) {
-                    qWarning() << "libusb_open error:" << libusb_strerror(r);
+                    qWarning() << "libusb_open error:" << LIBUSB_STRERROR(r);
                     handle_[1] = nullptr;
                 }
             }
@@ -133,7 +139,7 @@ bool Ft260LibUsb::open()
 
         r = libusb_set_auto_detach_kernel_driver(handle_[i], 1);
         if (r < 0) {
-            qWarning() << "libusb_set_auto_detach_kernel_driver error:" << libusb_strerror(r);
+            qWarning() << "libusb_set_auto_detach_kernel_driver error:" << LIBUSB_STRERROR(r);
         }
 
         const struct libusb_interface *intf = &conf_desc->interface[i];
@@ -143,7 +149,7 @@ bool Ft260LibUsb::open()
 
         r = libusb_claim_interface(handle_[i], i);
         if (r < 0) {
-            qWarning() << "libusb_claim_interface error:" << libusb_strerror(r);
+            qWarning() << "libusb_claim_interface error:" << LIBUSB_STRERROR(r);
             break;
         }
 
@@ -253,7 +259,7 @@ bool Ft260LibUsb::open()
             r = libusb_interrupt_transfer(handle_[1], inputEp_[1], buf, qMin(sizeof(buf), inputEpMaxPacketSize_[1]), &nbytes, 100);
             if (r == LIBUSB_ERROR_TIMEOUT) { r = 0; continue; }
             else if (r < 0) {
-                qWarning() << "libusb_interrupt_transfer error:" << libusb_strerror(r);
+                qWarning() << "libusb_interrupt_transfer error:" << LIBUSB_STRERROR(r);
                 break;
             }
 
@@ -359,7 +365,7 @@ bool Ft260LibUsb::chipVersion(Ft260ChipVersion *chipVersion)
                                       (unsigned char *)buf, 13,
                                       1000/*timeout millis*/);
         if (ret < 0) {
-            qWarning() << "chipVersion libusb_control_transfer error:" << libusb_strerror(ret);
+            qWarning() << "chipVersion libusb_control_transfer error:" << LIBUSB_STRERROR(ret);
             return false;
         }
 
@@ -396,7 +402,7 @@ bool Ft260LibUsb::systemStatus()
                                   (unsigned char *)buf, 26,
                                   1000/*timeout millis*/);
     if (ret < 0) {
-        qWarning() << "systemStatus libusb_control_transfer error:" << libusb_strerror(ret);
+        qWarning() << "systemStatus libusb_control_transfer error:" << LIBUSB_STRERROR(ret);
         return false;
     }
 
@@ -481,7 +487,7 @@ bool Ft260LibUsb::i2cStatus(uint8_t *busStatus, uint16_t *speed)
                                   (unsigned char *)buf, 5,
                                   1000/*timeout millis*/);
     if (ret < 0) {
-        qWarning() << "i2cStatus libusb_control_transfer error:" << libusb_strerror(ret);
+        qWarning() << "i2cStatus libusb_control_transfer error:" << LIBUSB_STRERROR(ret);
         return false;
     }
 
@@ -516,7 +522,7 @@ bool Ft260LibUsb::setI2cClockSpeed(uint16_t speed)
                                   (unsigned char *)buf, 4,
                                   1000/*timeout millis*/);
     if (ret < 0) {
-        qWarning() << "setI2cClockSpeed libusb_control_transfer error:" << libusb_strerror(ret);
+        qWarning() << "setI2cClockSpeed libusb_control_transfer error:" << LIBUSB_STRERROR(ret);
         return false;
     }
 
@@ -550,7 +556,7 @@ bool Ft260LibUsb::setUartMode(quint8 mode)
                                   (unsigned char *)buf, 3,
                                   1000/*timeout millis*/);
     if (ret < 0) {
-        qWarning() << "setUartMode libusb_control_transfer error:" << libusb_strerror(ret);
+        qWarning() << "setUartMode libusb_control_transfer error:" << LIBUSB_STRERROR(ret);
         return false;
     }
 
@@ -576,7 +582,7 @@ bool Ft260LibUsb::setUartEnableDcdRi(bool enable)
                                   (unsigned char *)buf, 3,
                                   1000/*timeout millis*/);
     if (ret < 0) {
-        qWarning() << "setUartEnableDcdRi libusb_control_transfer error:" << libusb_strerror(ret);
+        qWarning() << "setUartEnableDcdRi libusb_control_transfer error:" << LIBUSB_STRERROR(ret);
         return false;
     }
 
@@ -602,7 +608,7 @@ bool Ft260LibUsb::setUartEnableRiWakeup(bool enable)
                                   (unsigned char *)buf, 3,
                                   1000/*timeout millis*/);
     if (ret < 0) {
-        qWarning() << "setUartEnableRiWakeup libusb_control_transfer error:" << libusb_strerror(ret);
+        qWarning() << "setUartEnableRiWakeup libusb_control_transfer error:" << LIBUSB_STRERROR(ret);
         return false;
     }
 
@@ -628,7 +634,7 @@ bool Ft260LibUsb::setUartRiWakeupConfig(bool edge)
                                   (unsigned char *)buf, 3,
                                   1000/*timeout millis*/);
     if (ret < 0) {
-        qWarning() << "setUartRiWakeupConfig libusb_control_transfer error:" << libusb_strerror(ret);
+        qWarning() << "setUartRiWakeupConfig libusb_control_transfer error:" << LIBUSB_STRERROR(ret);
         return false;
     }
 
@@ -652,7 +658,7 @@ bool Ft260LibUsb::gpioRead(Ft260GpioReport *report)
                                   (unsigned char *)buf, 5,
                                   1000/*timeout millis*/);
     if (ret < 0) {
-        qWarning() << "gpioRead libusb_control_transfer error:" << libusb_strerror(ret);
+        qWarning() << "gpioRead libusb_control_transfer error:" << LIBUSB_STRERROR(ret);
         return false;
     }
 
@@ -687,7 +693,7 @@ bool Ft260LibUsb::gpioWrite(const Ft260GpioReport *report)
                                   (unsigned char *)buf, 5,
                                   1000/*timeout millis*/);
     if (ret < 0) {
-        qWarning() << "gpioWrite libusb_control_transfer error:" << libusb_strerror(ret);
+        qWarning() << "gpioWrite libusb_control_transfer error:" << LIBUSB_STRERROR(ret);
         return false;
     }
 
@@ -721,7 +727,7 @@ bool Ft260LibUsb::i2cWriteRequest(quint8 addr, uint8_t flags, const uint8_t *pay
                                     &actual_length, 1000);
     Q_UNUSED(actual_length)
     if (ret < 0) {
-        qWarning() << "i2cWriteRequest libusb_interrupt_transfer error:" << libusb_strerror(ret);
+        qWarning() << "i2cWriteRequest libusb_interrupt_transfer error:" << LIBUSB_STRERROR(ret);
         return false;
     }
 
@@ -748,7 +754,7 @@ bool Ft260LibUsb::i2cReadRequest(quint8 addr, uint8_t flags, quint16 payloadSize
                                     &actual_length, 1000);
     Q_UNUSED(actual_length)
     if (ret < 0) {
-        qWarning() << "i2cReadRequest libusb_interrupt_transfer error:" << libusb_strerror(ret);
+        qWarning() << "i2cReadRequest libusb_interrupt_transfer error:" << LIBUSB_STRERROR(ret);
         return false;
     }
 
@@ -774,7 +780,7 @@ QByteArray Ft260LibUsb::i2cRead(quint8 addr, quint8 reg, quint8 len)
     ret = libusb_interrupt_transfer(handle_[0], inputEp_[0], buf, sizeof(buf), &transferred, 5000);
     Q_UNUSED(transferred);
     if (ret < 0) {
-        qWarning() << "i2cRead libusb_interrupt_transfer error:" << libusb_strerror(ret);
+        qWarning() << "i2cRead libusb_interrupt_transfer error:" << LIBUSB_STRERROR(ret);
     }
 
     if (len != buf[1]) {
@@ -811,7 +817,7 @@ bool Ft260LibUsb::i2cReadRawByte(quint8 addr, quint8 *data)
     ret = libusb_interrupt_transfer(handle_[0], inputEp_[0], buf, sizeof(buf), &transferred, 5000);
     Q_UNUSED(transferred);
     if (ret < 0) {
-        qWarning() << "i2cRead libusb_interrupt_transfer error:" << libusb_strerror(ret);
+        qWarning() << "i2cRead libusb_interrupt_transfer error:" << LIBUSB_STRERROR(ret);
     }
 
     if (buf[1] != 1) {
@@ -940,7 +946,7 @@ QList<Ft260DeviceInfo> listDevicesByLibUsb()
                 }
                 libusb_close(handle);
             } else {
-                qWarning() << "libusb_open error:" << libusb_strerror(r);
+                qWarning() << "libusb_open error:" << LIBUSB_STRERROR(r);
             }
 
             privDevice.description = QString("%1 (%2)").arg(privDevice.product, privDevice.serialNumber);
