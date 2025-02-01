@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <QMap>
-#include "stickinterface.h"
+#include "densistickinterface.h"
 
 namespace Ui {
 class StickGainCalibrationDialog;
@@ -14,7 +14,7 @@ class StickGainCalibrationDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit StickGainCalibrationDialog(StickInterface *stickInterface, QWidget *parent = nullptr);
+    explicit StickGainCalibrationDialog(DensiStickInterface *stickInterface, QWidget *parent = nullptr);
     ~StickGainCalibrationDialog();
 
     bool success() const;
@@ -30,7 +30,7 @@ protected:
     void timerEvent(QTimerEvent *event) override;
 
 private slots:
-    void onSensorReading(const StickReading& reading);
+    void onSensorReading(const DensiStickReading& reading);
     void onCalGainCalStatus(int status, int param);
     void onCalGainCalFinished();
     void onCalGainCalError();
@@ -40,7 +40,7 @@ private:
     QString lightParamText(int param);
     void addText(const QString &text);
     Ui::StickGainCalibrationDialog *ui;
-    StickInterface *stickInterface_;
+    DensiStickInterface *stickInterface_;
     bool started_;
     bool running_;
     bool success_;
@@ -55,7 +55,7 @@ private:
     int delayCount_;
     bool captureReadings_;
     bool upperGain_;
-    QList<StickReading> readingList_;
+    QList<DensiStickReading> readingList_;
     QMap<int, quint8> gainBrightness_;
     QMap<int, double> gainReadingUpper_;
     QMap<int, double> gainReadingLower_;

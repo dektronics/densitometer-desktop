@@ -7,7 +7,7 @@
 #include <QPair>
 #include <tuple>
 #include "densinterface.h"
-#include "stickrunner.h"
+#include "densistickrunner.h"
 
 namespace Ui {
 class SlopeCalibrationDialog;
@@ -21,7 +21,7 @@ private:
     explicit SlopeCalibrationDialog(QWidget *parent);
 public:
     explicit SlopeCalibrationDialog(DensInterface *densInterface, QWidget *parent = nullptr);
-    explicit SlopeCalibrationDialog(StickRunner *stickRunner, QWidget *parent = nullptr);
+    explicit SlopeCalibrationDialog(DensiStickRunner *stickRunner, QWidget *parent = nullptr);
     ~SlopeCalibrationDialog();
 
     void setCalculateZeroAdjustment(bool enable);

@@ -5,8 +5,8 @@
 #include <QDebug>
 
 #include "densinterface.h"
-#include "stickrunner.h"
-#include "stickinterface.h"
+#include "densistickrunner.h"
+#include "densistickinterface.h"
 #include "remotecontroldialog.h"
 #include "stickremotecontroldialog.h"
 
@@ -52,7 +52,7 @@ DiagnosticsTab::~DiagnosticsTab()
     delete ui;
 }
 
-void DiagnosticsTab::setStickRunner(StickRunner *stickRunner)
+void DiagnosticsTab::setStickRunner(DensiStickRunner *stickRunner)
 {
     if (stickRunner_ != stickRunner) {
         stickRunner_ = stickRunner;

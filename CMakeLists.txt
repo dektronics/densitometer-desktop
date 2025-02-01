@@ -67,11 +67,11 @@ set(PROJECT_SOURCES
     src/tsl2585.cpp src/tsl2585.h
     src/m24c08.cpp src/m24c08.h
     src/tsl2585calibration.cpp src/tsl2585calibration.h
-    src/sticksettings.cpp src/sticksettings.h
-    src/stickinterface.cpp src/stickinterface.h
-    src/stickreading.cpp src/stickreading.h
+    src/densisticksettings.cpp src/densisticksettings.h
+    src/densistickinterface.cpp src/densistickinterface.h
+    src/densistickreading.cpp src/densistickreading.h
+    src/densistickrunner.h src/densistickrunner.cpp
     src/stickremotecontroldialog.cpp src/stickremotecontroldialog.h src/stickremotecontroldialog.ui
-    src/stickrunner.h src/stickrunner.cpp
     ${FT260LIBUSB_SOURCES}
     ${TS_FILES}
 )

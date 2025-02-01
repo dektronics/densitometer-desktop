@@ -26,8 +26,8 @@
 #include "settingsimportdialog.h"
 #include "floatitemdelegate.h"
 #include "ft260.h"
-#include "stickinterface.h"
-#include "stickrunner.h"
+#include "densistickinterface.h"
+#include "densistickrunner.h"
 #include "util.h"
 
 namespace
@@ -259,10 +259,10 @@ void MainWindow::openConnectionToFt260(const Ft260DeviceInfo &info)
         return;
     }
 
-    StickInterface *stickInterface = new StickInterface(ft260);
-    connect(stickInterface, &StickInterface::connectionClosed, this, &MainWindow::closeConnection);
+    DensiStickInterface *stickInterface = new DensiStickInterface(ft260);
+    connect(stickInterface, &DensiStickInterface::connectionClosed, this, &MainWindow::closeConnection);
     if (stickInterface->open()) {
-        stickRunner_ = new StickRunner(stickInterface, this);
+        stickRunner_ = new DensiStickRunner(stickInterface, this);
         ui->actionConnect->setEnabled(false);
         ui->actionDisconnect->setEnabled(true);
         statusLabel_->setText(tr("Connected to %1").arg(info.deviceDisplayPath()));
@@ -282,7 +282,7 @@ void MainWindow::closeConnection()
 {
     qDebug() << "Close connection";
     if (stickRunner_) {
-        disconnect(stickRunner_->stickInterface(), &StickInterface::connectionClosed, this, &MainWindow::closeConnection);
+        disconnect(stickRunner_->stickInterface(), &DensiStickInterface::connectionClosed, this, &MainWindow::closeConnection);
         diagnosticsTab_->setStickRunner(nullptr);
         stickRunner_->stickInterface()->close();
         stickRunner_->deleteLater();
@@ -540,8 +540,8 @@ void MainWindow::onConnectionOpened()
         calibrationTab_->reloadAll();
         stickRunner_->reloadCalibration();
         stickRunner_->setEnabled(true);
-        connect(calibrationTab_, &CalibrationTab::calibrationSaved, stickRunner_, &StickRunner::reloadCalibration);
-        connect(stickRunner_, &StickRunner::targetDensity, this, &MainWindow::onTargetDensity);
+        connect(calibrationTab_, &CalibrationTab::calibrationSaved, stickRunner_, &DensiStickRunner::reloadCalibration);
+        connect(stickRunner_, &DensiStickRunner::targetDensity, this, &MainWindow::onTargetDensity);
     } else {
         densInterface_->sendSetMeasurementFormat(DensInterface::FormatExtended);
         densInterface_->sendSetAllowUncalibratedMeasurements(true);

@@ -21,7 +21,7 @@ static const int GAIN_SAMPLE_READINGS = 5;
 static const int GAIN_DELAY_COUNT = 200;
 }
 
-StickGainCalibrationDialog::StickGainCalibrationDialog(StickInterface *stickInterface, QWidget *parent) :
+StickGainCalibrationDialog::StickGainCalibrationDialog(DensiStickInterface *stickInterface, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::StickGainCalibrationDialog),
     stickInterface_(stickInterface),
@@ -39,7 +39,7 @@ StickGainCalibrationDialog::StickGainCalibrationDialog(StickInterface *stickInte
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &StickGainCalibrationDialog::reject);
     ui->buttonBox->button(QDialogButtonBox::Close)->setEnabled(false);
 
-    connect(stickInterface_, &StickInterface::sensorReading, this, &StickGainCalibrationDialog::onSensorReading);
+    connect(stickInterface_, &DensiStickInterface::sensorReading, this, &StickGainCalibrationDialog::onSensorReading);
 
     /*
      * This class needs to actually implement gain calibration, rather than just monitor it.
@@ -128,8 +128,8 @@ void StickGainCalibrationDialog::timerEvent(QTimerEvent *event)
             stepNew_ = false;
         }
         if (readingList_.size() < LED_SAMPLE_READINGS) { return; }
-        const StickReading reading = readingList_.last();
-        if (reading.status() == StickReading::ResultSaturated || reading.status() == StickReading::ResultOverflow) {
+        const DensiStickReading reading = readingList_.last();
+        if (reading.status() == DensiStickReading::ResultSaturated || reading.status() == DensiStickReading::ResultOverflow) {
             stepBrightness_ = ((stepBrightness_ + 1) << 1) - 1;
             qDebug() << "Changing brightness to" << stepBrightness_;
             stickInterface_->setLightBrightness(stepBrightness_);
@@ -204,8 +204,8 @@ void StickGainCalibrationDialog::timerEvent(QTimerEvent *event)
         if (readingList_.size() < GAIN_SAMPLE_READINGS) { return; }
         double sum = 0;
         size_t count = 0;
-        for (const StickReading& reading : readingList_) {
-            if (reading.status() == StickReading::ResultValid) {
+        for (const DensiStickReading& reading : readingList_) {
+            if (reading.status() == DensiStickReading::ResultValid) {
                 sum += (double)reading.reading();
                 count++;
             }
@@ -268,7 +268,7 @@ void StickGainCalibrationDialog::timerEvent(QTimerEvent *event)
     }
 }
 
-void StickGainCalibrationDialog::onSensorReading(const StickReading& reading)
+void StickGainCalibrationDialog::onSensorReading(const DensiStickReading& reading)
 {
     if (!started_ || !running_ || !captureReadings_) { return; }
     if (skipCount_ > 0) {

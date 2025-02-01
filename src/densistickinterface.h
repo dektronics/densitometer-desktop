@@ -1,20 +1,20 @@
-#ifndef STICKINTERFACE_H
-#define STICKINTERFACE_H
+#ifndef DENSISTICKINTERFACE_H
+#define DENSISTICKINTERFACE_H
 
 #include <QObject>
 #include "ft260.h"
-#include "stickreading.h"
+#include "densistickreading.h"
 
 class M24C08;
-class StickSettings;
+class DensiStickSettings;
 class TSL2585;
 
-class StickInterface : public QObject
+class DensiStickInterface : public QObject
 {
     Q_OBJECT
 public:
-    explicit StickInterface(Ft260 *ft260, QObject *parent = nullptr);
-    ~StickInterface();
+    explicit DensiStickInterface(Ft260 *ft260, QObject *parent = nullptr);
+    ~DensiStickInterface();
 
     bool open();
     void close();
@@ -23,7 +23,7 @@ public:
     bool hasSettings() const;
     bool running() const;
 
-    StickSettings *settings();
+    DensiStickSettings *settings();
 
     bool setLightEnable(bool enable);
     bool lightEnabled() const;
@@ -43,19 +43,19 @@ public:
 signals:
     void connectionClosed();
     void buttonEvent(bool pressed);
-    void sensorReading(const StickReading& reading);
+    void sensorReading(const DensiStickReading& reading);
 
 private slots:
     void onConnectionClosed();
     void onSensorInterrupt();
 
 private:
-    StickReading readSensor();
+    DensiStickReading readSensor();
 
     bool connected_ = false;
     Ft260 *ft260_ = nullptr;
     M24C08 *eeprom_ = nullptr;
-    StickSettings *settings_ = nullptr;
+    DensiStickSettings *settings_ = nullptr;
     TSL2585 *sensor_ = nullptr;
     bool hasSettings_ = false;
     Ft260GpioReport gpioReport_;
@@ -71,4 +71,4 @@ private:
     bool shutdown_ = false;
 };
 
-#endif // STICKINTERFACE_H
+#endif // DENSISTICKINTERFACE_H

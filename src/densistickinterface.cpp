@@ -1,11 +1,11 @@
-#include "stickinterface.h"
+#include "densistickinterface.h"
 
 #include <QDebug>
 #include "ft260.h"
 #include "tsl2585.h"
 #include "m24c08.h"
-#include "sticksettings.h"
-#include "stickreading.h"
+#include "densisticksettings.h"
+#include "densistickreading.h"
 
 namespace
 {
@@ -18,23 +18,23 @@ static const tsl2585_modulator_t sensor_tsl2585_phd_mod_vis[] = {
 };
 }
 
-StickInterface::StickInterface(Ft260 *ft260, QObject *parent)
+DensiStickInterface::DensiStickInterface(Ft260 *ft260, QObject *parent)
     : QObject(parent), ft260_(ft260)
 {
     if (ft260_ && !ft260_->parent()) {
         ft260_->setParent(this);
     }
-    connect(ft260_, &Ft260::connectionClosed, this, &StickInterface::onConnectionClosed);
+    connect(ft260_, &Ft260::connectionClosed, this, &DensiStickInterface::onConnectionClosed);
 }
 
-StickInterface::~StickInterface()
+DensiStickInterface::~DensiStickInterface()
 {
-    disconnect(ft260_, &Ft260::connectionClosed, this, &StickInterface::onConnectionClosed);
+    disconnect(ft260_, &Ft260::connectionClosed, this, &DensiStickInterface::onConnectionClosed);
     shutdown_ = true;
     close();
 }
 
-bool StickInterface::open()
+bool DensiStickInterface::open()
 {
     if (!ft260_) { return false; }
 
@@ -53,7 +53,7 @@ bool StickInterface::open()
     eeprom_ = new M24C08(ft260_, EEPROM_ADDRESS);
 
     // Create the settings data wrapper
-    settings_ = new StickSettings(eeprom_);
+    settings_ = new DensiStickSettings(eeprom_);
     if (!settings_->init()) {
         qWarning() << "Unable to read settings";
         close();
@@ -97,15 +97,15 @@ bool StickInterface::open()
         return false;
     }
 
-    connect(ft260_, &Ft260::buttonInterrupt, this, &StickInterface::buttonEvent);
-    connect(ft260_, &Ft260::sensorInterrupt, this, &StickInterface::onSensorInterrupt);
+    connect(ft260_, &Ft260::buttonInterrupt, this, &DensiStickInterface::buttonEvent);
+    connect(ft260_, &Ft260::sensorInterrupt, this, &DensiStickInterface::onSensorInterrupt);
 
     connected_ = true;
 
     return true;
 }
 
-void StickInterface::close()
+void DensiStickInterface::close()
 {
     setLightEnable(false);
 
@@ -113,8 +113,8 @@ void StickInterface::close()
     connected_ = false;
     sensorRunning_ = false;
 
-    disconnect(ft260_, &Ft260::buttonInterrupt, this, &StickInterface::buttonEvent);
-    disconnect(ft260_, &Ft260::sensorInterrupt, this, &StickInterface::onSensorInterrupt);
+    disconnect(ft260_, &Ft260::buttonInterrupt, this, &DensiStickInterface::buttonEvent);
+    disconnect(ft260_, &Ft260::sensorInterrupt, this, &DensiStickInterface::onSensorInterrupt);
 
     if (settings_) {
         delete settings_;
@@ -139,34 +139,34 @@ void StickInterface::close()
     }
 }
 
-void StickInterface::onConnectionClosed()
+void DensiStickInterface::onConnectionClosed()
 {
     if (connected_) {
         close();
     }
 }
 
-bool StickInterface::connected() const
+bool DensiStickInterface::connected() const
 {
     return connected_;
 }
 
-bool StickInterface::hasSettings() const
+bool DensiStickInterface::hasSettings() const
 {
     return hasSettings_;
 }
 
-bool StickInterface::running() const
+bool DensiStickInterface::running() const
 {
     return sensorRunning_;
 }
 
-StickSettings *StickInterface::settings()
+DensiStickSettings *DensiStickInterface::settings()
 {
     return settings_;
 }
 
-bool StickInterface::setLightEnable(bool enable)
+bool DensiStickInterface::setLightEnable(bool enable)
 {
     if (!ft260_) { return false; }
 
@@ -187,12 +187,12 @@ bool StickInterface::setLightEnable(bool enable)
     }
 }
 
-bool StickInterface::lightEnabled() const
+bool DensiStickInterface::lightEnabled() const
 {
     return (gpioReport_.gpio_ex_value & 0x80) != 0;
 }
 
-bool StickInterface::setLightBrightness(quint8 value)
+bool DensiStickInterface::setLightBrightness(quint8 value)
 {
     if (!ft260_) { return false; }
 
@@ -206,12 +206,12 @@ bool StickInterface::setLightBrightness(quint8 value)
     }
 }
 
-quint8 StickInterface::lightBrightness() const
+quint8 DensiStickInterface::lightBrightness() const
 {
     return lightBrightness_;
 }
 
-float StickInterface::lightCurrent() const
+float DensiStickInterface::lightCurrent() const
 {
     static const float FIXED_RESISTANCE = 16.5F;
     static const float WIPER = 0.075F;
@@ -230,7 +230,7 @@ float StickInterface::lightCurrent() const
     return (currentMa * CURRENT_MULTIPLIER) / 1000.0F;
 }
 
-bool StickInterface::setSensorGain(int gain)
+bool DensiStickInterface::setSensorGain(int gain)
 {
     if (sensorRunning_) {
         if (!sensor_->setModGain(TSL2585_MOD0, TSL2585_STEP0, static_cast<tsl2585_gain_t>(gain))) {
@@ -244,7 +244,7 @@ bool StickInterface::setSensorGain(int gain)
     return true;
 }
 
-bool StickInterface::setSensorIntegration(int sampleTime, int sampleCount)
+bool DensiStickInterface::setSensorIntegration(int sampleTime, int sampleCount)
 {
     if (sensorRunning_) {
         if (!sensor_->setSampleTime(sampleTime)) {
@@ -264,7 +264,7 @@ bool StickInterface::setSensorIntegration(int sampleTime, int sampleCount)
     return true;
 }
 
-bool StickInterface::setSensorAgcEnable(int sampleCount)
+bool DensiStickInterface::setSensorAgcEnable(int sampleCount)
 {
     if (sensorRunning_) {
         if (!sensor_->setAgcNumSamples(sampleCount)) {
@@ -284,7 +284,7 @@ bool StickInterface::setSensorAgcEnable(int sampleCount)
     return true;
 }
 
-bool StickInterface::setSensorAgcDisable()
+bool DensiStickInterface::setSensorAgcDisable()
 {
     if (sensorRunning_) {
         if (!sensor_->setAgcNumSamples(0)) {
@@ -305,7 +305,7 @@ bool StickInterface::setSensorAgcDisable()
     return true;
 }
 
-bool StickInterface::sensorStart()
+bool DensiStickInterface::sensorStart()
 {
     if (sensorRunning_) { return false; }
 
@@ -382,7 +382,7 @@ bool StickInterface::sensorStart()
     return sensorRunning_;
 }
 
-bool StickInterface::sensorStop()
+bool DensiStickInterface::sensorStop()
 {
     if (!sensorRunning_) { return false; }
 
@@ -393,10 +393,10 @@ bool StickInterface::sensorStop()
     return !sensorRunning_;
 }
 
-void StickInterface::onSensorInterrupt()
+void DensiStickInterface::onSensorInterrupt()
 {
     uint8_t status = 0;
-    StickReading result;
+    DensiStickReading result;
     bool notifyReading = false;
     if (!sensor_->getStatus(&status)) {
         qWarning() << "Unable to get interrupt status";
@@ -407,7 +407,7 @@ void StickInterface::onSensorInterrupt()
         result = readSensor();
         if (discardNextReading_) {
             discardNextReading_ = false;
-        } else if (result.status() != StickReading::ResultInvalid) {
+        } else if (result.status() != DensiStickReading::ResultInvalid) {
             sensorGain_ = result.gain();
             notifyReading = true;
         }
@@ -432,7 +432,7 @@ void StickInterface::onSensorInterrupt()
     }
 }
 
-StickReading StickInterface::readSensor()
+DensiStickReading DensiStickInterface::readSensor()
 {
     tsl2585_fifo_status_t fifo_status;
     const uint8_t data_size = 7;
@@ -485,17 +485,17 @@ StickReading StickInterface::readSensor()
     Q_UNUSED(als_status3);
 
     tsl2585_gain_t gain = static_cast<tsl2585_gain_t>(als_status2 & 0x0F);
-    StickReading::Status status = StickReading::ResultInvalid;
+    DensiStickReading::Status status = DensiStickReading::ResultInvalid;
     uint32_t reading = 0;
 
     if (overflow) {
-        status = StickReading::ResultOverflow;
+        status = DensiStickReading::ResultOverflow;
     } else if ((als_status & TSL2585_ALS_DATA0_ANALOG_SATURATION_STATUS) != 0) {
-        status = StickReading::ResultSaturated;
+        status = DensiStickReading::ResultSaturated;
     } else if (!empty) {
-        status = StickReading::ResultValid;
+        status = DensiStickReading::ResultValid;
         reading = als_data0;
     }
 
-    return StickReading(status, gain, reading);
+    return DensiStickReading(status, gain, reading);
 }

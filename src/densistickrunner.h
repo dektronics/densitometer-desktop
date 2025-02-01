@@ -1,18 +1,18 @@
-#ifndef STICKRUNNER_H
-#define STICKRUNNER_H
+#ifndef DENSISTICKRUNNER_H
+#define DENSISTICKRUNNER_H
 
 #include <QObject>
 
-#include "stickinterface.h"
+#include "densistickinterface.h"
 #include "tsl2585calibration.h"
 
-class StickRunner : public QObject
+class DensiStickRunner : public QObject
 {
     Q_OBJECT
 public:
-    explicit StickRunner(StickInterface *stickInterface, QObject *parent = nullptr);
+    explicit DensiStickRunner(DensiStickInterface *stickInterface, QObject *parent = nullptr);
 
-    StickInterface *stickInterface();
+    DensiStickInterface *stickInterface();
 
     void setEnabled(bool enabled);
     bool enabled() const;
@@ -26,18 +26,18 @@ signals:
 
 private slots:
     void onButtonEvent(bool pressed);
-    void onSensorReading(const StickReading& reading);
+    void onSensorReading(const DensiStickReading& reading);
 
 private:
     void startMeasurement();
     void finishMeasurement();
-    StickInterface *stickInterface_;
+    DensiStickInterface *stickInterface_;
     bool enabled_ = false;
     bool measuring_ = false;
-    QList<StickReading> readingList_;
+    QList<DensiStickReading> readingList_;
     Tsl2585Calibration calData_;
     qint64 measStartTime_;
     int agcStep_;
 };
 
-#endif // STICKRUNNER_H
+#endif // DENSISTICKRUNNER_H

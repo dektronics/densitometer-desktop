@@ -1,5 +1,5 @@
 #include "stickremotecontroldialog.h"
-#include "stickinterface.h"
+#include "densistickinterface.h"
 #include "ui_stickremotecontroldialog.h"
 
 #include <QStyleHints>
@@ -11,7 +11,7 @@ namespace
 static const uint16_t SAMPLE_TIME = 719;
 }
 
-StickRemoteControlDialog::StickRemoteControlDialog(StickInterface *stickInterface, QWidget *parent) :
+StickRemoteControlDialog::StickRemoteControlDialog(DensiStickInterface *stickInterface, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::StickRemoteControlDialog),
     stickInterface_(stickInterface),
@@ -32,7 +32,7 @@ StickRemoteControlDialog::StickRemoteControlDialog(StickInterface *stickInterfac
     connect(ui->agcCheckBox, &QCheckBox::checkStateChanged, this, &StickRemoteControlDialog::onAgcCheckBoxStateChanged);
     connect(ui->reflReadPushButton, &QPushButton::clicked, this, &StickRemoteControlDialog::onReflReadClicked);
 
-    connect(stickInterface_, &StickInterface::sensorReading, this, &StickRemoteControlDialog::onSensorReading);
+    connect(stickInterface_, &DensiStickInterface::sensorReading, this, &StickRemoteControlDialog::onSensorReading);
     connect(stickInterface_, &QObject::destroyed, this, &StickRemoteControlDialog::onStickInterfaceDestroyed);
 
     ledControlState(true);
@@ -234,28 +234,18 @@ void StickRemoteControlDialog::sensorControlState(bool enabled)
     ui->reflReadPushButton->setEnabled(enabled ? !sensorStarted_ : false);
 }
 
-// void StickRemoteControlDialog::onDiagSensorBaselineInvokeReading(int ch0, int ch1)
-// {
-//     updateSensorReading(ch0, ch1);
-//     ui->reflSpinBox->setValue(0);
-//     ui->rawReadingLineEdit->setEnabled(true);
-//     ui->basicReadingLineEdit->setEnabled(true);
-//     sensorControlState(true);
-//     ledControlState(true);
-// }
-
-void StickRemoteControlDialog::onSensorReading(const StickReading& reading)
+void StickRemoteControlDialog::onSensorReading(const DensiStickReading& reading)
 {
     if (!stickInterface_->running()) { return; }
 
 
-    if (reading.status() == StickReading::ResultOverflow) {
+    if (reading.status() == DensiStickReading::ResultOverflow) {
         ui->rawReadingLineEdit->setText(tr("Overflow"));
         ui->basicReadingLineEdit->setText(QString());
-    } else if (reading.status() == StickReading::ResultSaturated) {
+    } else if (reading.status() == DensiStickReading::ResultSaturated) {
         ui->rawReadingLineEdit->setText(tr("ASAT"));
         ui->basicReadingLineEdit->setText(QString());
-    } else if (reading.status() == StickReading::ResultValid) {
+    } else if (reading.status() == DensiStickReading::ResultValid) {
         const float timeMs = TSL2585::integrationTimeMs(
             SAMPLE_TIME,
             ((ui->intComboBox->currentIndex() + 1) * 100) - 1);

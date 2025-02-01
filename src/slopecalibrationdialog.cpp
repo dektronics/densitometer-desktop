@@ -87,11 +87,11 @@ SlopeCalibrationDialog::SlopeCalibrationDialog(DensInterface *densInterface, QWi
     }
 }
 
-SlopeCalibrationDialog::SlopeCalibrationDialog(StickRunner *stickRunner, QWidget *parent)
+SlopeCalibrationDialog::SlopeCalibrationDialog(DensiStickRunner *stickRunner, QWidget *parent)
     : SlopeCalibrationDialog(parent)
 {
     if (stickRunner) {
-        connect(stickRunner, &StickRunner::targetDensity, this, &SlopeCalibrationDialog::onTargetMeasurement);
+        connect(stickRunner, &DensiStickRunner::targetDensity, this, &SlopeCalibrationDialog::onTargetMeasurement);
     }
     enableReflReadings_ = true;
 }

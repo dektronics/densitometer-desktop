@@ -6,17 +6,17 @@
 
 #include "stickgaincalibrationdialog.h"
 #include "slopecalibrationdialog.h"
-#include "sticksettings.h"
+#include "densisticksettings.h"
 #include "util.h"
 
-CalibrationStickTab::CalibrationStickTab(StickRunner *stickRunner, QWidget *parent)
+CalibrationStickTab::CalibrationStickTab(DensiStickRunner *stickRunner, QWidget *parent)
     : CalibrationTab(nullptr, parent)
     , ui(new Ui::CalibrationStickTab), stickRunner_(stickRunner)
 {
     ui->setupUi(this);
 
     connect(stickRunner_, &QObject::destroyed, this, &CalibrationStickTab::onStickInterfaceDestroyed);
-    connect(stickRunner_, &StickRunner::targetMeasurement, this, &CalibrationStickTab::onTargetMeasurement);
+    connect(stickRunner_, &DensiStickRunner::targetMeasurement, this, &CalibrationStickTab::onTargetMeasurement);
 
     // Calibration UI signals
     connect(ui->calGetAllPushButton, &QPushButton::clicked, this, &CalibrationStickTab::onCalGetAllValues);

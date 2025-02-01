@@ -1,10 +1,10 @@
-#include "stickrunner.h"
+#include "densistickrunner.h"
 
 #include <QDateTime>
 #include <QTimer>
 #include <QDebug>
 
-#include "sticksettings.h"
+#include "densisticksettings.h"
 
 namespace
 {
@@ -16,23 +16,23 @@ static const quint16 AGC_SAMPLE_COUNT = 19;
 static const int READING_COUNT = 2;
 }
 
-StickRunner::StickRunner(StickInterface *stickInterface, QObject *parent)
+DensiStickRunner::DensiStickRunner(DensiStickInterface *stickInterface, QObject *parent)
     : QObject{parent}, stickInterface_(stickInterface), measStartTime_(0), agcStep_(0)
 {
     if (stickInterface_ && !stickInterface_->parent()) {
         stickInterface_->setParent(this);
     }
 
-    connect(stickInterface_, &StickInterface::buttonEvent, this, &StickRunner::onButtonEvent);
-    connect(stickInterface_, &StickInterface::sensorReading, this, &StickRunner::onSensorReading);
+    connect(stickInterface_, &DensiStickInterface::buttonEvent, this, &DensiStickRunner::onButtonEvent);
+    connect(stickInterface_, &DensiStickInterface::sensorReading, this, &DensiStickRunner::onSensorReading);
 }
 
-StickInterface *StickRunner::stickInterface()
+DensiStickInterface *DensiStickRunner::stickInterface()
 {
     return stickInterface_;
 }
 
-void StickRunner::setEnabled(bool enabled)
+void DensiStickRunner::setEnabled(bool enabled)
 {
     if (enabled_ != enabled) {
         if (enabled) {
@@ -45,31 +45,31 @@ void StickRunner::setEnabled(bool enabled)
     }
 }
 
-bool StickRunner::enabled() const
+bool DensiStickRunner::enabled() const
 {
     return enabled_;
 }
 
-void StickRunner::reloadCalibration()
+void DensiStickRunner::reloadCalibration()
 {
     if (!stickInterface_ || !stickInterface_->hasSettings()) { return; }
     calData_ = stickInterface_->settings()->readCalTsl2585();
 }
 
-void StickRunner::onButtonEvent(bool pressed)
+void DensiStickRunner::onButtonEvent(bool pressed)
 {
     if (pressed && enabled_ && !measuring_ && !calData_.isEmpty()) {
         startMeasurement();
     }
 }
 
-void StickRunner::onSensorReading(const StickReading& reading)
+void DensiStickRunner::onSensorReading(const DensiStickReading& reading)
 {
     if (!measuring_) { return; }
 
     qDebug() << reading << (QDateTime::currentMSecsSinceEpoch() - measStartTime_);
 
-    if (reading.status() != StickReading::ResultValid) {
+    if (reading.status() != DensiStickReading::ResultValid) {
         readingList_.clear();
         return;
     }
@@ -93,7 +93,7 @@ void StickRunner::onSensorReading(const StickReading& reading)
     }
 }
 
-void StickRunner::startMeasurement()
+void DensiStickRunner::startMeasurement()
 {
     qDebug() << "Measuring target";
     measStartTime_ = QDateTime::currentMSecsSinceEpoch();
@@ -109,7 +109,7 @@ void StickRunner::startMeasurement()
     measuring_ = true;
 }
 
-void StickRunner::finishMeasurement()
+void DensiStickRunner::finishMeasurement()
 {
     measuring_ = false;
     stickInterface_->setLightEnable(false);
@@ -122,8 +122,8 @@ void StickRunner::finishMeasurement()
 
     float sum = 0;
     size_t count = 0;
-    for (const StickReading& reading : readingList_) {
-        if (reading.status() == StickReading::ResultValid) {
+    for (const DensiStickReading& reading : readingList_) {
+        if (reading.status() == DensiStickReading::ResultValid) {
             sum += (float)reading.reading();
             count++;
         }

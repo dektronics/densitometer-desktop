@@ -1,4 +1,4 @@
-#include "sticksettings.h"
+#include "densisticksettings.h"
 
 #include <QByteArray>
 #include <QDebug>
@@ -63,11 +63,11 @@
 #define CAL_TSL2585_RESERVED2          88 /* 12B (for page alignment) */
 #define CAL_TSL2585_TARGET_CRC        108 /* 4B (uint32_t) */
 
-StickSettings::StickSettings(M24C08 *eeprom) : eeprom_(eeprom), headerValid_(false)
+DensiStickSettings::DensiStickSettings(M24C08 *eeprom) : eeprom_(eeprom), headerValid_(false)
 {
 }
 
-bool StickSettings::init()
+bool DensiStickSettings::init()
 {
     const QByteArray headerPage = eeprom_->readBuffer(PAGE_HEADER, PAGE_HEADER_SIZE);
     if (headerPage.isEmpty() || headerPage.size() != PAGE_HEADER_SIZE) { return false; }
@@ -94,43 +94,43 @@ bool StickSettings::init()
     return true;
 }
 
-bool StickSettings::headerValid() const
+bool DensiStickSettings::headerValid() const
 {
     return headerValid_;
 }
 
-quint8 StickSettings::probeType() const
+quint8 DensiStickSettings::probeType() const
 {
     const uint8_t *data = reinterpret_cast<const uint8_t *>(headerPage_.constData());
     return data[HEADER_DEV_TYPE];
 }
 
-void StickSettings::setProbeType(quint8 probeType)
+void DensiStickSettings::setProbeType(quint8 probeType)
 {
     uint8_t *data = reinterpret_cast<uint8_t *>(headerPage_.data());
     data[HEADER_DEV_TYPE] = probeType;
 }
 
-quint8 StickSettings::probeRevisionMajor() const
+quint8 DensiStickSettings::probeRevisionMajor() const
 {
     const uint8_t *data = reinterpret_cast<const uint8_t *>(headerPage_.constData());
     return data[HEADER_DEV_REV_MAJOR];
 }
 
-quint8 StickSettings::probeRevisionMinor() const
+quint8 DensiStickSettings::probeRevisionMinor() const
 {
     const uint8_t *data = reinterpret_cast<const uint8_t *>(headerPage_.constData());
     return data[HEADER_DEV_REV_MINOR];
 }
 
-void StickSettings::setProbeRevision(quint8 major, quint8 minor)
+void DensiStickSettings::setProbeRevision(quint8 major, quint8 minor)
 {
     uint8_t *data = reinterpret_cast<uint8_t *>(headerPage_.data());
     data[HEADER_DEV_REV_MAJOR] = major;
     data[HEADER_DEV_REV_MINOR] = minor;
 }
 
-bool StickSettings::writeHeaderPage()
+bool DensiStickSettings::writeHeaderPage()
 {
     qDebug() << "Saving header page:" << headerPage_.toHex();
 
@@ -141,7 +141,7 @@ bool StickSettings::writeHeaderPage()
     return result;
 }
 
-Tsl2585Calibration StickSettings::readCalTsl2585()
+Tsl2585Calibration DensiStickSettings::readCalTsl2585()
 {
     uint32_t version;
     uint32_t crc;
@@ -220,7 +220,7 @@ Tsl2585Calibration StickSettings::readCalTsl2585()
     return calData;
 }
 
-bool StickSettings::writeCalTsl2585(const Tsl2585Calibration &calData)
+bool DensiStickSettings::writeCalTsl2585(const Tsl2585Calibration &calData)
 {
     uint32_t crc;
 

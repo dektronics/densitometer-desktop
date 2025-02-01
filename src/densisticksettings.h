@@ -1,5 +1,5 @@
-#ifndef STICKSETTINGS_H
-#define STICKSETTINGS_H
+#ifndef DENSISTICKSETTINGS_H
+#define DENSISTICKSETTINGS_H
 
 #include <QByteArray>
 
@@ -7,10 +7,10 @@
 
 class M24C08;
 
-class StickSettings
+class DensiStickSettings
 {
 public:
-    explicit StickSettings(M24C08 *eeprom);
+    explicit DensiStickSettings(M24C08 *eeprom);
 
     bool init();
 
@@ -34,4 +34,4 @@ private:
     bool headerValid_;
 };
 
-#endif // STICKSETTINGS_H
+#endif // DENSISTICKSETTINGS_H

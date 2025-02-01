@@ -4,7 +4,7 @@
 #include <QWidget>
 
 #include "calibrationtab.h"
-#include "stickrunner.h"
+#include "densistickrunner.h"
 #include "tsl2585calibration.h"
 
 class QLineEdit;
@@ -18,7 +18,7 @@ class CalibrationStickTab : public CalibrationTab
     Q_OBJECT
 
 public:
-    explicit CalibrationStickTab(StickRunner *stickRunner, QWidget *parent = nullptr);
+    explicit CalibrationStickTab(DensiStickRunner *stickRunner, QWidget *parent = nullptr);
     ~CalibrationStickTab();
 
     virtual DensInterface::DeviceType deviceType() const { return DensInterface::DeviceUvVis; }
@@ -58,7 +58,7 @@ private:
 
     bool editable_ = false;
     Ui::CalibrationStickTab *ui;
-    StickRunner *stickRunner_ = nullptr;
+    DensiStickRunner *stickRunner_ = nullptr;
     Tsl2585Calibration calData_;
 };
 

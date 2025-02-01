@@ -2,7 +2,7 @@
 #define STICKREMOTECONTROLDIALOG_H
 
 #include <QDialog>
-#include "stickinterface.h"
+#include "densistickinterface.h"
 
 namespace Ui {
 class StickRemoteControlDialog;
@@ -13,7 +13,7 @@ class StickRemoteControlDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit StickRemoteControlDialog(StickInterface *stickInterface, QWidget *parent = nullptr);
+    explicit StickRemoteControlDialog(DensiStickInterface *stickInterface, QWidget *parent = nullptr);
     ~StickRemoteControlDialog();
 
 protected:
@@ -36,7 +36,7 @@ private slots:
     void onAgcCheckBoxStateChanged(Qt::CheckState state);
     void onReflReadClicked();
 
-    void onSensorReading(const StickReading& reading);
+    void onSensorReading(const DensiStickReading& reading);
 
 private:
     void sendSetSensorConfig();
@@ -46,7 +46,7 @@ private:
     void sensorControlState(bool enabled);
 
     Ui::StickRemoteControlDialog *ui;
-    StickInterface *stickInterface_;
+    DensiStickInterface *stickInterface_;
     bool sensorStarted_;
     bool sensorConfigOnStart_;
 };
