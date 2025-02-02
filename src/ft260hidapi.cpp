@@ -6,6 +6,10 @@
 
 #include <hidapi.h>
 
+#if defined(Q_OS_MACOS)
+#include <hidapi_darwin.h>
+#endif
+
 #include "ft260deviceinfo.h"
 #include "ft260deviceinfo_p.h"
 
