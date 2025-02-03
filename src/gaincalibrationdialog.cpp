@@ -6,6 +6,8 @@
 #include <QPushButton>
 #include <QDebug>
 
+#include "tsl2585.h"
+
 GainCalibrationDialog::GainCalibrationDialog(DensInterface *densInterface, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::GainCalibrationDialog),
@@ -84,6 +86,31 @@ void GainCalibrationDialog::onCalGainCalStatus(int status, int param)
         return;
     }
 
+    if (densInterface_->deviceType() == DensInterface::DeviceBaseline) {
+        updateBaselineStatus(status, param);
+    } else if (densInterface_->deviceType() == DensInterface::DeviceUvVis) {
+        updateUvVisCalStatus(status, param);
+    }
+
+    lastStatus_ = status;
+    lastParam_ = param;
+}
+
+void GainCalibrationDialog::updateBaselineStatus(int status, int param)
+{
+    /*
+     * typedef enum {
+     *     SENSOR_GAIN_CALIBRATION_STATUS_INIT = 0,
+     *     SENSOR_GAIN_CALIBRATION_STATUS_MEDIUM,
+     *     SENSOR_GAIN_CALIBRATION_STATUS_HIGH,
+     *     SENSOR_GAIN_CALIBRATION_STATUS_MAXIMUM,
+     *     SENSOR_GAIN_CALIBRATION_STATUS_FAILED,
+     *     SENSOR_GAIN_CALIBRATION_STATUS_LED,
+     *     SENSOR_GAIN_CALIBRATION_STATUS_COOLDOWN,
+     *     SENSOR_GAIN_CALIBRATION_STATUS_DONE
+     * } sensor_gain_calibration_status_t;
+     */
+
     switch (status) {
     case 0:
         if (param == 0) {
@@ -108,9 +135,39 @@ void GainCalibrationDialog::onCalGainCalStatus(int status, int param)
         }
         break;
     }
+}
 
-    lastStatus_ = status;
-    lastParam_ = param;
+void GainCalibrationDialog::updateUvVisCalStatus(int status, int param)
+{
+    /*
+     * typedef enum {
+     *     SENSOR_GAIN_CALIBRATION_STATUS_INIT = 0,
+     *     SENSOR_GAIN_CALIBRATION_STATUS_LED,
+     *     SENSOR_GAIN_CALIBRATION_STATUS_WAITING,
+     *     SENSOR_GAIN_CALIBRATION_STATUS_GAIN,
+     *     SENSOR_GAIN_CALIBRATION_STATUS_FAILED,
+     *     SENSOR_GAIN_CALIBRATION_STATUS_DONE
+     * } sensor_gain_calibration_status_t;
+     */
+
+    switch (status) {
+    case 0:
+        if (param == 0) {
+            addText(tr("Initializing..."));
+        }
+        break;
+    case 1:
+        addText(tr("Finding gain measurement brightness... [%1]").arg(lightParamText(param)));
+        break;
+    case 2:
+        if (param == 0) {
+            addText(tr("Waiting before measurement..."));
+        }
+        break;
+    case 3:
+        addText(tr("Measuring gain level... [%1]").arg(TSL2585::gainString(static_cast<tsl2585_gain_t>(param))));
+        break;
+    }
 }
 
 QString GainCalibrationDialog::gainParamText(int param)

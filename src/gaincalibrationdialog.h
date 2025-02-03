@@ -32,6 +32,8 @@ private slots:
     void onCalGainCalError();
 
 private:
+    void updateBaselineStatus(int status, int param);
+    void updateUvVisCalStatus(int status, int param);
     QString gainParamText(int param);
     QString lightParamText(int param);
     void addText(const QString &text);
