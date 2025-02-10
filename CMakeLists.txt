@@ -99,6 +99,8 @@ if (LIBUSB_FOUND)
     target_compile_definitions(densitometer PUBLIC HAS_LIBUSB)
 endif()
 
+target_compile_definitions(densitometer PUBLIC EMC_TEST)
+
 set_target_properties(densitometer PROPERTIES
     MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/deploy/macOS/Info.plist"
     MACOSX_BUNDLE TRUE

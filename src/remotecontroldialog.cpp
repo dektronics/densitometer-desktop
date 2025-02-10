@@ -4,6 +4,11 @@
 #include <QStyleHints>
 #include <QDebug>
 
+#ifdef EMC_TEST
+#include <QCheckBox>
+#include <QTimer>
+#endif
+
 RemoteControlDialog::RemoteControlDialog(DensInterface *densInterface, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::RemoteControlDialog),
@@ -49,6 +54,12 @@ RemoteControlDialog::RemoteControlDialog(DensInterface *densInterface, QWidget *
     connect(ui->tranReadPushButton, &QPushButton::clicked, this, &RemoteControlDialog::onTranReadClicked);
     connect(ui->tranUvReadPushButton, &QPushButton::clicked, this, &RemoteControlDialog::onTranUvReadClicked);
     connect(ui->basicReadingRadioButton, &QRadioButton::toggled, this, &RemoteControlDialog::onBasicReadingRadioButtonToggled);
+
+#ifdef EMC_TEST
+    QCheckBox *cycleCheckBox = new QCheckBox("EMC Cycle Test", ui->sensorGroupBox);
+    cycleCheckBox->setObjectName("cycleCheckBox");
+    ui->sensorGroupBox->layout()->addWidget(cycleCheckBox);
+#endif
 
     if (densInterface->deviceType() == DensInterface::DeviceUvVis) {
         ui->reflGroupBox->setTitle(tr("VIS Reflection Light"));
@@ -118,7 +129,14 @@ void RemoteControlDialog::onDiagLightChanged()
         ui->tranSpinBox->setStyleSheet("QSpinBox { background-color: lightgreen; }");
         ui->tranUvSpinBox->setStyleSheet("QSpinBox { background-color: lightgreen; }");
     }
+#ifdef EMC_TEST
+    QTimer *timer = this->findChild<QTimer*>("cycleTimer");
+    if (!timer || !timer->isActive()) {
+        ledControlState(true);
+    }
+#else
     ledControlState(true);
+#endif
 }
 
 void RemoteControlDialog::onReflOffClicked()
@@ -245,6 +263,92 @@ void RemoteControlDialog::onSensorStartClicked()
         sendSetDiagSensorAgc();
     }
     densInterface_->sendInvokeDiagSensorStart();
+
+#ifdef EMC_TEST
+    QCheckBox *cycleCheckBox = ui->sensorGroupBox->findChild<QCheckBox*>("cycleCheckBox");
+    if (cycleCheckBox->isChecked()) {
+        QTimer *timer = new QTimer(this);
+        timer->setObjectName("cycleTimer");
+        connect(timer, &QTimer::timeout, this, [this, timer]() {
+            int state = timer->property("state").toInt();
+            int maxStates;
+            if (densInterface_->deviceType() == DensInterface::DeviceUvVis) {
+                maxStates = 8;
+                if (state == 0 || state == 3) {
+                    densInterface_->sendSetUvDiagSensorMode(1); // VIS
+                    ui->modeComboBox->setCurrentIndex(1);
+                } else if (state == 6) {
+                    densInterface_->sendSetUvDiagSensorMode(2); // UV
+                    ui->modeComboBox->setCurrentIndex(2);
+                }
+            } else {
+                maxStates = 5;
+            }
+
+            if (state == 0) {
+                densInterface_->sendSetDiagLightRefl(0);
+                ui->reflSpinBox->setValue(0);
+                ui->tranSpinBox->setValue(0);
+                ui->tranUvSpinBox->setValue(0);
+                densInterface_->sendSetSystemDisplayText("Reflection\nOff");
+            } else if (state == 1) {
+                densInterface_->sendSetDiagLightRefl(32);
+                ui->reflSpinBox->setValue(32);
+                ui->tranSpinBox->setValue(0);
+                ui->tranUvSpinBox->setValue(0);
+                densInterface_->sendSetSystemDisplayText("Reflection\nIdle");
+            } else if (state == 2) {
+                densInterface_->sendSetDiagLightRefl(128);
+                ui->reflSpinBox->setValue(128);
+                ui->tranSpinBox->setValue(0);
+                ui->tranUvSpinBox->setValue(0);
+                densInterface_->sendSetSystemDisplayText("Reflection\nMeasure");
+            } else if (state == 3) {
+                densInterface_->sendSetDiagLightTran(0);
+                ui->reflSpinBox->setValue(0);
+                ui->tranSpinBox->setValue(0);
+                ui->tranUvSpinBox->setValue(0);
+                densInterface_->sendSetSystemDisplayText("Transmission\nOff");
+            } else if (state == 4) {
+                densInterface_->sendSetDiagLightTran(8);
+                ui->reflSpinBox->setValue(0);
+                ui->tranSpinBox->setValue(8);
+                ui->tranUvSpinBox->setValue(0);
+                densInterface_->sendSetSystemDisplayText("Transmission\nIdle");
+            } else if (state == 5) {
+                densInterface_->sendSetDiagLightTran(128);
+                ui->reflSpinBox->setValue(0);
+                ui->tranSpinBox->setValue(128);
+                ui->tranUvSpinBox->setValue(0);
+                densInterface_->sendSetSystemDisplayText("Transmission\nMeasure");
+            } else if (state == 6) {
+                densInterface_->sendSetDiagLightTranUv(0);
+                ui->reflSpinBox->setValue(0);
+                ui->tranSpinBox->setValue(0);
+                ui->tranUvSpinBox->setValue(0);
+                densInterface_->sendSetSystemDisplayText("Transmission-U\nOff");
+            } else if (state == 7) {
+                densInterface_->sendSetDiagLightTranUv(8);
+                ui->reflSpinBox->setValue(0);
+                ui->tranSpinBox->setValue(0);
+                ui->tranUvSpinBox->setValue(8);
+                densInterface_->sendSetSystemDisplayText("Transmission-U\nIdle");
+            } else if (state == 8) {
+                densInterface_->sendSetDiagLightTranUv(128);
+                ui->reflSpinBox->setValue(0);
+                ui->tranSpinBox->setValue(0);
+                ui->tranUvSpinBox->setValue(128);
+                densInterface_->sendSetSystemDisplayText("Transmission-U\nMeasure");
+            }
+
+            state++;
+            if (state > maxStates) { state = 0; }
+            timer->setProperty("state", state);
+        });
+        ledControlState(false);
+        timer->start(1000);
+    }
+#endif
 }
 
 void RemoteControlDialog::sendSetDiagSensorConfig()
@@ -275,6 +379,17 @@ void RemoteControlDialog::onSensorStopClicked()
     sensorControlState(false);
     sensorStarted_ = false;
     densInterface_->sendInvokeDiagSensorStop();
+
+#ifdef EMC_TEST
+    QTimer *timer = this->findChild<QTimer*>("cycleTimer");
+    if (timer) {
+        if (timer->isActive()) {
+            timer->stop();
+            ledControlState(true);
+        }
+        timer->deleteLater();
+    }
+#endif
 }
 
 void RemoteControlDialog::onSensorModeIndexChanged(int index)
@@ -401,6 +516,10 @@ void RemoteControlDialog::sensorControlState(bool enabled)
     ui->reflReadPushButton->setEnabled(enabled ? !sensorStarted_ : false);
     ui->tranReadPushButton->setEnabled(enabled ? !sensorStarted_ : false);
     ui->tranUvReadPushButton->setEnabled(enabled ? !sensorStarted_ : false);
+#ifdef EMC_TEST
+    QCheckBox *cycleCheckBox = ui->sensorGroupBox->findChild<QCheckBox*>("cycleCheckBox");
+    cycleCheckBox->setEnabled(enabled ? !sensorStarted_ : false);
+#endif
 }
 
 void RemoteControlDialog::onDiagSensorInvoked()
