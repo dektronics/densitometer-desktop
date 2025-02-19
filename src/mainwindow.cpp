@@ -414,6 +414,7 @@ void MainWindow::about()
     QMessageBox::about(this, tr("About"),
                        tr("<b>%1 v%2</b><br>"
                           "<br>"
+                          "<b>---- EMC Test Build ----</b><br><br>"
                           "Copyright 2023 Dektronics, Inc. All rights reserved.")
                        .arg(QApplication::applicationName(),
                             QApplication::applicationVersion()));
