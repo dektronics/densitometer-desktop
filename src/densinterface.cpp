@@ -24,6 +24,7 @@ DensInterface::DensInterface(QObject *parent)
     , freeRtosHeapSize_(0)
     , freeRtosHeapWatermark_(0)
     , freeRtosTaskCount_(0)
+    , diagLightMax_(128)
 {
 }
 
@@ -200,10 +201,18 @@ void DensInterface::sendGetDiagDisplayScreenshot()
     sendCommand(command);
 }
 
+void DensInterface::sendGetDiagLightMax()
+{
+    if (deviceType_ != DeviceType::DeviceUvVis) { return; }
+
+    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryDiagnostics, "LMAX");
+    sendCommand(command);
+}
+
 void DensInterface::sendSetDiagLightRefl(int value)
 {
     if (value < 0) { value = 0; }
-    else if (value > 128) { value = 128; }
+    else if (value > std::numeric_limits<uint16_t>::max()) { value = std::numeric_limits<uint16_t>::max(); }
 
     QStringList args;
     args.append(QString::number(value));
@@ -215,7 +224,7 @@ void DensInterface::sendSetDiagLightRefl(int value)
 void DensInterface::sendSetDiagLightTran(int value)
 {
     if (value < 0) { value = 0; }
-    else if (value > 128) { value = 128; }
+    else if (value > std::numeric_limits<uint16_t>::max()) { value = std::numeric_limits<uint16_t>::max(); }
 
     QStringList args;
     args.append(QString::number(value));
@@ -229,7 +238,7 @@ void DensInterface::sendSetDiagLightTranUv(int value)
     if (deviceType_ != DeviceType::DeviceUvVis) { return; }
 
     if (value < 0) { value = 0; }
-    else if (value > 128) { value = 128; }
+    else if (value > std::numeric_limits<uint16_t>::max()) { value = std::numeric_limits<uint16_t>::max(); }
 
     QStringList args;
     args.append(QString::number(value));
@@ -364,7 +373,7 @@ void DensInterface::sendInvokeUvDiagRead(DensInterface::SensorLight light, int l
     }
 
     if (lightValue < 0) { lightValue = 0; }
-    else if (lightValue > 128) { lightValue = 128; }
+    else if (lightValue > std::numeric_limits<uint16_t>::max()) { lightValue = std::numeric_limits<uint16_t>::max(); }
     args.append(QString::number(lightValue));
 
     args.append(QString::number(mode));
@@ -392,7 +401,7 @@ void DensInterface::sendInvokeUvDiagMeasure(DensInterface::SensorLight light, in
     }
 
     if (lightValue < 0) { lightValue = 0; }
-    else if (lightValue > 128) { lightValue = 128; }
+    else if (lightValue > std::numeric_limits<uint16_t>::max()) { lightValue = std::numeric_limits<uint16_t>::max(); }
     args.append(QString::number(lightValue));
 
     DensCommand command(DensCommand::TypeInvoke, DensCommand::CategoryDiagnostics, "MEAS", args);
@@ -627,6 +636,8 @@ QString DensInterface::mcuVdda() const { return mcuVdda_; }
 QString DensInterface::mcuTemp() const { return mcuTemp_; }
 QString DensInterface::sensorTemp() const { return sensorTemp_; }
 
+uint16_t DensInterface::diagLightMax() const { return diagLightMax_; }
+
 DensCalLight DensInterface::calLight() const { return calLight_; }
 DensCalGain DensInterface::calGain() const { return calGain_; }
 DensUvVisCalGain DensInterface::calUvVisGain() const { return calUvVisGain_; }
@@ -672,6 +683,9 @@ void DensInterface::readData()
                 if (!projectName_.isEmpty() && !version_.isEmpty()) {
                     connecting_ = false;
                     connected_ = true;
+                    if (deviceType_ != DeviceUvVis) {
+                        diagLightMax_ = 128;
+                    }
                     emit connectionOpened();
                     emit systemVersionResponse();
                 } else {
@@ -1053,6 +1067,12 @@ void DensInterface::readDiagnosticsResponse(const DensCommand &response)
             && response.action() == QLatin1String("DISP")
             && !response.buffer().isEmpty()) {
         emit diagDisplayScreenshot(response.buffer());
+    } else if (response.type() == DensCommand::TypeGet
+               && response.action() == QLatin1String("LMAX")
+               && deviceType_ == DeviceUvVis
+               && response.args().size() >= 1) {
+        diagLightMax_ = response.args().at(0).toUInt();
+        emit diagLightMaxChanged();
     } else if (response.type() == DensCommand::TypeSet
                && response.action() == QLatin1String("LR")
                && response.args().size() == 1

@@ -63,6 +63,7 @@ public slots:
     void sendSetAllowUncalibratedMeasurements(bool allow);
 
     void sendGetDiagDisplayScreenshot();
+    void sendGetDiagLightMax();
     void sendSetDiagLightRefl(int value);
     void sendSetDiagLightTran(int value);
     void sendSetDiagLightTranUv(int value);
@@ -127,6 +128,8 @@ public:
     QString mcuTemp() const;
     QString sensorTemp() const;
 
+    uint16_t diagLightMax() const;
+
     DensCalLight calLight() const;
     DensCalGain calGain() const;
     DensUvVisCalGain calUvVisGain() const;
@@ -157,6 +160,7 @@ signals:
     void systemDisplaySetComplete();
 
     void diagDisplayScreenshot(const QByteArray &data);
+    void diagLightMaxChanged();
     void diagLightReflChanged();
     void diagLightTranChanged();
     void diagLightTranUvChanged();
@@ -232,6 +236,7 @@ private:
     QString mcuVdda_;
     QString mcuTemp_;
     QString sensorTemp_;
+    uint16_t diagLightMax_;
     DensCalLight calLight_;
     DensCalGain calGain_;
     DensUvVisCalGain calUvVisGain_;

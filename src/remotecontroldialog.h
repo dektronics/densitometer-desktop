@@ -22,6 +22,7 @@ protected:
 
 private slots:
     void onSystemRemoteControl(bool enabled);
+    void onDiagLightMaxChanged();
     void onDiagLightChanged();
     void onDiagSensorInvoked();
     void onDiagSensorChanged();
@@ -69,6 +70,7 @@ private:
     DensInterface *densInterface_;
     bool sensorStarted_;
     bool sensorConfigOnStart_;
+    uint16_t lightMax_;
 };
 
 #endif // REMOTECONTROLDIALOG_H

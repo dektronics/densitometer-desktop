@@ -9,9 +9,11 @@ RemoteControlDialog::RemoteControlDialog(DensInterface *densInterface, QWidget *
     ui(new Ui::RemoteControlDialog),
     densInterface_(densInterface),
     sensorStarted_(false),
-    sensorConfigOnStart_(true)
+    sensorConfigOnStart_(true),
+    lightMax_(128)
 {
     ui->setupUi(this);
+    connect(densInterface_, &DensInterface::diagLightMaxChanged, this, &RemoteControlDialog::onDiagLightMaxChanged);
     connect(densInterface_, &DensInterface::systemRemoteControl, this, &RemoteControlDialog::onSystemRemoteControl);
     connect(densInterface_, &DensInterface::diagLightReflChanged, this, &RemoteControlDialog::onDiagLightChanged);
     connect(densInterface_, &DensInterface::diagLightTranChanged, this, &RemoteControlDialog::onDiagLightChanged);
@@ -90,6 +92,11 @@ void RemoteControlDialog::showEvent(QShowEvent *event)
 {
     QDialog::showEvent(event);
     if (densInterface_->connected()) {
+        if (densInterface_->deviceType() == DensInterface::DeviceUvVis) {
+            densInterface_->sendGetDiagLightMax();
+        } else {
+            onDiagLightMaxChanged();
+        }
         densInterface_->sendInvokeSystemRemoteControl(true);
     }
 }
@@ -105,6 +112,14 @@ void RemoteControlDialog::closeEvent(QCloseEvent *event)
 void RemoteControlDialog::onSystemRemoteControl(bool enabled)
 {
     qDebug() << "Remote control:" << enabled;
+}
+
+void RemoteControlDialog::onDiagLightMaxChanged()
+{
+    lightMax_ = densInterface_->diagLightMax();
+    ui->reflSpinBox->setMaximum(lightMax_);
+    ui->tranSpinBox->setMaximum(lightMax_);
+    ui->tranUvSpinBox->setMaximum(lightMax_);
 }
 
 void RemoteControlDialog::onDiagLightChanged()
@@ -133,10 +148,10 @@ void RemoteControlDialog::onReflOffClicked()
 void RemoteControlDialog::onReflOnClicked()
 {
     ledControlState(false);
-    ui->reflSpinBox->setValue(128);
+    ui->reflSpinBox->setValue(lightMax_);
     ui->tranSpinBox->setValue(0);
     ui->tranUvSpinBox->setValue(0);
-    densInterface_->sendSetDiagLightRefl(128);
+    densInterface_->sendSetDiagLightRefl(lightMax_);
 }
 
 void RemoteControlDialog::onReflSetClicked()
@@ -166,9 +181,9 @@ void RemoteControlDialog::onTranOnClicked()
 {
     ledControlState(false);
     ui->reflSpinBox->setValue(0);
-    ui->tranSpinBox->setValue(128);
+    ui->tranSpinBox->setValue(lightMax_);
     ui->tranUvSpinBox->setValue(0);
-    densInterface_->sendSetDiagLightTran(128);
+    densInterface_->sendSetDiagLightTran(lightMax_);
 }
 
 void RemoteControlDialog::onTranSetClicked()
@@ -199,8 +214,8 @@ void RemoteControlDialog::onTranUvOnClicked()
     ledControlState(false);
     ui->reflSpinBox->setValue(0);
     ui->tranSpinBox->setValue(0);
-    ui->tranUvSpinBox->setValue(128);
-    densInterface_->sendSetDiagLightTranUv(128);
+    ui->tranUvSpinBox->setValue(lightMax_);
+    densInterface_->sendSetDiagLightTranUv(lightMax_);
 }
 
 void RemoteControlDialog::onTranUvSetClicked()
@@ -329,7 +344,7 @@ void RemoteControlDialog::onReflReadClicked()
 {
     ledControlState(false);
     sensorControlState(false);
-    ui->reflSpinBox->setValue(128);
+    ui->reflSpinBox->setValue(lightMax_);
     ui->tranSpinBox->setValue(0);
     ui->tranUvSpinBox->setValue(0);
     ui->ch0LineEdit->setEnabled(false);
@@ -342,7 +357,7 @@ void RemoteControlDialog::onTranReadClicked()
     ledControlState(false);
     sensorControlState(false);
     ui->reflSpinBox->setValue(0);
-    ui->tranSpinBox->setValue(128);
+    ui->tranSpinBox->setValue(lightMax_);
     ui->tranUvSpinBox->setValue(0);
     ui->ch0LineEdit->setEnabled(false);
     ui->ch1LineEdit->setEnabled(false);
@@ -355,7 +370,7 @@ void RemoteControlDialog::onTranUvReadClicked()
     sensorControlState(false);
     ui->reflSpinBox->setValue(0);
     ui->tranSpinBox->setValue(0);
-    ui->tranUvSpinBox->setValue(128);
+    ui->tranUvSpinBox->setValue(lightMax_);
     ui->ch0LineEdit->setEnabled(false);
     ui->ch1LineEdit->setEnabled(false);
 
@@ -366,9 +381,9 @@ void RemoteControlDialog::sendInvokeDiagRead(DensInterface::SensorLight light)
 {
     if (densInterface_->deviceType() == DensInterface::DeviceUvVis) {
         if (ui->basicReadingRadioButton->isChecked()) {
-            densInterface_->sendInvokeUvDiagMeasure(light, 128);
+            densInterface_->sendInvokeUvDiagMeasure(light, lightMax_);
         } else {
-            densInterface_->sendInvokeUvDiagRead(light, 128,
+            densInterface_->sendInvokeUvDiagRead(light, lightMax_,
                                                  ui->modeComboBox->currentIndex(),
                                                  ui->gainComboBox->currentIndex(),
                                                  719, ((ui->intComboBox->currentIndex() + 1) * 100) - 1);
