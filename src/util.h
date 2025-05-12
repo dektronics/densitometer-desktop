@@ -41,7 +41,7 @@ QSvgWidget *createThemeColoredSvgWidget(const QWidget *refWidget, const QString 
 void tableWidgetCut(QTableWidget *tableWidget);
 void tableWidgetCopy(const QTableWidget *tableWidget);
 void tableWidgetPaste(QTableWidget *tableWidget);
-void tableWidgetDelete(QTableWidget *tableWidget);
+void tableWidgetDelete(QTableWidget *tableWidget, bool clearSelection = true);
 
 QTableWidgetItem *tableWidgetItem(QTableWidget *table, int row, int column);
 bool tableWidgetHasEmptyCells(QTableWidget *tableWidget);

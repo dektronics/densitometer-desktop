@@ -22,6 +22,9 @@
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
        <widget class="QTableWidget" name="measTableWidget">
+        <property name="enabled">
+         <bool>true</bool>
+        </property>
         <property name="alternatingRowColors">
          <bool>true</bool>
         </property>
@@ -304,6 +307,13 @@
          <widget class="QPushButton" name="scanPushButton">
           <property name="text">
            <string>Scan Patch</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="Line" name="line">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
           </property>
          </widget>
         </item>

@@ -16,14 +16,13 @@ class GainFilterCalibrationDialog : public QDialog
 public:
     explicit GainFilterCalibrationDialog(DensInterface *densInterface, QWidget *parent = nullptr);
     ~GainFilterCalibrationDialog();
-    bool success() const;
-
-public slots:
-    virtual void accept() override;
-    virtual void reject() override;
+    QList<float> gainValues() const;
 
 protected:
     void showEvent(QShowEvent *event) override;
+
+public slots:
+    void done(int r) override;
 
 private slots:
     void onSystemRemoteControl(bool enabled);
@@ -35,21 +34,27 @@ private slots:
     void onActionPaste();
     void onActionDelete();
 
+    void onScanPushButtonClicked();
     void onClearMeasTable();
     void onMeasTableWidgetDataChanged();
+    void onMeasTableCurrentCellChanged(int currentRow, int currentColumn, int previousRow, int previousColumn);
     void onGainRatioTableWidgetDataChanged();
+    void onGainValueTableWidgetDataChanged();
     void onCalcPushButtonClicked();
     void onCalcValuesPushButtonClicked();
 
 private:
     void refreshButtonState();
+    void measureNextGain();
 
     Ui::GainFilterCalibrationDialog *ui;
     DensInterface *densInterface_;
     bool started_ = false;
+    bool remoteMode_ = false;
     bool offline_ = false;
     bool running_ = false;
-    bool success_ = false;
+    int selectedMeasRow_ = -1;
+    int currentGain_ = 0;
 };
 
 #endif // GAINFILTERCALIBRATIONDIALOG_H

@@ -407,7 +407,7 @@ void tableWidgetPaste(QTableWidget *tableWidget)
     }
 }
 
-void tableWidgetDelete(QTableWidget *tableWidget)
+void tableWidgetDelete(QTableWidget *tableWidget, bool clearSelection)
 {
     for (int i = 0; i < tableWidget->rowCount(); i++) {
         for (int j = 0; j < tableWidget->columnCount(); j++) {
@@ -417,7 +417,9 @@ void tableWidgetDelete(QTableWidget *tableWidget)
             }
         }
     }
-    tableWidget->clearSelection();
+    if (clearSelection) {
+        tableWidget->clearSelection();
+    }
 }
 
 QTableWidgetItem *tableWidgetItem(QTableWidget *table, int row, int column)

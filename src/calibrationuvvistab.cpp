@@ -278,9 +278,18 @@ void CalibrationUvVisTab::onGainFilterCalibrationToolFinished(int result)
     GainFilterCalibrationDialog *dialog = dynamic_cast<GainFilterCalibrationDialog *>(sender());
     dialog->deleteLater();
 
-    if (result == QDialog::Accepted && dialog->success()) {
-        //TODO Save new gain values
-        //densInterface_->sendGetCalGain();
+    if (result == QDialog::Accepted) {
+        const QList<float> gainValues = dialog->gainValues();
+
+        disconnect(ui->gainTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalGainItemChanged);
+
+        for (int i = 0; i < qMin(ui->gainTableWidget->rowCount(), gainValues.size()); i++) {
+            QTableWidgetItem *item = util::tableWidgetItem(ui->gainTableWidget, i, 0);
+            item->setText(QString::number(gainValues[i], 'f', 6));
+        }
+
+        onCalGainItemChanged(nullptr);
+        connect(ui->gainTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalGainItemChanged);
     }
 
     ui->gainCalPushButton->setEnabled(true);
