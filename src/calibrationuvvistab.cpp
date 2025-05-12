@@ -447,7 +447,7 @@ void CalibrationUvVisTab::onCalGainItemChanged(QTableWidgetItem *item)
 {
     bool enableSet = true;
     if (densInterface_->connected() && editable_) {
-        enableSet = !tableHasEmptyCells(ui->gainTableWidget);
+        enableSet = !util::tableWidgetHasEmptyCells(ui->gainTableWidget);
     } else {
         enableSet = false;
     }
@@ -487,8 +487,8 @@ void CalibrationUvVisTab::onCalTempItemChanged(QTableWidgetItem *item)
     bool visEnableSet = true;
     bool uvEnableSet = true;
     if (densInterface_->connected()) {
-        visEnableSet = !tableHasEmptyCells(ui->visTempTableWidget);
-        uvEnableSet = !tableHasEmptyCells(ui->visTempTableWidget);
+        visEnableSet = !util::tableWidgetHasEmptyCells(ui->visTempTableWidget);
+        uvEnableSet = !util::tableWidgetHasEmptyCells(ui->visTempTableWidget);
     } else {
         visEnableSet = false;
         uvEnableSet = false;
@@ -569,7 +569,7 @@ void CalibrationUvVisTab::onCalGainResponse()
     disconnect(ui->gainTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalGainItemChanged);
 
     for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
-        QTableWidgetItem *item = tableWidgetItem(ui->gainTableWidget, i, 0);
+        QTableWidgetItem *item = util::tableWidgetItem(ui->gainTableWidget, i, 0);
         float gainValue = calGain.gainValue(static_cast<DensUvVisCalGain::GainLevel>(i));
         if (qIsNaN(gainValue) || !qIsFinite(gainValue) || gainValue <= 0.0F) {
             item->setText(QString());
@@ -736,45 +736,19 @@ void CalibrationUvVisTab::onTempCalibrationToolFinished(int result)
     }
 }
 
-bool CalibrationUvVisTab::tableHasEmptyCells(QTableWidget *table)
-{
-    bool hasEmpty = false;
-
-    for (int i = 0; i < table->rowCount(); i++) {
-        for (int j = 0; j < table->columnCount(); j++) {
-            QTableWidgetItem *item = table->item(i, j);
-            if (!item || item->text().isEmpty()) {
-                hasEmpty = true;
-                break;
-            }
-        }
-    }
-    return hasEmpty;
-}
-
-QTableWidgetItem *CalibrationUvVisTab::tableWidgetItem(QTableWidget *table, int row, int column)
-{
-    QTableWidgetItem *item = table->item(row, column);
-    if (!item) {
-        item = new QTableWidgetItem();
-        table->setItem(row, column, item);
-    }
-    return item;
-}
-
 void CalibrationUvVisTab::coefficientSetCheckDirtyRow(QTableWidget *table, int row, const CoefficientSet &sourceValues)
 {
     if (!table || table->rowCount() <= row || table->columnCount() < 3) { return; }
 
     QTableWidgetItem *item;
 
-    item = tableWidgetItem(table, row, 0);
+    item = util::tableWidgetItem(table, row, 0);
     updateItemDirtyState(item, std::get<0>(sourceValues));
 
-    item = tableWidgetItem(table, row, 1);
+    item = util::tableWidgetItem(table, row, 1);
     updateItemDirtyState(item, std::get<1>(sourceValues));
 
-    item = tableWidgetItem(table, row, 2);
+    item = util::tableWidgetItem(table, row, 2);
     updateItemDirtyState(item, std::get<2>(sourceValues));
 }
 
@@ -784,13 +758,13 @@ void CalibrationUvVisTab::coefficientSetAssignRow(QTableWidget *table, int row, 
 
     QTableWidgetItem *item;
 
-    item = tableWidgetItem(table, row, 0);
+    item = util::tableWidgetItem(table, row, 0);
     item->setText(QString::number(std::get<0>(sourceValues)));
 
-    item = tableWidgetItem(table, row, 1);
+    item = util::tableWidgetItem(table, row, 1);
     item->setText(QString::number(std::get<1>(sourceValues)));
 
-    item = tableWidgetItem(table, row, 2);
+    item = util::tableWidgetItem(table, row, 2);
     item->setText(QString::number(std::get<2>(sourceValues)));
 }
 

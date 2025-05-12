@@ -196,6 +196,22 @@ bool DensUvVisCalGain::isEmpty() const
     return data->empty;
 }
 
+float DensUvVisCalGain::gainSpecValue(GainLevel gainLevel)
+{
+    static std::array gainSpecValues{
+        0.5F, 1.0F, 2.0F, 4.0F, 8.0F, 16.0F, 32.0F, 64.0F,
+        128.0F, 256.0F, 512.0F, 1024.0F, 2048.0F, 4096.0F
+    };
+
+    const size_t gainIndex = static_cast<size_t>(gainLevel);
+
+    if (gainIndex < gainSpecValues.size()) {
+        return gainSpecValues[gainIndex];
+    } else {
+        return qSNaN();
+    }
+}
+
 float DensUvVisCalGain::gainValue(DensUvVisCalGain::GainLevel gainLevel) const
 {
     if (gainLevel > Gain256X) { return qSNaN(); }

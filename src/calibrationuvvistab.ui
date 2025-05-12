@@ -402,7 +402,7 @@
               <item>
                <widget class="QPushButton" name="gainCalPushButton">
                 <property name="text">
-                 <string>Run Calibration</string>
+                 <string>Gain Calibration Tool</string>
                 </property>
                </widget>
               </item>

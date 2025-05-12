@@ -11,6 +11,7 @@ class QWidget;
 class QPixmap;
 class QSvgWidget;
 class QTableWidget;
+class QTableWidgetItem;
 
 namespace util
 {
@@ -41,6 +42,9 @@ void tableWidgetCut(QTableWidget *tableWidget);
 void tableWidgetCopy(const QTableWidget *tableWidget);
 void tableWidgetPaste(QTableWidget *tableWidget);
 void tableWidgetDelete(QTableWidget *tableWidget);
+
+QTableWidgetItem *tableWidgetItem(QTableWidget *table, int row, int column);
+bool tableWidgetHasEmptyCells(QTableWidget *tableWidget);
 
 }
 

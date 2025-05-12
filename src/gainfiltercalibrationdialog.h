@@ -30,6 +30,17 @@ private slots:
     void onDiagLightMaxChanged();
     void onDiagSensorUvInvokeReading(unsigned int reading);
 
+    void onActionCut();
+    void onActionCopy();
+    void onActionPaste();
+    void onActionDelete();
+
+    void onClearMeasTable();
+    void onMeasTableWidgetDataChanged();
+    void onGainRatioTableWidgetDataChanged();
+    void onCalcPushButtonClicked();
+    void onCalcValuesPushButtonClicked();
+
 private:
     void refreshButtonState();
 

@@ -420,4 +420,30 @@ void tableWidgetDelete(QTableWidget *tableWidget)
     tableWidget->clearSelection();
 }
 
+QTableWidgetItem *tableWidgetItem(QTableWidget *table, int row, int column)
+{
+    QTableWidgetItem *item = table->item(row, column);
+    if (!item) {
+        item = new QTableWidgetItem();
+        table->setItem(row, column, item);
+    }
+    return item;
+}
+
+bool tableWidgetHasEmptyCells(QTableWidget *tableWidget)
+{
+    bool hasEmpty = false;
+
+    for (int i = 0; i < tableWidget->rowCount(); i++) {
+        for (int j = 0; j < tableWidget->columnCount(); j++) {
+            QTableWidgetItem *item = tableWidget->item(i, j);
+            if (!item || item->text().isEmpty()) {
+                hasEmpty = true;
+                break;
+            }
+        }
+    }
+    return hasEmpty;
+}
+
 }

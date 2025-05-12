@@ -71,8 +71,6 @@ private slots:
 
 private:
     void refreshButtonState();
-    bool tableHasEmptyCells(QTableWidget *table);
-    QTableWidgetItem *tableWidgetItem(QTableWidget *table, int row, int column);
     void coefficientSetCheckDirtyRow(QTableWidget *table, int row, const CoefficientSet &sourceValues);
     void coefficientSetAssignRow(QTableWidget *table, int row, const CoefficientSet &sourceValues);
     CoefficientSet coefficientSetCollectRow(QTableWidget *table, int row);

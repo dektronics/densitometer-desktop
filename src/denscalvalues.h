@@ -94,6 +94,7 @@ public:
 
     bool isEmpty() const;
 
+    static float gainSpecValue(GainLevel gainLevel);
     float gainValue(GainLevel gainLevel) const;
     void setGainValue(GainLevel gainLevel, float value);
 
