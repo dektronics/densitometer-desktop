@@ -1,0 +1,581 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>GainFilterCalibrationDialog</class>
+ <widget class="QDialog" name="GainFilterCalibrationDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>841</width>
+    <height>611</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Sensor Gain Calibration</string>
+  </property>
+  <layout class="QGridLayout" name="gridLayout">
+   <item row="0" column="0">
+    <widget class="QGroupBox" name="measGroupBox">
+     <property name="title">
+      <string>Source Measurement Data</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QTableWidget" name="measTableWidget">
+        <attribute name="horizontalHeaderDefaultSectionSize">
+         <number>60</number>
+        </attribute>
+        <row>
+         <property name="text">
+          <string>Open</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>Patch 1</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>Patch 2</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>Patch 3</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>Patch 4</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>Patch 5</string>
+         </property>
+        </row>
+        <column>
+         <property name="text">
+          <string>0.5x</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>1x</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>2x</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>4x</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>8x</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>16x</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>32x</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>64x</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>128x</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>256x</string>
+         </property>
+        </column>
+        <item row="0" column="0">
+         <property name="text">
+          <string>117684</string>
+         </property>
+        </item>
+        <item row="0" column="1">
+         <property name="text">
+          <string>238386</string>
+         </property>
+        </item>
+        <item row="0" column="2">
+         <property name="text">
+          <string>469983</string>
+         </property>
+        </item>
+        <item row="0" column="3">
+         <property name="text">
+          <string>936922</string>
+         </property>
+        </item>
+        <item row="0" column="4">
+         <property name="text">
+          <string>1826446</string>
+         </property>
+        </item>
+        <item row="1" column="0">
+         <property name="text">
+          <string>89936</string>
+         </property>
+        </item>
+        <item row="1" column="1">
+         <property name="text">
+          <string>182202</string>
+         </property>
+        </item>
+        <item row="1" column="2">
+         <property name="text">
+          <string>359103</string>
+         </property>
+        </item>
+        <item row="1" column="3">
+         <property name="text">
+          <string>715876</string>
+         </property>
+        </item>
+        <item row="1" column="4">
+         <property name="text">
+          <string>1412017</string>
+         </property>
+        </item>
+        <item row="2" column="0">
+         <property name="text">
+          <string>10120</string>
+         </property>
+        </item>
+        <item row="2" column="1">
+         <property name="text">
+          <string>20491</string>
+         </property>
+        </item>
+        <item row="2" column="2">
+         <property name="text">
+          <string>40384</string>
+         </property>
+        </item>
+        <item row="2" column="3">
+         <property name="text">
+          <string>80445</string>
+         </property>
+        </item>
+        <item row="2" column="4">
+         <property name="text">
+          <string>165706</string>
+         </property>
+        </item>
+        <item row="2" column="5">
+         <property name="text">
+          <string>319622</string>
+         </property>
+        </item>
+        <item row="2" column="6">
+         <property name="text">
+          <string>637834</string>
+         </property>
+        </item>
+        <item row="2" column="7">
+         <property name="text">
+          <string>1267404</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <layout class="QFormLayout" name="formLayout">
+          <item row="0" column="0">
+           <widget class="QLabel" name="baseGainLabel">
+            <property name="text">
+             <string>Base gain setting:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QComboBox" name="baseGainComboBox">
+            <item>
+             <property name="text">
+              <string>0.5x</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>1x</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>2x</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>4x</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>8x</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>16x</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>32x</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>64x</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>128x</string>
+             </property>
+            </item>
+            <item>
+             <property name="text">
+              <string>256x</string>
+             </property>
+            </item>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="clearMeasPushButton">
+          <property name="text">
+           <string>Clear Readings</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="0" column="1">
+    <layout class="QVBoxLayout" name="verticalLayout_4">
+     <item>
+      <widget class="QGroupBox" name="groupBox">
+       <property name="title">
+        <string>Actions</string>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QPushButton" name="scanPushButton">
+          <property name="text">
+           <string>Scan Patch</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="calcPushButton">
+          <property name="text">
+           <string>Calculate Gains</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLabel" name="statusLabel">
+       <property name="frameShape">
+        <enum>QFrame::Shape::StyledPanel</enum>
+       </property>
+       <property name="frameShadow">
+        <enum>QFrame::Shadow::Plain</enum>
+       </property>
+       <property name="text">
+        <string notr="true">Ready</string>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignmentFlag::AlignCenter</set>
+       </property>
+       <property name="margin">
+        <number>4</number>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="verticalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Orientation::Vertical</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>20</width>
+         <height>40</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+    </layout>
+   </item>
+   <item row="1" column="0">
+    <widget class="QGroupBox" name="gainGroupBox">
+     <property name="title">
+      <string>Gain Value Calculations</string>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QTableWidget" name="gainRatioTableWidget">
+        <attribute name="horizontalHeaderStretchLastSection">
+         <bool>true</bool>
+        </attribute>
+        <row>
+         <property name="text">
+          <string>1x/0.5x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>2x/1x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>4x/2x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>8x/4x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>16x/8x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>32x/16x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>64x/32x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>128x/64x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>256x/128x</string>
+         </property>
+        </row>
+        <column>
+         <property name="text">
+          <string>Gain Ratio</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>33</width>
+          <height>48</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="calcValuesPushButton">
+        <property name="minimumSize">
+         <size>
+          <width>50</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="text">
+         <string notr="true"/>
+        </property>
+        <property name="icon">
+         <iconset resource="../assets/densitometer.qrc">
+          <normaloff>:/images/go-next.png</normaloff>:/images/go-next.png</iconset>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>34</width>
+          <height>38</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QTableWidget" name="gainValueTableWidget">
+        <attribute name="horizontalHeaderStretchLastSection">
+         <bool>true</bool>
+        </attribute>
+        <row>
+         <property name="text">
+          <string>0.5x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>1x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>2x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>4x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>8x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>16x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>32x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>64x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>128x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>256x</string>
+         </property>
+        </row>
+        <column>
+         <property name="text">
+          <string>Gain Value</string>
+         </property>
+        </column>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item row="2" column="0" colspan="2">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Orientation::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <tabstops>
+  <tabstop>measTableWidget</tabstop>
+  <tabstop>scanPushButton</tabstop>
+  <tabstop>calcPushButton</tabstop>
+  <tabstop>baseGainComboBox</tabstop>
+  <tabstop>clearMeasPushButton</tabstop>
+  <tabstop>gainRatioTableWidget</tabstop>
+  <tabstop>calcValuesPushButton</tabstop>
+  <tabstop>gainValueTableWidget</tabstop>
+ </tabstops>
+ <resources>
+  <include location="../assets/densitometer.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>GainFilterCalibrationDialog</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>GainFilterCalibrationDialog</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

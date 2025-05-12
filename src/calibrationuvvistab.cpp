@@ -4,7 +4,7 @@
 #include <QtWidgets/QMessageBox>
 #include <QDebug>
 
-#include "gaincalibrationdialog.h"
+#include "gainfiltercalibrationdialog.h"
 #include "slopecalibrationdialog.h"
 #include "tempcalibrationdialog.h"
 #include "floatitemdelegate.h"
@@ -110,6 +110,7 @@ void CalibrationUvVisTab::setAdvancedCalibrationEditable(bool editable)
     onCalGainItemChanged(nullptr);
     onCalSlopeTextChanged();
     ui->slopeCalPushButton->setEnabled(editable_);
+    ui->gainCalPushButton->setEnabled(editable_);
     onCalTempItemChanged(nullptr);
     ui->tempCalPushButton->setEnabled(editable_);
 }
@@ -267,19 +268,19 @@ void CalibrationUvVisTab::onCalGainCalClicked()
     }
     ui->gainCalPushButton->setEnabled(false);
 
-    QMessageBox messageBox;
-    messageBox.setWindowTitle(tr("Sensor Gain Calibration"));
-    messageBox.setText(tr("Hold the device firmly closed with no film in the optical path."));
-    messageBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-    messageBox.setDefaultButton(QMessageBox::Ok);
+    GainFilterCalibrationDialog *dialog = new GainFilterCalibrationDialog(densInterface_, this);
+    connect(dialog, &QDialog::finished, this, &CalibrationUvVisTab::onGainFilterCalibrationToolFinished);
+    dialog->show();
+}
 
-    if (messageBox.exec() == QMessageBox::Ok) {
-        GainCalibrationDialog dialog(densInterface_, this);
-        dialog.exec();
-        if (dialog.success()) {
-            densInterface_->sendGetCalLight();
-            densInterface_->sendGetCalGain();
-        }
+void CalibrationUvVisTab::onGainFilterCalibrationToolFinished(int result)
+{
+    GainFilterCalibrationDialog *dialog = dynamic_cast<GainFilterCalibrationDialog *>(sender());
+    dialog->deleteLater();
+
+    if (result == QDialog::Accepted && dialog->success()) {
+        //TODO Save new gain values
+        //densInterface_->sendGetCalGain();
     }
 
     ui->gainCalPushButton->setEnabled(true);

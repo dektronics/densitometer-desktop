@@ -38,6 +38,7 @@ private slots:
 
     void onCalGetAllValues();
     void onCalGainCalClicked();
+    void onGainFilterCalibrationToolFinished(int result);
     void onCalGainSetClicked();
     void onCalSlopeSetClicked();
     void onCalTempSetClicked();
