@@ -12,8 +12,6 @@
 #include "floatitemdelegate.h"
 #include "util.h"
 
-//TODO Find a way to store the raw floats, rather than being limited by string formatting
-
 SlopeCalibrationDialog::SlopeCalibrationDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SlopeCalibrationDialog),
@@ -77,6 +75,9 @@ SlopeCalibrationDialog::SlopeCalibrationDialog(QWidget *parent) :
     }
 
     setCalculateZeroAdjustment(enableZeroAdj_);
+
+    connect(ui->wedgePrecSpinBox, &QSpinBox::valueChanged, this, &SlopeCalibrationDialog::wedgePrecValueChanged);
+    connect(ui->wedgeCountSpinBox, &QSpinBox::valueChanged, this, &SlopeCalibrationDialog::wedgeCountValueChanged);
 }
 
 SlopeCalibrationDialog::SlopeCalibrationDialog(DensInterface *densInterface, QWidget *parent)
@@ -118,6 +119,39 @@ std::tuple<float, float, float> SlopeCalibrationDialog::calValues() const
 float SlopeCalibrationDialog::zeroAdjustment() const
 {
     return zeroAdj_;
+}
+
+void SlopeCalibrationDialog::wedgePrecValueChanged(int value)
+{
+    QList<double> rawValues;
+    for (int row = 0; row < model_->rowCount(); row++) {
+        float density = itemValueAsFloat(row, 0);
+        rawValues.append(density);
+    }
+
+    ui->tableView->setItemDelegateForColumn(0, new FloatItemDelegate(0.0, 5.0, value));
+
+    for (int row = 0; row < model_->rowCount(); row++) {
+        QString numStr;
+        if (!qIsNaN(rawValues[row])) {
+            numStr = QString::number(rawValues[row], 'f', value);
+        }
+        model_->setItem(row, 0, new QStandardItem(numStr));
+    }
+}
+
+void SlopeCalibrationDialog::wedgeCountValueChanged(int value)
+{
+    int maxRows = value + 1;
+    if (maxRows > model_->rowCount()) {
+        int startIndex = model_->rowCount();
+        model_->setRowCount(maxRows);
+        for (int i = startIndex; i < maxRows; i++) {
+            model_->setVerticalHeaderItem(i, new QStandardItem(QString::number(i)));
+        }
+    } else if (maxRows < model_->rowCount()) {
+        model_->setRowCount(maxRows);
+    }
 }
 
 void SlopeCalibrationDialog::onDensityReading(DensInterface::DensityType type, float dValue, float dZero, float rawValue, float corrValue)
@@ -268,13 +302,22 @@ void SlopeCalibrationDialog::onActionPaste()
     int row = ulIndex.first;
     int col = ulIndex.second;
 
+    // Get the precision of the step wedge density values
+    int wedgeDecimals;
+    FloatItemDelegate *delegate = qobject_cast<FloatItemDelegate *>(ui->tableView->itemDelegateForColumn(0));
+    if (delegate) {
+        wedgeDecimals = delegate->decimals();
+    } else {
+        wedgeDecimals = 2;
+    }
+
     // Paste the values
     if (!numList.isEmpty() && row >= 0 && col >= 0) {
         for (auto numElement : numList) {
             QString numStr;
             if (col == 0) {
                 if (!qIsNaN(numElement.first)) {
-                    numStr = QString::number(numElement.first, 'f', 2);
+                    numStr = QString::number(numElement.first, 'f', wedgeDecimals);
                     model_->setItem(row, col, new QStandardItem(numStr));
                 }
                 if (!qIsNaN(numElement.second)) {

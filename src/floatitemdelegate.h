@@ -10,6 +10,10 @@ public:
     explicit FloatItemDelegate(QObject *parent = nullptr);
     explicit FloatItemDelegate(double min, double max, int decimals, QObject *parent = nullptr);
 
+    double min() const;
+    double max() const;
+    int decimals() const;
+
     QWidget *createEditor(QWidget *parent,
                           const QStyleOptionViewItem &option,
                           const QModelIndex &index) const override;

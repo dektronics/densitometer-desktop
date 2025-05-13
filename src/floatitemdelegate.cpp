@@ -14,6 +14,10 @@ FloatItemDelegate::FloatItemDelegate(double min, double max, int decimals, QObje
 {
 }
 
+double FloatItemDelegate::min() const { return min_; }
+double FloatItemDelegate::max() const { return max_; }
+int FloatItemDelegate::decimals() const { return decimals_; }
+
 QWidget *FloatItemDelegate::createEditor(QWidget *parent,
                                          const QStyleOptionViewItem &option,
                                          const QModelIndex &index) const

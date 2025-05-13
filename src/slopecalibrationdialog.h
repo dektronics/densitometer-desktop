@@ -30,6 +30,8 @@ public:
     float zeroAdjustment() const;
 
 private slots:
+    void wedgePrecValueChanged(int value);
+    void wedgeCountValueChanged(int value);
     void onDensityReading(DensInterface::DensityType type, float dValue, float dZero, float rawValue, float corrValue);
     void onTargetMeasurement(float basicReading);
     void onActionCut();
