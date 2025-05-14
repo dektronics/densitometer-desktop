@@ -47,6 +47,7 @@ set(PROJECT_SOURCES
     src/densinterface.cpp src/densinterface.h
     src/diagnosticstab.cpp src/diagnosticstab.h src/diagnosticstab.ui
     src/floatitemdelegate.cpp src/floatitemdelegate.h
+    src/intitemdelegate.cpp src/intitemdelegate.h
     src/gaincalibrationdialog.cpp src/gaincalibrationdialog.h src/gaincalibrationdialog.ui
     src/gainfiltercalibrationdialog.cpp src/gainfiltercalibrationdialog.h src/gainfiltercalibrationdialog.ui
     src/stickgaincalibrationdialog.cpp src/stickgaincalibrationdialog.h src/stickgaincalibrationdialog.ui

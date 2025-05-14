@@ -4,6 +4,7 @@
 #include <QStyleHints>
 
 #include "floatitemdelegate.h"
+#include "intitemdelegate.h"
 #include "util.h"
 
 GainFilterCalibrationDialog::GainFilterCalibrationDialog(DensInterface *densInterface, QWidget *parent)
@@ -35,13 +36,15 @@ GainFilterCalibrationDialog::GainFilterCalibrationDialog(DensInterface *densInte
     connect(ui->buttonBox, &QDialogButtonBox::accepted, this, &GainFilterCalibrationDialog::accept);
     connect(ui->buttonBox, &QDialogButtonBox::rejected, this, &GainFilterCalibrationDialog::reject);
 
-    ui->measTableWidget->setItemDelegate(new FloatItemDelegate(0.0, 512.0, 6));
+    ui->measTableWidget->setItemDelegate(new IntItemDelegate(0, std::numeric_limits<int>::max()));
     ui->gainRatioTableWidget->setItemDelegate(new FloatItemDelegate(0.0, std::numeric_limits<float>::infinity(), -1));
     ui->gainValueTableWidget->setItemDelegate(new FloatItemDelegate(0.0, std::numeric_limits<float>::infinity(), 6));
 
     ui->measTableWidget->clearContents();
     ui->gainRatioTableWidget->clearContents();
     ui->gainValueTableWidget->clearContents();
+
+    ui->measTableWidget->setRowCount(1);
 
     if (QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark) {
         ui->measTableWidget->setStyleSheet("QTableWidget::item:disabled { selection-color: black; }");
@@ -51,6 +54,8 @@ GainFilterCalibrationDialog::GainFilterCalibrationDialog(DensInterface *densInte
 
     connect(ui->scanPushButton, &QPushButton::clicked, this, &GainFilterCalibrationDialog::onScanPushButtonClicked);
     connect(ui->clearMeasPushButton, &QPushButton::clicked, this, &GainFilterCalibrationDialog::onClearMeasTable);
+    connect(ui->addMeasRowPushButton, &QPushButton::clicked, this, &GainFilterCalibrationDialog::onAddMeasTableRow);
+    connect(ui->removeMeasRowPushButton, &QPushButton::clicked, this, &GainFilterCalibrationDialog::onRemoveMeasTableRow);
     connect(ui->calcPushButton, &QPushButton::clicked, this, &GainFilterCalibrationDialog::onCalcPushButtonClicked);
     connect(ui->calcValuesPushButton, &QPushButton::clicked, this, &GainFilterCalibrationDialog::onCalcValuesPushButtonClicked);
 
@@ -76,11 +81,11 @@ QList<float> GainFilterCalibrationDialog::gainValues() const
 
     for (int i = 0; i < ui->gainValueTableWidget->rowCount(); i++) {
         QTableWidgetItem *item = ui->gainValueTableWidget->item(i, 0);
-        if (!item) { QList<float>(); }
+        if (!item) { return QList<float>(); }
 
         bool ok;
         double gainValue = item->text().toFloat(&ok);
-        if (!ok) { QList<float>(); }
+        if (!ok) { return QList<float>(); }
 
         result.append(gainValue);
     }
@@ -226,6 +231,10 @@ void GainFilterCalibrationDialog::onDiagSensorUvInvokeReading(unsigned int readi
         ui->statusLabel->setText(tr("Ready"));
         ui->measTableWidget->clearSelection();
 
+        if (selectedMeasRow_ + 1 == ui->measTableWidget->rowCount()) {
+            onAddMeasTableRow();
+        }
+
         if (selectedMeasRow_ + 1 < ui->measTableWidget->rowCount()) {
             ui->measTableWidget->setCurrentCell(selectedMeasRow_ + 1, 0);
         }
@@ -236,9 +245,27 @@ void GainFilterCalibrationDialog::onDiagSensorUvInvokeReading(unsigned int readi
 void GainFilterCalibrationDialog::onClearMeasTable()
 {
     disconnect(ui->measTableWidget->model(), &QAbstractItemModel::dataChanged, this, &GainFilterCalibrationDialog::onMeasTableWidgetDataChanged);
+    selectedMeasRow_ = 0;
     ui->measTableWidget->clearContents();
     connect(ui->measTableWidget->model(), &QAbstractItemModel::dataChanged, this, &GainFilterCalibrationDialog::onMeasTableWidgetDataChanged);
     ui->calcPushButton->setEnabled(false);
+}
+
+void GainFilterCalibrationDialog::onAddMeasTableRow()
+{
+    const int oldRowCount = ui->measTableWidget->rowCount();
+    ui->measTableWidget->setRowCount(oldRowCount + 1);
+    ui->measTableWidget->setVerticalHeaderItem(oldRowCount, new QTableWidgetItem(tr("Patch %1").arg(oldRowCount)));
+    refreshButtonState();
+}
+
+void GainFilterCalibrationDialog::onRemoveMeasTableRow()
+{
+    const int oldRowCount = ui->measTableWidget->rowCount();
+    if (oldRowCount > 1) {
+        ui->measTableWidget->setRowCount(oldRowCount - 1);
+    }
+    refreshButtonState();
 }
 
 void GainFilterCalibrationDialog::onMeasTableWidgetDataChanged()
@@ -269,6 +296,7 @@ void GainFilterCalibrationDialog::onMeasTableWidgetDataChanged()
 
 void GainFilterCalibrationDialog::onMeasTableCurrentCellChanged(int currentRow, int currentColumn, int previousRow, int previousColumn)
 {
+    if (currentRow < 0) { currentRow = 0; }
     ui->scanPushButton->setText(tr("Scan %1").arg(ui->measTableWidget->verticalHeaderItem(currentRow)->text()));
     selectedMeasRow_ = currentRow;
 }

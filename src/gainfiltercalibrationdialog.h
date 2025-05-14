@@ -36,6 +36,9 @@ private slots:
 
     void onScanPushButtonClicked();
     void onClearMeasTable();
+    void onAddMeasTableRow();
+    void onRemoveMeasTableRow();
+
     void onMeasTableWidgetDataChanged();
     void onMeasTableCurrentCellChanged(int currentRow, int currentColumn, int previousRow, int previousColumn);
     void onGainRatioTableWidgetDataChanged();

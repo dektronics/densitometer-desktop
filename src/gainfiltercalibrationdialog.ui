@@ -286,7 +286,30 @@
         <item>
          <widget class="QPushButton" name="clearMeasPushButton">
           <property name="text">
-           <string>Clear Readings</string>
+           <string notr="true"/>
+          </property>
+          <property name="icon">
+           <iconset theme="QIcon::ThemeIcon::EditClear"/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="addMeasRowPushButton">
+          <property name="text">
+           <string notr="true"/>
+          </property>
+          <property name="icon">
+           <iconset theme="QIcon::ThemeIcon::ListAdd"/>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="removeMeasRowPushButton">
+          <property name="text">
+           <string notr="true"/>
+          </property>
+          <property name="icon">
+           <iconset theme="QIcon::ThemeIcon::ListRemove"/>
           </property>
          </widget>
         </item>
