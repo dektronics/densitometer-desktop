@@ -111,6 +111,26 @@
           <string>256x</string>
          </property>
         </column>
+        <column>
+         <property name="text">
+          <string>512x</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>1024x</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>2048x</string>
+         </property>
+        </column>
+        <column>
+         <property name="text">
+          <string>4096x</string>
+         </property>
+        </column>
         <item row="0" column="0">
          <property name="text">
           <string>117684</string>
@@ -443,6 +463,26 @@
           <string>256x/128x</string>
          </property>
         </row>
+        <row>
+         <property name="text">
+          <string>512x/256x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>1024x/512x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>2048x/1024x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>4096x/2048x</string>
+         </property>
+        </row>
         <column>
          <property name="text">
           <string>Gain Ratio</string>
@@ -549,6 +589,26 @@
         <row>
          <property name="text">
           <string>256x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>512x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>1024x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>2048x</string>
+         </property>
+        </row>
+        <row>
+         <property name="text">
+          <string>4096x</string>
          </property>
         </row>
         <column>

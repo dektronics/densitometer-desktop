@@ -7,6 +7,11 @@
 #include "intitemdelegate.h"
 #include "util.h"
 
+namespace
+{
+const int MAX_GAIN = 9;
+}
+
 GainFilterCalibrationDialog::GainFilterCalibrationDialog(DensInterface *densInterface, QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::GainFilterCalibrationDialog)
@@ -45,6 +50,10 @@ GainFilterCalibrationDialog::GainFilterCalibrationDialog(DensInterface *densInte
     ui->gainValueTableWidget->clearContents();
 
     ui->measTableWidget->setRowCount(1);
+
+    ui->measTableWidget->setColumnCount(MAX_GAIN + 1);
+    ui->gainRatioTableWidget->setRowCount(MAX_GAIN);
+    ui->gainValueTableWidget->setRowCount(MAX_GAIN + 1);
 
     if (QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark) {
         ui->measTableWidget->setStyleSheet("QTableWidget::item:disabled { selection-color: black; }");
