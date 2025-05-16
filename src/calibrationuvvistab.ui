@@ -400,11 +400,22 @@
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_11">
               <item>
-               <widget class="QPushButton" name="gainCalPushButton">
-                <property name="text">
-                 <string>Gain Calibration Tool</string>
-                </property>
-               </widget>
+               <layout class="QHBoxLayout" name="horizontalLayout_2">
+                <item>
+                 <widget class="QPushButton" name="gainAutoCalPushButton">
+                  <property name="text">
+                   <string>Auto Calibration</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="gainFilterCalPushButton">
+                  <property name="text">
+                   <string>Filter Calibration</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
               </item>
               <item>
                <widget class="QTableWidget" name="gainTableWidget">
@@ -923,7 +934,6 @@
   <tabstop>tranUvGetPushButton</tabstop>
   <tabstop>tranUvSetPushButton</tabstop>
   <tabstop>scrollArea</tabstop>
-  <tabstop>gainCalPushButton</tabstop>
   <tabstop>gainTableWidget</tabstop>
   <tabstop>gainGetPushButton</tabstop>
   <tabstop>gainSetPushButton</tabstop>

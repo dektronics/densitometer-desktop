@@ -4,6 +4,7 @@
 #include <QtWidgets/QMessageBox>
 #include <QDebug>
 
+#include "gaincalibrationdialog.h"
 #include "gainfiltercalibrationdialog.h"
 #include "slopecalibrationdialog.h"
 #include "tempcalibrationdialog.h"
@@ -32,7 +33,8 @@ CalibrationUvVisTab::CalibrationUvVisTab(DensInterface *densInterface, QWidget *
 
     // Calibration UI signals
     connect(ui->calGetAllPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onCalGetAllValues);
-    connect(ui->gainCalPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onCalGainCalClicked);
+    connect(ui->gainAutoCalPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onCalGainAutoCalClicked);
+    connect(ui->gainFilterCalPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onCalGainFilterCalClicked);
     connect(ui->gainGetPushButton, &QPushButton::clicked, densInterface_, &DensInterface::sendGetCalGain);
     connect(ui->gainSetPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onCalGainSetClicked);
     connect(ui->slopeGetPushButton, &QPushButton::clicked, densInterface_, &DensInterface::sendGetCalSlope);
@@ -110,7 +112,7 @@ void CalibrationUvVisTab::setAdvancedCalibrationEditable(bool editable)
     onCalGainItemChanged(nullptr);
     onCalSlopeTextChanged();
     ui->slopeCalPushButton->setEnabled(editable_);
-    ui->gainCalPushButton->setEnabled(editable_);
+    ui->gainFilterCalPushButton->setEnabled(editable_);
     onCalTempItemChanged(nullptr);
     ui->tempCalPushButton->setEnabled(editable_);
 }
@@ -165,7 +167,7 @@ void CalibrationUvVisTab::refreshButtonState()
     const bool connected = densInterface_->connected();
     if (connected) {
         ui->calGetAllPushButton->setEnabled(true);
-        ui->gainCalPushButton->setEnabled(editable_);
+        ui->gainAutoCalPushButton->setEnabled(editable_);
         ui->gainGetPushButton->setEnabled(true);
         ui->slopeGetPushButton->setEnabled(true);
         ui->tempGetPushButton->setEnabled(true);
@@ -183,7 +185,7 @@ void CalibrationUvVisTab::refreshButtonState()
 
     } else {
         ui->calGetAllPushButton->setEnabled(false);
-        ui->gainCalPushButton->setEnabled(false);
+        ui->gainAutoCalPushButton->setEnabled(false);
         ui->gainGetPushButton->setEnabled(false);
         ui->slopeGetPushButton->setEnabled(false);
         ui->tempGetPushButton->setEnabled(false);
@@ -260,20 +262,57 @@ void CalibrationUvVisTab::onCalGetAllValues()
     densInterface_->sendGetCalUvTransmission();
 }
 
-void CalibrationUvVisTab::onCalGainCalClicked()
+
+void CalibrationUvVisTab::onCalGainAutoCalClicked()
 {
     if (densInterface_->remoteControlEnabled()) {
         qWarning() << "Cannot start gain calibration while in remote mode";
         return;
     }
-    ui->gainCalPushButton->setEnabled(false);
+    ui->gainAutoCalPushButton->setEnabled(false);
+    ui->gainFilterCalPushButton->setEnabled(false);
+
+    QMessageBox messageBox;
+    messageBox.setWindowTitle(tr("Sensor Gain Calibration"));
+    messageBox.setText(tr("Hold the device firmly closed with no film in the optical path."));
+    messageBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+    messageBox.setDefaultButton(QMessageBox::Ok);
+
+    if (messageBox.exec() == QMessageBox::Ok) {
+        GainCalibrationDialog *dialog = new GainCalibrationDialog(densInterface_, this);
+        connect(dialog, &QDialog::finished, this, &CalibrationUvVisTab::onGainAutoCalibrationFinished);
+        dialog->show();
+    }
+}
+
+void CalibrationUvVisTab::onGainAutoCalibrationFinished(int result)
+{
+    GainCalibrationDialog *dialog = dynamic_cast<GainCalibrationDialog *>(sender());
+    dialog->deleteLater();
+
+    if (dialog->success()) {
+        densInterface_->sendGetCalGain();
+    }
+
+    ui->gainAutoCalPushButton->setEnabled(true);
+    ui->gainFilterCalPushButton->setEnabled(true);
+}
+
+void CalibrationUvVisTab::onCalGainFilterCalClicked()
+{
+    if (densInterface_->remoteControlEnabled()) {
+        qWarning() << "Cannot start gain calibration while in remote mode";
+        return;
+    }
+    ui->gainAutoCalPushButton->setEnabled(false);
+    ui->gainFilterCalPushButton->setEnabled(false);
 
     GainFilterCalibrationDialog *dialog = new GainFilterCalibrationDialog(densInterface_, this);
-    connect(dialog, &QDialog::finished, this, &CalibrationUvVisTab::onGainFilterCalibrationToolFinished);
+    connect(dialog, &QDialog::finished, this, &CalibrationUvVisTab::onGainFilterCalibrationFinished);
     dialog->show();
 }
 
-void CalibrationUvVisTab::onGainFilterCalibrationToolFinished(int result)
+void CalibrationUvVisTab::onGainFilterCalibrationFinished(int result)
 {
     GainFilterCalibrationDialog *dialog = dynamic_cast<GainFilterCalibrationDialog *>(sender());
     dialog->deleteLater();
@@ -292,7 +331,8 @@ void CalibrationUvVisTab::onGainFilterCalibrationToolFinished(int result)
         connect(ui->gainTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalGainItemChanged);
     }
 
-    ui->gainCalPushButton->setEnabled(true);
+    ui->gainAutoCalPushButton->setEnabled(true);
+    ui->gainFilterCalPushButton->setEnabled(true);
 }
 
 void CalibrationUvVisTab::onCalGainSetClicked()

@@ -37,8 +37,10 @@ private slots:
     void onDensityReading(DensInterface::DensityType type, float dValue, float dZero, float rawValue, float corrValue);
 
     void onCalGetAllValues();
-    void onCalGainCalClicked();
-    void onGainFilterCalibrationToolFinished(int result);
+    void onCalGainAutoCalClicked();
+    void onGainAutoCalibrationFinished(int result);
+    void onCalGainFilterCalClicked();
+    void onGainFilterCalibrationFinished(int result);
     void onCalGainSetClicked();
     void onCalSlopeSetClicked();
     void onCalTempSetClicked();

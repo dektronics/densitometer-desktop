@@ -157,7 +157,7 @@ void GainCalibrationDialog::updateUvVisCalStatus(int status, int param)
         }
         break;
     case 1:
-        addText(tr("Finding gain measurement brightness... [%1]").arg(lightParamText(param)));
+        addText(tr("Finding gain measurement brightness... [%1]").arg(TSL2585::gainString(static_cast<tsl2585_gain_t>(param))));
         break;
     case 2:
         if (param == 0) {
