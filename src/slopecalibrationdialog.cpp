@@ -15,9 +15,8 @@
 SlopeCalibrationDialog::SlopeCalibrationDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SlopeCalibrationDialog),
-    enableZeroAdj_(false), enableReflReadings_(false),
-    calValues_{qSNaN(), qSNaN(), qSNaN()},
-    zeroAdj_(qSNaN())
+    enableReflReadings_(false),
+    calValues_{qSNaN(), qSNaN(), qSNaN()}
 {
     ui->setupUi(this);
 
@@ -74,8 +73,6 @@ SlopeCalibrationDialog::SlopeCalibrationDialog(QWidget *parent) :
         }
     }
 
-    setCalculateZeroAdjustment(enableZeroAdj_);
-
     connect(ui->wedgePrecSpinBox, &QSpinBox::valueChanged, this, &SlopeCalibrationDialog::wedgePrecValueChanged);
     connect(ui->wedgeCountSpinBox, &QSpinBox::valueChanged, this, &SlopeCalibrationDialog::wedgeCountValueChanged);
 }
@@ -102,23 +99,9 @@ SlopeCalibrationDialog::~SlopeCalibrationDialog()
     delete ui;
 }
 
-void SlopeCalibrationDialog::setCalculateZeroAdjustment(bool enable)
-{
-    if (enableReflReadings_) { return; }
-    enableZeroAdj_ = enable;
-
-    ui->zLabel->setVisible(enable);
-    ui->zLineEdit->setVisible(enable);
-}
-
 std::tuple<float, float, float> SlopeCalibrationDialog::calValues() const
 {
     return calValues_;
-}
-
-float SlopeCalibrationDialog::zeroAdjustment() const
-{
-    return zeroAdj_;
 }
 
 void SlopeCalibrationDialog::wedgePrecValueChanged(int value)
@@ -356,17 +339,6 @@ void SlopeCalibrationDialog::onCalculateResults()
     QList<float> xList;
     QList<float> yList;
     float base_measurement = qSNaN();
-    float zeroAdj = qSNaN();
-
-    // Calculate the zero adjustment
-    if (model_->rowCount() > 1 && enableZeroAdj_) {
-        float meas0 = itemValueAsFloat(0, 1);
-        float density1 = itemValueAsFloat(1, 0);
-        float meas1 = itemValueAsFloat(1, 1);
-
-        float expectedMeas0 = meas1 * std::pow(10.0, density1);
-        zeroAdj = std::log10(expectedMeas0 / meas0);
-    }
 
     for (int row = 0; row < model_->rowCount(); row++) {
         float density = itemValueAsFloat(row, 0);
@@ -397,11 +369,6 @@ void SlopeCalibrationDialog::onCalculateResults()
                     break;
                 }
 
-                // Apply zero adjustment
-                if (enableZeroAdj_ && !std::isnan(zeroAdj)) {
-                    measurement *= std::pow(10.0, zeroAdj);
-                }
-
                 float x = std::log10(measurement);
                 xList.append(x);
                 yList.append(x);
@@ -420,21 +387,12 @@ void SlopeCalibrationDialog::onCalculateResults()
         return;
     }
 
-    qDebug() << "Zero adj:" << zeroAdj;
-
     auto beta = util::polyfit(xList, yList);
-
-    if (enableZeroAdj_ && !std::isnan(zeroAdj)) {
-        ui->zLineEdit->setText(QString::number(zeroAdj, 'f'));
-    } else {
-        ui->zLineEdit->setText(QString());
-    }
 
     ui->b0LineEdit->setText(QString::number(std::get<0>(beta), 'f'));
     ui->b1LineEdit->setText(QString::number(std::get<1>(beta), 'f'));
     ui->b2LineEdit->setText(QString::number(std::get<2>(beta), 'f'));
     calValues_ = beta;
-    zeroAdj_ = zeroAdj;
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 }
 

@@ -6,7 +6,6 @@
 
 #include "gaincalibrationdialog.h"
 #include "gainfiltercalibrationdialog.h"
-#include "slopecalibrationdialog.h"
 #include "tempcalibrationdialog.h"
 #include "floatitemdelegate.h"
 #include "util.h"
@@ -22,7 +21,6 @@ CalibrationUvVisTab::CalibrationUvVisTab(DensInterface *densInterface, QWidget *
     connect(densInterface_, &DensInterface::connectionClosed, this, &CalibrationUvVisTab::onConnectionClosed);
     connect(densInterface_, &DensInterface::densityReading, this, &CalibrationUvVisTab::onDensityReading);
     connect(densInterface_, &DensInterface::calGainResponse, this, &CalibrationUvVisTab::onCalGainResponse);
-    connect(densInterface_, &DensInterface::calSlopeResponse, this, &CalibrationUvVisTab::onCalSlopeResponse);
     connect(densInterface_, &DensInterface::calVisTemperatureResponse, this, &CalibrationUvVisTab::onCalVisTempResponse);
     connect(densInterface_, &DensInterface::calVisTemperatureSetComplete, this, &CalibrationUvVisTab::onCalVisTempSetComplete);
     connect(densInterface_, &DensInterface::calUvTemperatureResponse, this, &CalibrationUvVisTab::onCalUvTempResponse);
@@ -37,8 +35,6 @@ CalibrationUvVisTab::CalibrationUvVisTab(DensInterface *densInterface, QWidget *
     connect(ui->gainFilterCalPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onCalGainFilterCalClicked);
     connect(ui->gainGetPushButton, &QPushButton::clicked, densInterface_, &DensInterface::sendGetCalGain);
     connect(ui->gainSetPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onCalGainSetClicked);
-    connect(ui->slopeGetPushButton, &QPushButton::clicked, densInterface_, &DensInterface::sendGetCalSlope);
-    connect(ui->slopeSetPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onCalSlopeSetClicked);
     connect(ui->tempGetPushButton, &QPushButton::clicked, densInterface_, &DensInterface::sendGetCalVisTemperature);
     connect(ui->tempGetPushButton, &QPushButton::clicked, densInterface_, &DensInterface::sendGetCalUvTemperature);
     connect(ui->tempSetPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onCalTempSetClicked);
@@ -48,22 +44,11 @@ CalibrationUvVisTab::CalibrationUvVisTab(DensInterface *densInterface, QWidget *
     connect(ui->tranSetPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onCalTransmissionSetClicked);
     connect(ui->tranUvGetPushButton, &QPushButton::clicked, densInterface_, &DensInterface::sendGetCalUvTransmission);
     connect(ui->tranUvSetPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onCalUvTransmissionSetClicked);
-    connect(ui->slopeCalPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onSlopeCalibrationTool);
     connect(ui->tempCalPushButton, &QPushButton::clicked, this, &CalibrationUvVisTab::onTempCalibrationTool);
 
     // Calibration (gain) field
     ui->gainTableWidget->setItemDelegate(new FloatItemDelegate(0.0, 512.0, 6));
     connect(ui->gainTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalGainItemChanged);
-
-    // Calibration (slope) field validation
-    ui->zLineEdit->setValidator(util::createFloatValidator(-100.0, 100.0, 6, this));
-    ui->b0LineEdit->setValidator(util::createFloatValidator(-100.0, 100.0, 6, this));
-    ui->b1LineEdit->setValidator(util::createFloatValidator(-100.0, 100.0, 6, this));
-    ui->b2LineEdit->setValidator(util::createFloatValidator(-100.0, 100.0, 6, this));
-    connect(ui->zLineEdit, &QLineEdit::textChanged, this, &CalibrationUvVisTab::onCalSlopeTextChanged);
-    connect(ui->b0LineEdit, &QLineEdit::textChanged, this, &CalibrationUvVisTab::onCalSlopeTextChanged);
-    connect(ui->b1LineEdit, &QLineEdit::textChanged, this, &CalibrationUvVisTab::onCalSlopeTextChanged);
-    connect(ui->b2LineEdit, &QLineEdit::textChanged, this, &CalibrationUvVisTab::onCalSlopeTextChanged);
 
     // Calibration (temperature) fields
     ui->visTempTableWidget->setItemDelegate(new FloatItemDelegate());
@@ -110,8 +95,6 @@ void CalibrationUvVisTab::setAdvancedCalibrationEditable(bool editable)
     editable_ = editable;
     refreshButtonState();
     onCalGainItemChanged(nullptr);
-    onCalSlopeTextChanged();
-    ui->slopeCalPushButton->setEnabled(editable_);
     ui->gainFilterCalPushButton->setEnabled(editable_);
     onCalTempItemChanged(nullptr);
     ui->tempCalPushButton->setEnabled(editable_);
@@ -122,11 +105,6 @@ void CalibrationUvVisTab::clear()
     ui->gainTableWidget->clearContents();
     ui->visTempTableWidget->clearContents();
     ui->uvTempTableWidget->clearContents();
-
-    ui->zLineEdit->clear();
-    ui->b0LineEdit->clear();
-    ui->b1LineEdit->clear();
-    ui->b2LineEdit->clear();
 
     ui->reflLoDensityLineEdit->clear();
     ui->reflLoReadingLineEdit->clear();
@@ -169,7 +147,6 @@ void CalibrationUvVisTab::refreshButtonState()
         ui->calGetAllPushButton->setEnabled(true);
         ui->gainAutoCalPushButton->setEnabled(editable_);
         ui->gainGetPushButton->setEnabled(true);
-        ui->slopeGetPushButton->setEnabled(true);
         ui->tempGetPushButton->setEnabled(true);
         ui->reflGetPushButton->setEnabled(true);
         ui->tranGetPushButton->setEnabled(true);
@@ -187,7 +164,6 @@ void CalibrationUvVisTab::refreshButtonState()
         ui->calGetAllPushButton->setEnabled(false);
         ui->gainAutoCalPushButton->setEnabled(false);
         ui->gainGetPushButton->setEnabled(false);
-        ui->slopeGetPushButton->setEnabled(false);
         ui->tempGetPushButton->setEnabled(false);
         ui->reflGetPushButton->setEnabled(false);
         ui->tranGetPushButton->setEnabled(false);
@@ -203,11 +179,6 @@ void CalibrationUvVisTab::refreshButtonState()
         ui->visTempTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
         ui->uvTempTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     }
-
-    ui->zLineEdit->setReadOnly(!connected || !editable_);
-    ui->b0LineEdit->setReadOnly(!connected || !editable_);
-    ui->b1LineEdit->setReadOnly(!connected || !editable_);
-    ui->b2LineEdit->setReadOnly(!connected || !editable_);
 
     ui->reflLoDensityLineEdit->setReadOnly(!connected);
     ui->reflLoReadingLineEdit->setReadOnly(!connected);
@@ -360,31 +331,6 @@ void CalibrationUvVisTab::onCalGainSetClicked()
     densInterface_->sendSetUvVisCalGain(calGain);
 }
 
-void CalibrationUvVisTab::onCalSlopeSetClicked()
-{
-    DensCalSlope calSlope;
-    bool ok;
-
-    calSlope.setZ(ui->zLineEdit->text().toFloat(&ok));
-    if (!ok) { return; }
-
-    calSlope.setB0(ui->b0LineEdit->text().toFloat(&ok));
-    if (!ok) { return; }
-
-    calSlope.setB1(ui->b1LineEdit->text().toFloat(&ok));
-    if (!ok) { return; }
-
-    calSlope.setB2(ui->b2LineEdit->text().toFloat(&ok));
-    if (!ok) { return; }
-
-    if (!calSlope.isValid()) {
-        QMessageBox::warning(this, tr("Invalid Values"), tr("Cannot set invalid slope correction values!"));
-        return;
-    }
-
-    densInterface_->sendSetCalSlope(calSlope);
-}
-
 void CalibrationUvVisTab::onCalTempSetClicked()
 {
     //FIXME Make both of these do change detection, so both aren't needlessly updated
@@ -511,26 +457,6 @@ void CalibrationUvVisTab::onCalGainItemChanged(QTableWidgetItem *item)
     }
 }
 
-void CalibrationUvVisTab::onCalSlopeTextChanged()
-{
-    const bool hasZ = (densInterface_->deviceType() == DensInterface::DeviceUvVis);
-    if (densInterface_->connected()
-        && (ui->zLineEdit->hasAcceptableInput() || !hasZ)
-        && ui->b0LineEdit->hasAcceptableInput()
-        && ui->b1LineEdit->hasAcceptableInput()
-        && ui->b2LineEdit->hasAcceptableInput()) {
-        ui->slopeSetPushButton->setEnabled(editable_);
-    } else {
-        ui->slopeSetPushButton->setEnabled(false);
-    }
-
-    const DensCalSlope calSlope = densInterface_->calSlope();
-    updateLineEditDirtyState(ui->zLineEdit, calSlope.z(), 6);
-    updateLineEditDirtyState(ui->b0LineEdit, calSlope.b0(), 6);
-    updateLineEditDirtyState(ui->b1LineEdit, calSlope.b1(), 6);
-    updateLineEditDirtyState(ui->b2LineEdit, calSlope.b2(), 6);
-}
-
 void CalibrationUvVisTab::onCalTempItemChanged(QTableWidgetItem *item)
 {
     bool visEnableSet = true;
@@ -632,18 +558,6 @@ void CalibrationUvVisTab::onCalGainResponse()
     connect(ui->gainTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalGainItemChanged);
 }
 
-void CalibrationUvVisTab::onCalSlopeResponse()
-{
-    const DensCalSlope calSlope = densInterface_->calSlope();
-
-    ui->zLineEdit->setText(QString::number(calSlope.z(), 'f'));
-    ui->b0LineEdit->setText(QString::number(calSlope.b0(), 'f'));
-    ui->b1LineEdit->setText(QString::number(calSlope.b1(), 'f'));
-    ui->b2LineEdit->setText(QString::number(calSlope.b2(), 'f'));
-
-    onCalSlopeTextChanged();
-}
-
 void CalibrationUvVisTab::onCalVisTempResponse()
 {
     const DensCalTemperature calTemperature = densInterface_->calVisTemperature();
@@ -718,33 +632,6 @@ void CalibrationUvVisTab::onCalUvTransmissionResponse()
     ui->tranUvHiReadingLineEdit->setText(QString::number(calTransmission.hiReading(), 'f', 6));
 
     onCalUvTransmissionTextChanged();
-}
-
-void CalibrationUvVisTab::onSlopeCalibrationTool()
-{
-    SlopeCalibrationDialog *dialog = new SlopeCalibrationDialog(densInterface_, this);
-    connect(dialog, &QDialog::finished, this, &CalibrationUvVisTab::onSlopeCalibrationToolFinished);
-    dialog->setCalculateZeroAdjustment(true);
-    dialog->show();
-}
-
-void CalibrationUvVisTab::onSlopeCalibrationToolFinished(int result)
-{
-    SlopeCalibrationDialog *dialog = dynamic_cast<SlopeCalibrationDialog *>(sender());
-    dialog->deleteLater();
-
-    if (result == QDialog::Accepted) {
-        if (densInterface_->deviceType() == DensInterface::DeviceUvVis) {
-            ui->zLineEdit->setText(QString::number(dialog->zeroAdjustment(), 'f'));
-        } else {
-            ui->zLineEdit->setText(QString());
-        }
-
-        auto result = dialog->calValues();
-        ui->b0LineEdit->setText(QString::number(std::get<0>(result), 'f'));
-        ui->b1LineEdit->setText(QString::number(std::get<1>(result), 'f'));
-        ui->b2LineEdit->setText(QString::number(std::get<2>(result), 'f'));
-    }
 }
 
 void CalibrationUvVisTab::onTempCalibrationTool()

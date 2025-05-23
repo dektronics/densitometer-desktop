@@ -24,10 +24,7 @@ public:
     explicit SlopeCalibrationDialog(DensiStickRunner *stickRunner, QWidget *parent = nullptr);
     ~SlopeCalibrationDialog();
 
-    void setCalculateZeroAdjustment(bool enable);
-
     std::tuple<float, float, float> calValues() const;
-    float zeroAdjustment() const;
 
 private slots:
     void wedgePrecValueChanged(int value);
@@ -48,10 +45,8 @@ private:
 
     Ui::SlopeCalibrationDialog *ui;
     QStandardItemModel *model_;
-    bool enableZeroAdj_;
     bool enableReflReadings_;
     std::tuple<float, float, float> calValues_;
-    float zeroAdj_;
 };
 
 #endif // SLOPECALIBRATIONDIALOG_H

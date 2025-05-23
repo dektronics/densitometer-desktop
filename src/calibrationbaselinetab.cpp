@@ -538,7 +538,6 @@ void CalibrationBaselineTab::onSlopeCalibrationTool()
 {
     SlopeCalibrationDialog *dialog = new SlopeCalibrationDialog(densInterface_, this);
     connect(dialog, &QDialog::finished, this, &CalibrationBaselineTab::onSlopeCalibrationToolFinished);
-    dialog->setCalculateZeroAdjustment(false);
     dialog->show();
 }
 

@@ -42,21 +42,18 @@ private slots:
     void onCalGainFilterCalClicked();
     void onGainFilterCalibrationFinished(int result);
     void onCalGainSetClicked();
-    void onCalSlopeSetClicked();
     void onCalTempSetClicked();
     void onCalReflectionSetClicked();
     void onCalTransmissionSetClicked();
     void onCalUvTransmissionSetClicked();
 
     void onCalGainItemChanged(QTableWidgetItem *item);
-    void onCalSlopeTextChanged();
     void onCalTempItemChanged(QTableWidgetItem *item);
     void onCalReflectionTextChanged();
     void onCalTransmissionTextChanged();
     void onCalUvTransmissionTextChanged();
 
     void onCalGainResponse();
-    void onCalSlopeResponse();
     void onCalVisTempResponse();
     void onCalVisTempSetComplete();
     void onCalUvTempResponse();
@@ -64,9 +61,6 @@ private slots:
     void onCalReflectionResponse();
     void onCalTransmissionResponse();
     void onCalUvTransmissionResponse();
-
-    void onSlopeCalibrationTool();
-    void onSlopeCalibrationToolFinished(int result);
 
     void onTempCalibrationTool();
     void onTempCalibrationToolFinished(int result);

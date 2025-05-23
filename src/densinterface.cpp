@@ -488,20 +488,20 @@ void DensInterface::sendSetUvVisCalGain(const DensUvVisCalGain &calGain)
 
 void DensInterface::sendGetCalSlope()
 {
+    if (deviceType_ != DeviceBaseline) { return; }
+
     DensCommand command(DensCommand::TypeGet, DensCommand::CategoryCalibration, "SLOPE");
     sendCommand(command);
 }
 
 void DensInterface::sendSetCalSlope(const DensCalSlope &calSlope)
 {
+    if (deviceType_ != DeviceBaseline) { return; }
+
     QStringList args;
     args.append(util::encode_f32(calSlope.b0()));
     args.append(util::encode_f32(calSlope.b1()));
     args.append(util::encode_f32(calSlope.b2()));
-
-    if (deviceType_ == DeviceUvVis) {
-        args.append(util::encode_f32(calSlope.z()));
-    }
 
     DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "SLOPE", args);
     sendCommand(command);
@@ -990,11 +990,6 @@ void DensInterface::readCalibrationResponse(const DensCommand &response)
         calSlope_.setB0(util::decode_f32(response.args().at(0)));
         calSlope_.setB1(util::decode_f32(response.args().at(1)));
         calSlope_.setB2(util::decode_f32(response.args().at(2)));
-        if (response.args().length() > 3) {
-            calSlope_.setZ(util::decode_f32(response.args().at(3)));
-        } else {
-            calSlope_.setZ(qSNaN());
-        }
         emit calSlopeResponse();
     } else if (isResponseSetOk(response, QLatin1String("SLOPE"))) {
         emit calSlopeSetComplete();

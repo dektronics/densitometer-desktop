@@ -383,7 +383,6 @@ void CalibrationStickTab::onSlopeCalibrationTool()
 {
     SlopeCalibrationDialog *dialog = new SlopeCalibrationDialog(stickRunner_, this);
     connect(dialog, &QDialog::finished, this, &CalibrationStickTab::onSlopeCalibrationToolFinished);
-    dialog->setCalculateZeroAdjustment(true);
     dialog->show();
 }
 

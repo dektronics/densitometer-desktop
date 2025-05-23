@@ -115,7 +115,17 @@
           <string>Results</string>
          </property>
          <layout class="QGridLayout" name="gridLayout">
-          <item row="3" column="0">
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="b0LineEdit">
+            <property name="text">
+             <string notr="true"/>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="0">
            <widget class="QLabel" name="b2Label">
             <property name="text">
              <string>B2 =</string>
@@ -126,36 +136,6 @@
            </widget>
           </item>
           <item row="2" column="1">
-           <widget class="QLineEdit" name="b1LineEdit">
-            <property name="text">
-             <string notr="true"/>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="b1Label">
-            <property name="text">
-             <string>B1 =</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="1" column="1">
-           <widget class="QLineEdit" name="b0LineEdit">
-            <property name="text">
-             <string notr="true"/>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
-            </property>
-           </widget>
-          </item>
-          <item row="3" column="1">
            <widget class="QLineEdit" name="b2LineEdit">
             <property name="text">
              <string notr="true"/>
@@ -166,32 +146,32 @@
            </widget>
           </item>
           <item row="1" column="0">
+           <widget class="QLabel" name="b1Label">
+            <property name="text">
+             <string>B1 =</string>
+            </property>
+            <property name="alignment">
+             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
+            </property>
+           </widget>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="b1LineEdit">
+            <property name="text">
+             <string notr="true"/>
+            </property>
+            <property name="readOnly">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
            <widget class="QLabel" name="b0Label">
             <property name="text">
              <string>B0 =</string>
             </property>
             <property name="alignment">
              <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="0">
-           <widget class="QLabel" name="zLabel">
-            <property name="text">
-             <string>Z =</string>
-            </property>
-            <property name="alignment">
-             <set>Qt::AlignmentFlag::AlignRight|Qt::AlignmentFlag::AlignTrailing|Qt::AlignmentFlag::AlignVCenter</set>
-            </property>
-           </widget>
-          </item>
-          <item row="0" column="1">
-           <widget class="QLineEdit" name="zLineEdit">
-            <property name="text">
-             <string notr="true"/>
-            </property>
-            <property name="readOnly">
-             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -266,7 +246,6 @@
   <tabstop>tableView</tabstop>
   <tabstop>calculatePushButton</tabstop>
   <tabstop>clearPushButton</tabstop>
-  <tabstop>zLineEdit</tabstop>
   <tabstop>b0LineEdit</tabstop>
   <tabstop>b1LineEdit</tabstop>
   <tabstop>b2LineEdit</tabstop>
