@@ -22,13 +22,14 @@ public:
     explicit CalibrationUvVisTab(DensInterface *densInterface, QWidget *parent = nullptr);
     ~CalibrationUvVisTab();
 
-    virtual DensInterface::DeviceType deviceType() const { return DensInterface::DeviceUvVis; }
+    virtual DensInterface::DeviceType deviceType() const override { return DensInterface::DeviceUvVis; }
 
-    virtual void setAdvancedCalibrationEditable(bool editable);
+    virtual void setAdvancedCalibrationEditable(bool editable) override;
+    virtual void setDensityPrecision(int precision) override;
 
 public slots:
-    virtual void clear();
-    virtual void reloadAll();
+    virtual void clear() override;
+    virtual void reloadAll() override;
 
 private slots:
     void onConnectionOpened();
@@ -72,6 +73,7 @@ private:
     CoefficientSet coefficientSetCollectRow(QTableWidget *table, int row);
 
     bool editable_ = false;
+    int densPrecision_ = 2;
     Ui::CalibrationUvVisTab *ui;
 };
 

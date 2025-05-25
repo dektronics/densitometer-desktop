@@ -20,13 +20,14 @@ public:
     explicit CalibrationBaselineTab(DensInterface *densInterface, QWidget *parent = nullptr);
     ~CalibrationBaselineTab();
 
-    virtual DensInterface::DeviceType deviceType() const { return DensInterface::DeviceBaseline; }
+    virtual DensInterface::DeviceType deviceType() const override { return DensInterface::DeviceBaseline; }
 
-    virtual void setAdvancedCalibrationEditable(bool editable);
+    virtual void setAdvancedCalibrationEditable(bool editable) override;
+    virtual void setDensityPrecision(int precision) override;
 
 public slots:
-    virtual void clear();
-    virtual void reloadAll();
+    virtual void clear() override;
+    virtual void reloadAll() override;
 
 private slots:
     void onConnectionOpened();
@@ -61,6 +62,7 @@ private:
     void refreshButtonState();
 
     bool editable_ = false;
+    int densPrecision_ = 2;
     Ui::CalibrationBaselineTab *ui;
 };
 

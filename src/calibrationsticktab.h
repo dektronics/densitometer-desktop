@@ -21,13 +21,14 @@ public:
     explicit CalibrationStickTab(DensiStickRunner *stickRunner, QWidget *parent = nullptr);
     ~CalibrationStickTab();
 
-    virtual DensInterface::DeviceType deviceType() const { return DensInterface::DeviceUvVis; }
+    virtual DensInterface::DeviceType deviceType() const override { return DensInterface::DeviceUvVis; }
 
-    virtual void setAdvancedCalibrationEditable(bool editable);
+    virtual void setAdvancedCalibrationEditable(bool editable) override;
+    virtual void setDensityPrecision(int precision) override;
 
 public slots:
-    virtual void clear();
-    virtual void reloadAll();
+    virtual void clear() override;
+    virtual void reloadAll() override;
 
 private slots:
     void onStickInterfaceDestroyed(QObject *obj);
@@ -57,6 +58,7 @@ private:
     void updateCalTarget();
 
     bool editable_ = false;
+    int densPrecision_ = 2;
     Ui::CalibrationStickTab *ui;
     DensiStickRunner *stickRunner_ = nullptr;
     Tsl2585Calibration calData_;

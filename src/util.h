@@ -12,6 +12,7 @@ class QPixmap;
 class QSvgWidget;
 class QTableWidget;
 class QTableWidgetItem;
+class QLineEdit;
 
 namespace util
 {
@@ -34,6 +35,7 @@ std::tuple<float, float, float> polyfit(const QList<float> &xList, const QList<f
 
 QValidator *createIntValidator(int min, int max, QObject *parent = nullptr);
 QValidator *createFloatValidator(double min, double max, int decimals, QObject *parent = nullptr);
+void changeLineEditDecimals(QLineEdit *lineEdit, int decimals);
 
 QPixmap createThemeColoredPixmap(const QWidget *refWidget, const QString &fileName);
 QSvgWidget *createThemeColoredSvgWidget(const QWidget *refWidget, const QString &fileName);

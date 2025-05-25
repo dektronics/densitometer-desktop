@@ -18,6 +18,7 @@ public:
     virtual DensInterface::DeviceType deviceType() const = 0;
 
     virtual void setAdvancedCalibrationEditable(bool editable) = 0;
+    virtual void setDensityPrecision(int precision) = 0;
 
 public slots:
     virtual void clear() = 0;

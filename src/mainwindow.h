@@ -47,6 +47,7 @@ private slots:
     void onLoggerOpened();
     void onLoggerClosed();
     void onEditAdvCalibration(bool checked);
+    void onChangeDensityPrecision();
     void about();
 
     void onMenuEditAboutToShow();
@@ -72,6 +73,7 @@ private:
     void openConnectionToFt260(const Ft260DeviceInfo &info);
     void refreshButtonState();
     void updateAdvCalibrationEditable(bool editable);
+    void updateDensityPrecision(int precision);
     void measTableAddReading(DensInterface::DensityType type, float density, float offset);
     void measTableCut();
     void measTableCopy();
@@ -96,6 +98,7 @@ private:
     QPixmap zeroSetPixmap;
     QSvgWidget *reflTypeWidget_;
     QSvgWidget *tranTypeWidget_;
+    int densPrecision_;
 };
 
 #endif // MAINWINDOW_H

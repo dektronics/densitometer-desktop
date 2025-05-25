@@ -348,6 +348,7 @@
     <addaction name="separator"/>
     <addaction name="actionLogger"/>
     <addaction name="actionEditAdvCalibration"/>
+    <addaction name="actionDensityPrecision"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -533,6 +534,17 @@
    </property>
    <property name="text">
     <string>Edit Advanced Calibration</string>
+   </property>
+   <property name="toolTip">
+    <string>Edit advanced calibration</string>
+   </property>
+  </action>
+  <action name="actionDensityPrecision">
+   <property name="text">
+    <string>Change Density Precision...</string>
+   </property>
+   <property name="toolTip">
+    <string>Change density precision</string>
    </property>
   </action>
  </widget>

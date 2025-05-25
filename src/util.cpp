@@ -11,6 +11,7 @@
 #include <QThread>
 #include <QApplication>
 #include <QMimeData>
+#include <QLineEdit>
 #include <string.h>
 
 namespace util
@@ -242,6 +243,22 @@ QValidator *createFloatValidator(double min, double max, int decimals, QObject *
     QDoubleValidator *validator = new QDoubleValidator(min, max, decimals, parent);
     validator->setNotation(QDoubleValidator::StandardNotation);
     return validator;
+}
+
+void changeLineEditDecimals(QLineEdit *lineEdit, int decimals)
+{
+    bool ok;
+    double value = lineEdit->text().toDouble(&ok);
+
+    auto validator = qobject_cast<const QDoubleValidator *>(lineEdit->validator());
+    if (validator && validator->decimals() != decimals) {
+        auto updatedValidator = createFloatValidator(validator->bottom(), validator->top(), decimals, validator->parent());
+        lineEdit->setValidator(updatedValidator);
+    }
+
+    if (ok) {
+        lineEdit->setText(QString::number(value, 'f', decimals));
+    }
 }
 
 QPixmap createThemeColoredPixmap(const QWidget *refWidget, const QString &fileName)

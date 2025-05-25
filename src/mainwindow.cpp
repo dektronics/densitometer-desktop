@@ -42,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent)
     , serialPort_(new QSerialPort(this))
     , densInterface_(new DensInterface(this))
     , logWindow_(new LogWindow(this))
+    , densPrecision_(2)
 {
     ui->setupUi(this);
 
@@ -171,6 +172,10 @@ MainWindow::MainWindow(QWidget *parent)
     ui->actionEditAdvCalibration->setChecked(editAdvanced);
     updateAdvCalibrationEditable(editAdvanced);
     connect(ui->actionEditAdvCalibration, &QAction::triggered, this, &MainWindow::onEditAdvCalibration);
+
+    const int densPrecision = settings.value("config/density_precision", 2).toInt();
+    updateDensityPrecision(densPrecision);
+    connect(ui->actionDensityPrecision, &QAction::triggered, this, &MainWindow::onChangeDensityPrecision);
 }
 
 MainWindow::~MainWindow()
@@ -406,7 +411,48 @@ void MainWindow::updateAdvCalibrationEditable(bool editable)
     if (calibrationTab_) {
         calibrationTab_->setAdvancedCalibrationEditable(editable);
     }
+}
 
+void MainWindow::onChangeDensityPrecision()
+{
+    QSettings settings;
+
+    bool ok;
+    int value = QInputDialog::getInt(this,
+                                     tr("Change Density Precision"),
+                                     tr("Decimal places for density values:"),
+                                     densPrecision_, 2, 6, 1, &ok);
+    if (!ok) { return; }
+
+    if (value > 2) {
+        auto result = QMessageBox::question(
+            this, tr("Change Density Precision"),
+            tr("This setting only affects the behavior of the desktop software. "
+               "The device itself will still show two decimal places of precision on its local display.\n\n"
+               "This setting is intended for use during calibration and testing with specific materials "
+               "for which higher precision reference values may be available.\n\n"
+               "Are you sure you want to change this setting?\n"),
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+        if (result == QMessageBox::Yes) {
+            settings.setValue("config/density_precision", value);
+            updateDensityPrecision(value);
+        }
+    } else {
+        settings.setValue("config/density_precision", value);
+        updateDensityPrecision(value);
+    }
+}
+
+void MainWindow::updateDensityPrecision(int precision)
+{
+    if (precision < 2) { precision = 2; }
+    if (precision > 6) { precision = 6; }
+
+    densPrecision_ = precision;
+
+    if (calibrationTab_) {
+        calibrationTab_->setDensityPrecision(precision);
+    }
 }
 
 void MainWindow::about()
@@ -528,9 +574,9 @@ void MainWindow::onConnectionOpened()
             calibrationTab_ = new CalibrationUvVisTab(densInterface_);
         }
 
-        calibrationTab_->setAdvancedCalibrationEditable(ui->actionEditAdvCalibration->isChecked());
-
         if (calibrationTab_) {
+            calibrationTab_->setAdvancedCalibrationEditable(ui->actionEditAdvCalibration->isChecked());
+            calibrationTab_->setDensityPrecision(densPrecision_);
             ui->tabCalibrationLayout->replaceWidget(ui->tabCalibrationWidget, calibrationTab_);
             calibrationTab_->clear();
         }
@@ -604,7 +650,7 @@ void MainWindow::onDensityReading(DensInterface::DensityType type, float dValue,
         if (qAbs(displayZero) < 0.01F) {
             displayZero = 0.0F;
         }
-        ui->zeroIndicatorLabel->setToolTip(QString("%1D").arg(displayZero, 4, 'f', 2));
+        ui->zeroIndicatorLabel->setToolTip(QString("%1D").arg(displayZero, 4, 'f', densPrecision_));
     } else {
         ui->zeroIndicatorLabel->setPixmap(QPixmap());
         ui->zeroIndicatorLabel->setToolTip(QString());
@@ -620,7 +666,7 @@ void MainWindow::onDensityReading(DensInterface::DensityType type, float dValue,
     if (qAbs(displayValue) < 0.01F) {
         displayValue = 0.0F;
     }
-    ui->readingValueLineEdit->setText(QString("%1D").arg(displayValue, 4, 'f', 2));
+    ui->readingValueLineEdit->setText(QString("%1D").arg(displayValue, 4, 'f', densPrecision_));
 
     // Save values so they can be referenced later
     lastReadingType_ = type;
@@ -752,7 +798,7 @@ void MainWindow::onActionDelete()
 void MainWindow::measTableAddReading(DensInterface::DensityType type, float density, float offset)
 {
 
-    QString numStr = QString("%1").arg(density, 4, 'f', 2);
+    QString numStr = QString("%1").arg(density, 4, 'f', densPrecision_);
     QString typeStr;
     QIcon typeIcon;
     QString offsetStr;
@@ -769,7 +815,7 @@ void MainWindow::measTableAddReading(DensInterface::DensityType type, float dens
     }
 
     if (!qIsNaN(offset)) {
-        offsetStr = QString("%1").arg(offset, 4, 'f', 2);
+        offsetStr = QString("%1").arg(offset, 4, 'f', densPrecision_);
     }
 
     int row = -1;

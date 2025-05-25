@@ -100,6 +100,17 @@ void CalibrationUvVisTab::setAdvancedCalibrationEditable(bool editable)
     ui->tempCalPushButton->setEnabled(editable_);
 }
 
+void CalibrationUvVisTab::setDensityPrecision(int precision)
+{
+    util::changeLineEditDecimals(ui->reflLoDensityLineEdit, precision);
+    util::changeLineEditDecimals(ui->reflHiDensityLineEdit, precision);
+    util::changeLineEditDecimals(ui->tranLoDensityLineEdit, precision);
+    util::changeLineEditDecimals(ui->tranHiDensityLineEdit, precision);
+    util::changeLineEditDecimals(ui->tranUvLoDensityLineEdit, precision);
+    util::changeLineEditDecimals(ui->tranUvHiDensityLineEdit, precision);
+    densPrecision_ = precision;
+}
+
 void CalibrationUvVisTab::clear()
 {
     ui->gainTableWidget->clearContents();
@@ -495,9 +506,9 @@ void CalibrationUvVisTab::onCalReflectionTextChanged()
     }
 
     const DensCalTarget calTarget = densInterface_->calReflection();
-    updateLineEditDirtyState(ui->reflLoDensityLineEdit, calTarget.loDensity(), 2);
+    updateLineEditDirtyState(ui->reflLoDensityLineEdit, calTarget.loDensity(), densPrecision_);
     updateLineEditDirtyState(ui->reflLoReadingLineEdit, calTarget.loReading(), 6);
-    updateLineEditDirtyState(ui->reflHiDensityLineEdit, calTarget.hiDensity(), 2);
+    updateLineEditDirtyState(ui->reflHiDensityLineEdit, calTarget.hiDensity(), densPrecision_);
     updateLineEditDirtyState(ui->reflHiReadingLineEdit, calTarget.hiReading(), 6);
 }
 
@@ -515,7 +526,7 @@ void CalibrationUvVisTab::onCalTransmissionTextChanged()
 
     const DensCalTarget calTarget = densInterface_->calTransmission();
     updateLineEditDirtyState(ui->tranLoReadingLineEdit, calTarget.loReading(), 6);
-    updateLineEditDirtyState(ui->tranHiDensityLineEdit, calTarget.hiDensity(), 2);
+    updateLineEditDirtyState(ui->tranHiDensityLineEdit, calTarget.hiDensity(), densPrecision_);
     updateLineEditDirtyState(ui->tranHiReadingLineEdit, calTarget.hiReading(), 6);
 }
 
@@ -533,7 +544,7 @@ void CalibrationUvVisTab::onCalUvTransmissionTextChanged()
 
     const DensCalTarget calTarget = densInterface_->calUvTransmission();
     updateLineEditDirtyState(ui->tranUvLoReadingLineEdit, calTarget.loReading(), 6);
-    updateLineEditDirtyState(ui->tranUvHiDensityLineEdit, calTarget.hiDensity(), 2);
+    updateLineEditDirtyState(ui->tranUvHiDensityLineEdit, calTarget.hiDensity(), densPrecision_);
     updateLineEditDirtyState(ui->tranUvHiReadingLineEdit, calTarget.hiReading(), 6);
 }
 
@@ -602,9 +613,9 @@ void CalibrationUvVisTab::onCalReflectionResponse()
 {
     const DensCalTarget calReflection = densInterface_->calReflection();
 
-    ui->reflLoDensityLineEdit->setText(QString::number(calReflection.loDensity(), 'f', 2));
+    ui->reflLoDensityLineEdit->setText(QString::number(calReflection.loDensity(), 'f', densPrecision_));
     ui->reflLoReadingLineEdit->setText(QString::number(calReflection.loReading(), 'f', 6));
-    ui->reflHiDensityLineEdit->setText(QString::number(calReflection.hiDensity(), 'f', 2));
+    ui->reflHiDensityLineEdit->setText(QString::number(calReflection.hiDensity(), 'f', densPrecision_));
     ui->reflHiReadingLineEdit->setText(QString::number(calReflection.hiReading(), 'f', 6));
 
     onCalReflectionTextChanged();
@@ -614,9 +625,9 @@ void CalibrationUvVisTab::onCalTransmissionResponse()
 {
     const DensCalTarget calTransmission = densInterface_->calTransmission();
 
-    ui->tranLoDensityLineEdit->setText(QString::number(calTransmission.loDensity(), 'f', 2));
+    ui->tranLoDensityLineEdit->setText(QString::number(calTransmission.loDensity(), 'f', densPrecision_));
     ui->tranLoReadingLineEdit->setText(QString::number(calTransmission.loReading(), 'f', 6));
-    ui->tranHiDensityLineEdit->setText(QString::number(calTransmission.hiDensity(), 'f', 2));
+    ui->tranHiDensityLineEdit->setText(QString::number(calTransmission.hiDensity(), 'f', densPrecision_));
     ui->tranHiReadingLineEdit->setText(QString::number(calTransmission.hiReading(), 'f', 6));
 
     onCalTransmissionTextChanged();
@@ -626,9 +637,9 @@ void CalibrationUvVisTab::onCalUvTransmissionResponse()
 {
     const DensCalTarget calTransmission = densInterface_->calUvTransmission();
 
-    ui->tranUvLoDensityLineEdit->setText(QString::number(calTransmission.loDensity(), 'f', 2));
+    ui->tranUvLoDensityLineEdit->setText(QString::number(calTransmission.loDensity(), 'f', densPrecision_));
     ui->tranUvLoReadingLineEdit->setText(QString::number(calTransmission.loReading(), 'f', 6));
-    ui->tranUvHiDensityLineEdit->setText(QString::number(calTransmission.hiDensity(), 'f', 2));
+    ui->tranUvHiDensityLineEdit->setText(QString::number(calTransmission.hiDensity(), 'f', densPrecision_));
     ui->tranUvHiReadingLineEdit->setText(QString::number(calTransmission.hiReading(), 'f', 6));
 
     onCalUvTransmissionTextChanged();
