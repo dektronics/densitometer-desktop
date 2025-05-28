@@ -1,5 +1,7 @@
 #include "denscalvalues.h"
 
+#include <array>
+
 class DensCalLightData : public QSharedData
 {
 public:
