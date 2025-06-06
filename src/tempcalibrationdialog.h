@@ -25,14 +25,10 @@ public:
     void setUniqueId(const QString &uniqueId);
 
     bool hasVisValues() const;
-    CoefficientSet b0VisValues() const;
-    CoefficientSet b1VisValues() const;
-    CoefficientSet b2VisValues() const;
+    CoefficientSet visValues() const;
 
     bool hasUvValues() const;
-    CoefficientSet b0UvValues() const;
-    CoefficientSet b1UvValues() const;
-    CoefficientSet b2UvValues() const;
+    CoefficientSet uvValues() const;
 
 private slots:
     void onActionCut();
@@ -46,12 +42,14 @@ private slots:
 private:
     bool processImportData(const QByteArray &importData);
     void populateImportDataSequence(QTableWidget *inputTableWidget, const QJsonArray &sequence);
-    QList<QList<double>> collectInputData(QTableWidget *inputTableWidget);
+    int findMaxValidColumns(QTableWidget *inputTableWidget);
+    QList<QList<double>> collectInputData(QTableWidget *inputTableWidget, int maxColumns);
     int findReferenceRow(const QList<QList<double>> &tableData);
-    void calculateCorrections(const QList<QList<double>> &tableData, int refTempRow, QTableWidget *resultsTableWidget);
+    void calculateCorrections(const QList<QList<double>> &tableData, int refTempRow,
+                              QTableWidget *resultsTableWidget, int resultsCol);
     QTableWidgetItem *tableWidgetItem(QTableWidget *table, int row, int column);
-    void coefficientSetAssignRow(QTableWidget *table, int row, const CoefficientSet &sourceValues);
-    CoefficientSet coefficientSetCollectRow(const QTableWidget *table, int row) const;
+    void coefficientSetAssignColumn(QTableWidget *table, int col, const CoefficientSet &sourceValues);
+    CoefficientSet coefficientSetCollectColumn(const QTableWidget *table, int col) const;
 
     QString uniqueId_;
     bool hasVisValues_ = false;

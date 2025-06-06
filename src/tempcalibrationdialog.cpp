@@ -40,16 +40,13 @@ TempCalibrationDialog::TempCalibrationDialog(QWidget *parent)
         ui->visInputTableWidget->setItemDelegateForColumn(i, new FloatItemDelegate(0, 1000, 6));
     }
 
-    ui->visResultsTableWidget->setItemDelegate(new FloatItemDelegate());
-    ui->visResultsTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
-
     ui->uvInputTableWidget->setItemDelegateForColumn(0, new FloatItemDelegate(-20, 100, 2));
     for (int i = 1; i < ui->uvInputTableWidget->columnCount(); i++) {
         ui->uvInputTableWidget->setItemDelegateForColumn(i, new FloatItemDelegate(0, 1000, 6));
     }
 
-    ui->uvResultsTableWidget->setItemDelegate(new FloatItemDelegate());
-    ui->uvResultsTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->resultsTableWidget->setItemDelegate(new FloatItemDelegate());
+    ui->resultsTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
     onClearClicked();
 }
@@ -69,19 +66,9 @@ bool TempCalibrationDialog::hasVisValues() const
     return hasVisValues_;
 }
 
-CoefficientSet TempCalibrationDialog::b0VisValues() const
+CoefficientSet TempCalibrationDialog::visValues() const
 {
-    return coefficientSetCollectRow(ui->visResultsTableWidget, 0);
-}
-
-CoefficientSet TempCalibrationDialog::b1VisValues() const
-{
-    return coefficientSetCollectRow(ui->visResultsTableWidget, 1);
-}
-
-CoefficientSet TempCalibrationDialog::b2VisValues() const
-{
-    return coefficientSetCollectRow(ui->visResultsTableWidget, 2);
+    return coefficientSetCollectColumn(ui->resultsTableWidget, 0);
 }
 
 bool TempCalibrationDialog::hasUvValues() const
@@ -89,19 +76,9 @@ bool TempCalibrationDialog::hasUvValues() const
     return hasUvValues_;
 }
 
-CoefficientSet TempCalibrationDialog::b0UvValues() const
+CoefficientSet TempCalibrationDialog::uvValues() const
 {
-    return coefficientSetCollectRow(ui->uvResultsTableWidget, 0);
-}
-
-CoefficientSet TempCalibrationDialog::b1UvValues() const
-{
-    return coefficientSetCollectRow(ui->uvResultsTableWidget, 1);
-}
-
-CoefficientSet TempCalibrationDialog::b2UvValues() const
-{
-    return coefficientSetCollectRow(ui->uvResultsTableWidget, 2);
+    return coefficientSetCollectColumn(ui->resultsTableWidget, 1);
 }
 
 void TempCalibrationDialog::onActionCut()
@@ -210,14 +187,14 @@ bool TempCalibrationDialog::processImportData(const QByteArray &importData)
     if (root.contains("sequenceVis") && root["sequenceVis"].isArray()) {
         const QJsonArray sequenceVis = root["sequenceVis"].toArray();
         populateImportDataSequence(ui->visInputTableWidget, sequenceVis);
-        ui->visResultsTableWidget->clearContents();
     }
 
     if (root.contains("sequenceUv") && root["sequenceUv"].isArray()) {
         const QJsonArray sequenceUv = root["sequenceUv"].toArray();
         populateImportDataSequence(ui->uvInputTableWidget, sequenceUv);
-        ui->uvResultsTableWidget->clearContents();
     }
+
+    ui->resultsTableWidget->clearContents();
 
     return true;
 }
@@ -263,7 +240,7 @@ void TempCalibrationDialog::populateImportDataSequence(QTableWidget *inputTableW
                 item = new QTableWidgetItem();
                 inputTableWidget->setItem(row, i + 1, item);
             }
-            item->setText(QString::number(readings[i]));
+            item->setText(QString::number(readings[i], 'f', 6));
         }
         row++;
     }
@@ -274,55 +251,77 @@ void TempCalibrationDialog::onClearClicked()
     hasVisValues_ = false;
     hasUvValues_ = false;
     ui->visInputTableWidget->clearContents();
-    ui->visResultsTableWidget->clearContents();
+    ui->resultsTableWidget->clearContents();
     ui->uvInputTableWidget->clearContents();
-    ui->uvResultsTableWidget->clearContents();
+    ui->resultsTableWidget->clearContents();
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
 }
 
 void TempCalibrationDialog::onCalculateClicked()
 {
+    int maxColumns;
     QList<QList<double>> tableData;
     int refTempRow;
 
-    ui->visResultsTableWidget->clearContents();
-    ui->uvResultsTableWidget->clearContents();
+    ui->resultsTableWidget->clearContents();
     hasVisValues_ = false;
     hasUvValues_ = false;
 
     // Calculate VIS corrections
-    tableData = collectInputData(ui->visInputTableWidget);
+    maxColumns = findMaxValidColumns(ui->visInputTableWidget);
+    tableData = collectInputData(ui->visInputTableWidget, maxColumns);
     refTempRow = findReferenceRow(tableData);
 
     if (tableData.isEmpty() || refTempRow < 0) {
         QMessageBox::warning(this, tr("Invalid Values"), tr("Cannot calculate VIS corrections from invalid or incomplete data."));
     } else {
-        calculateCorrections(tableData, refTempRow, ui->visResultsTableWidget);
+        calculateCorrections(tableData, refTempRow, ui->resultsTableWidget, 0);
         hasVisValues_ = true;
     }
 
     // Calculate UV corrections
-    tableData = collectInputData(ui->uvInputTableWidget);
+    maxColumns = findMaxValidColumns(ui->visInputTableWidget);
+    tableData = collectInputData(ui->uvInputTableWidget, maxColumns);
     refTempRow = findReferenceRow(tableData);
 
     if (tableData.isEmpty() || refTempRow < 0) {
         QMessageBox::warning(this, tr("Invalid Values"), tr("Cannot calculate UV corrections from invalid or incomplete data."));
     } else {
-        calculateCorrections(tableData, refTempRow, ui->uvResultsTableWidget);
+        calculateCorrections(tableData, refTempRow, ui->resultsTableWidget, 1);
         hasUvValues_ = true;
     }
 
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(hasVisValues_ || hasUvValues_);
 }
 
-QList<QList<double>> TempCalibrationDialog::collectInputData(QTableWidget *inputTableWidget)
+int TempCalibrationDialog::findMaxValidColumns(QTableWidget *inputTableWidget)
+{
+    int result = 0;
+    for (int col = 0; col < inputTableWidget->columnCount(); col++) {
+        bool valid = true;
+        for (int row = 0; row < inputTableWidget->rowCount(); row++) {
+            QTableWidgetItem *item = inputTableWidget->item(row, col);
+            if (!item || item->text().isEmpty()) {
+                valid = false;
+                break;
+            }
+        }
+        if (!valid) { break; }
+        result++;
+    }
+    return result;
+}
+
+QList<QList<double>> TempCalibrationDialog::collectInputData(QTableWidget *inputTableWidget, int maxColumns)
 {
     QList<QList<double>> tableData;
     bool valid = true;
 
+    if (maxColumns < 1) { return tableData; }
+
     for (int row = 0; row < inputTableWidget->rowCount(); row++) {
         QList<double> rowData;
-        for (int col = 0; col < inputTableWidget->columnCount(); col++) {
+        for (int col = 0; col < qMin(inputTableWidget->columnCount(), maxColumns); col++) {
             QTableWidgetItem *item = inputTableWidget->item(row, col);
             if (!item || item->text().isEmpty()) {
                 valid = false;
@@ -357,58 +356,32 @@ int TempCalibrationDialog::findReferenceRow(const QList<QList<double>> &tableDat
     return refTempRow;
 }
 
-void TempCalibrationDialog::calculateCorrections(const QList<QList<double>> &tableData, int refTempRow, QTableWidget *resultsTableWidget)
+void TempCalibrationDialog::calculateCorrections(const QList<QList<double>> &tableData, int refTempRow,
+                                                 QTableWidget *resultsTableWidget, int resultsCol)
 {
-    // Prepare some initial datasets, which includes the list of measured
-    // temperatures and the average reading for each brightness level.
-    QList<float> tempList;
-    QList<double> readingSums;
-    for (qsizetype r = 0; r < tableData.size(); r++) {
-        const QList<double> rowData = tableData[r];
+    const QList<double> refRowData = tableData[refTempRow];
 
+    QList<float> tempList;
+    QList<float> corrList;
+
+    for (qsizetype row = 0; row < tableData.size(); row++) {
+        const QList<double> rowData = tableData[row];
         tempList.append(rowData[0]);
 
-        for (qsizetype i = 1; i < rowData.size(); i++) {
-            if (r == 0) {
-                readingSums.append(0);
+        if (row == refTempRow) {
+            corrList.append(1.0);
+        } else {
+            double corrSum = 0.0;
+            for (qsizetype i = 1; i < rowData.size(); i++) {
+                corrSum += refRowData[i] / rowData[i];
             }
-            readingSums[i - 1] += rowData[i];
+            corrList.append(static_cast<float>(corrSum / (rowData.size() - 1)));
         }
     }
 
-    QList<float> readingList;
-    for (qsizetype i = 0; i < readingSums.size(); i++) {
-        readingList.append(readingSums[i] / tableData.size());
-    }
+    std::tuple<float, float, float> polyResult = util::polyfit(tempList, corrList);
 
-    // Iterate over each sensor reading block, and calculate block corrections
-    QList<float> b0List;
-    QList<float> b1List;
-    QList<float> b2List;
-    for (qsizetype b = 0; b < readingList.size(); b++) {
-        QList<float> correctionList;
-        const double refReading = tableData[refTempRow][b + 1];
-
-        for (qsizetype r = 0; r < tableData.size(); r++) {
-            correctionList.append(refReading / tableData[r][b + 1]);
-        }
-
-        std::tuple<float, float, float> polyResult = util::polyfit(tempList, correctionList);
-
-        b0List.append(std::get<0>(polyResult));
-        b1List.append(std::get<1>(polyResult));
-        b2List.append(std::get<2>(polyResult));
-    }
-
-    // Calculate the final results
-    std::tuple<float, float, float> b0Result = util::polyfit(readingList, b0List);
-    std::tuple<float, float, float> b1Result = util::polyfit(readingList, b1List);
-    std::tuple<float, float, float> b2Result = util::polyfit(readingList, b2List);
-
-    // Insert the results into the output table
-    coefficientSetAssignRow(resultsTableWidget, 0, b0Result);
-    coefficientSetAssignRow(resultsTableWidget, 1, b1Result);
-    coefficientSetAssignRow(resultsTableWidget, 2, b2Result);
+    coefficientSetAssignColumn(resultsTableWidget, resultsCol, polyResult);
 
     qDebug() << "Reference temp:" << QString("%1°C").arg(QString::number(tableData[refTempRow][0], 'f', 1));
 }
@@ -423,46 +396,46 @@ QTableWidgetItem *TempCalibrationDialog::tableWidgetItem(QTableWidget *table, in
     return item;
 }
 
-void TempCalibrationDialog::coefficientSetAssignRow(QTableWidget *table, int row, const CoefficientSet &sourceValues)
+void TempCalibrationDialog::coefficientSetAssignColumn(QTableWidget *table, int col, const CoefficientSet &sourceValues)
 {
-    if (!table || table->rowCount() <= row || table->columnCount() < 3) { return; }
+    if (!table || table->columnCount() <= col || table->rowCount() < 3) { return; }
 
     QTableWidgetItem *item;
 
-    item = tableWidgetItem(table, row, 0);
+    item = tableWidgetItem(table, 0, col);
     item->setText(QString::number(std::get<0>(sourceValues)));
 
-    item = tableWidgetItem(table, row, 1);
+    item = tableWidgetItem(table, 1, col);
     item->setText(QString::number(std::get<1>(sourceValues)));
 
-    item = tableWidgetItem(table, row, 2);
+    item = tableWidgetItem(table, 2, col);
     item->setText(QString::number(std::get<2>(sourceValues)));
 }
 
-CoefficientSet TempCalibrationDialog::coefficientSetCollectRow(const QTableWidget *table, int row) const
+CoefficientSet TempCalibrationDialog::coefficientSetCollectColumn(const QTableWidget *table, int col) const
 {
     bool ok;
     float v0 = qSNaN();;
     float v1 = qSNaN();;
     float v2 = qSNaN();;
 
-    if (!table || table->rowCount() <= row || table->columnCount() < 3) { return { v0, v1, v2 }; }
+    if (!table || table->columnCount() <= col || table->rowCount() < 3) { return { v0, v1, v2 }; }
 
     QTableWidgetItem *item;
 
-    item = table->item(row, 0);
+    item = table->item(0, col);
     if (item) {
         v0 = item->text().toFloat(&ok);
         if (!ok) { v0 = qSNaN(); }
     }
 
-    item = table->item(row, 1);
+    item = table->item(1, col);
     if (item) {
         v1 = item->text().toFloat(&ok);
         if (!ok) { v1 = qSNaN(); }
     }
 
-    item = table->item(row, 2);
+    item = table->item(2, col);
     if (item) {
         v2 = item->text().toFloat(&ok);
         if (!ok) { v2 = qSNaN(); }
