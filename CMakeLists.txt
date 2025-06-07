@@ -59,6 +59,7 @@ set(PROJECT_SOURCES
     src/remotecontroldialog.cpp src/remotecontroldialog.h src/remotecontroldialog.ui
     src/settingsexporter.cpp src/settingsexporter.h
     src/settingsimportdialog.cpp src/settingsimportdialog.h src/settingsimportdialog.ui
+    src/settingsuvvisimportdialog.cpp src/settingsuvvisimportdialog.h src/settingsuvvisimportdialog.ui
     src/slopecalibrationdialog.cpp src/slopecalibrationdialog.h src/slopecalibrationdialog.ui
     src/tempcalibrationdialog.cpp src/tempcalibrationdialog.h src/tempcalibrationdialog.ui
     src/util.cpp src/util.h

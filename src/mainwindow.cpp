@@ -24,6 +24,7 @@
 #include "logwindow.h"
 #include "settingsexporter.h"
 #include "settingsimportdialog.h"
+#include "settingsuvvisimportdialog.h"
 #include "floatitemdelegate.h"
 #include "ft260.h"
 #include "densistickinterface.h"
@@ -311,21 +312,41 @@ void MainWindow::onImportSettings()
     if (fileDialog.exec() && !fileDialog.selectedFiles().isEmpty()) {
         QString filename = fileDialog.selectedFiles().constFirst();
         if (!filename.isEmpty()) {
-            SettingsImportDialog importDialog;
-            if (!importDialog.loadFile(filename)) {
-                QMessageBox::warning(this, tr("Error"), tr("Unable to read settings file"));
-                return;
-            }
-            if (importDialog.exec() == QDialog::Accepted) {
-                QMessageBox messageBox;
-                messageBox.setWindowTitle(tr("Send to Device"));
-                messageBox.setText(tr("Replace the current device settings with the selected values?"));
-                messageBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-                messageBox.setDefaultButton(QMessageBox::Cancel);
+            if (densInterface_->deviceType() == DensInterface::DeviceBaseline) {
+                SettingsImportDialog importDialog;
+                if (!importDialog.loadFile(filename)) {
+                    QMessageBox::warning(this, tr("Error"), tr("Unable to read settings file"));
+                    return;
+                }
+                if (importDialog.exec() == QDialog::Accepted) {
+                    QMessageBox messageBox;
+                    messageBox.setWindowTitle(tr("Send to Device"));
+                    messageBox.setText(tr("Replace the current device settings with the selected values?"));
+                    messageBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+                    messageBox.setDefaultButton(QMessageBox::Cancel);
 
-                if (messageBox.exec() == QMessageBox::Ok) {
-                    importDialog.sendSelectedSettings(densInterface_);
-                    calibrationTab_->reloadAll();
+                    if (messageBox.exec() == QMessageBox::Ok) {
+                        importDialog.sendSelectedSettings(densInterface_);
+                        calibrationTab_->reloadAll();
+                    }
+                }
+            } else if (densInterface_->deviceType() == DensInterface::DeviceUvVis) {
+                SettingsUvVisImportDialog importDialog;
+                if (!importDialog.loadFile(filename)) {
+                    QMessageBox::warning(this, tr("Error"), tr("Unable to read settings file"));
+                    return;
+                }
+                if (importDialog.exec() == QDialog::Accepted) {
+                    QMessageBox messageBox;
+                    messageBox.setWindowTitle(tr("Send to Device"));
+                    messageBox.setText(tr("Replace the current device settings with the selected values?"));
+                    messageBox.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+                    messageBox.setDefaultButton(QMessageBox::Cancel);
+
+                    if (messageBox.exec() == QMessageBox::Ok) {
+                        importDialog.sendSelectedSettings(densInterface_);
+                        calibrationTab_->reloadAll();
+                    }
                 }
             }
         }
