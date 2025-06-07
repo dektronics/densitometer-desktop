@@ -25,10 +25,10 @@ public:
     void setUniqueId(const QString &uniqueId);
 
     bool hasVisValues() const;
-    CoefficientSet visValues() const;
+    DensCalTemperature visValues() const;
 
     bool hasUvValues() const;
-    CoefficientSet uvValues() const;
+    DensCalTemperature uvValues() const;
 
 private slots:
     void onActionCut();
@@ -48,8 +48,8 @@ private:
     void calculateCorrections(const QList<QList<double>> &tableData, int refTempRow,
                               QTableWidget *resultsTableWidget, int resultsCol);
     QTableWidgetItem *tableWidgetItem(QTableWidget *table, int row, int column);
-    void coefficientSetAssignColumn(QTableWidget *table, int col, const CoefficientSet &sourceValues);
-    CoefficientSet coefficientSetCollectColumn(const QTableWidget *table, int col) const;
+    void coefficientSetAssignColumn(QTableWidget *table, int col, const DensCalTemperature &sourceValues);
+    DensCalTemperature coefficientSetCollectColumn(const QTableWidget *table, int col) const;
 
     QString uniqueId_;
     bool hasVisValues_ = false;

@@ -7,11 +7,8 @@
 class DensCalLightData;
 class DensCalGainData;
 class DensUvVisCalGainData;
-class DensCalSlopeData;
-class DensCalTemperatureData;
+class DensCalCoefficientSetData;
 class DensCalTargetData;
-
-typedef std::tuple<float, float, float> CoefficientSet;
 
 class DensCalLight
 {
@@ -105,13 +102,15 @@ private:
 };
 
 
-class DensCalSlope
+class DensCalCoefficientSet
 {
 public:
-    DensCalSlope();
-    DensCalSlope(const DensCalSlope &);
-    DensCalSlope &operator=(const DensCalSlope &);
-    ~DensCalSlope();
+    DensCalCoefficientSet();
+    DensCalCoefficientSet(float b0, float b1, float b2);
+    DensCalCoefficientSet(std::tuple<float, float, float> tuple);
+    DensCalCoefficientSet(const DensCalCoefficientSet &);
+    DensCalCoefficientSet &operator=(const DensCalCoefficientSet &);
+    ~DensCalCoefficientSet();
 
     void setB0(float b0);
     float b0() const;
@@ -125,31 +124,11 @@ public:
     bool isValid() const;
 
 private:
-    QSharedDataPointer<DensCalSlopeData> data;
+    QSharedDataPointer<DensCalCoefficientSetData> data;
 };
 
-class DensCalTemperature
-{
-public:
-    DensCalTemperature();
-    DensCalTemperature(const DensCalTemperature &);
-    DensCalTemperature &operator=(const DensCalTemperature &);
-    ~DensCalTemperature();
-
-    void setB0(CoefficientSet values);
-    CoefficientSet b0() const;
-
-    void setB1(CoefficientSet values);
-    CoefficientSet b1() const;
-
-    void setB2(CoefficientSet values);
-    CoefficientSet b2() const;
-
-    bool isValid() const;
-
-private:
-    QSharedDataPointer<DensCalTemperatureData> data;
-};
+typedef DensCalCoefficientSet DensCalSlope;
+typedef DensCalCoefficientSet DensCalTemperature;
 
 class DensCalTarget
 {

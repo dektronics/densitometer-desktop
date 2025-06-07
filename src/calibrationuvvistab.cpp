@@ -51,10 +51,8 @@ CalibrationUvVisTab::CalibrationUvVisTab(DensInterface *densInterface, QWidget *
     connect(ui->gainTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalGainItemChanged);
 
     // Calibration (temperature) fields
-    ui->visTempTableWidget->setItemDelegate(new FloatItemDelegate());
-    ui->uvTempTableWidget->setItemDelegate(new FloatItemDelegate());
-    connect(ui->visTempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalTempItemChanged);
-    connect(ui->uvTempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalTempItemChanged);
+    ui->tempTableWidget->setItemDelegate(new FloatItemDelegate());
+    connect(ui->tempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalTempItemChanged);
 
     // Calibration (VIS reflection density) field validation
     ui->reflLoDensityLineEdit->setValidator(util::createFloatValidator(0.0, 2.5, 2, this));
@@ -114,8 +112,7 @@ void CalibrationUvVisTab::setDensityPrecision(int precision)
 void CalibrationUvVisTab::clear()
 {
     ui->gainTableWidget->clearContents();
-    ui->visTempTableWidget->clearContents();
-    ui->uvTempTableWidget->clearContents();
+    ui->tempTableWidget->clearContents();
 
     ui->reflLoDensityLineEdit->clear();
     ui->reflLoReadingLineEdit->clear();
@@ -183,12 +180,10 @@ void CalibrationUvVisTab::refreshButtonState()
     // Make calibration values editable only if connected
     if (connected && editable_) {
         ui->gainTableWidget->setEditTriggers(QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::AnyKeyPressed);
-        ui->visTempTableWidget->setEditTriggers(QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::AnyKeyPressed);
-        ui->uvTempTableWidget->setEditTriggers(QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::AnyKeyPressed);
+        ui->tempTableWidget->setEditTriggers(QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::AnyKeyPressed);
     } else {
         ui->gainTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
-        ui->visTempTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
-        ui->uvTempTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+        ui->tempTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     }
 
     ui->reflLoDensityLineEdit->setReadOnly(!connected);
@@ -345,35 +340,17 @@ void CalibrationUvVisTab::onCalGainSetClicked()
 void CalibrationUvVisTab::onCalTempSetClicked()
 {
     //FIXME Make both of these do change detection, so both aren't needlessly updated
-    {
-        DensCalTemperature calTemperature;
 
-        calTemperature.setB0(coefficientSetCollectRow(ui->visTempTableWidget, 0));
-        calTemperature.setB1(coefficientSetCollectRow(ui->visTempTableWidget, 1));
-        calTemperature.setB2(coefficientSetCollectRow(ui->visTempTableWidget, 2));
+    const DensCalTemperature visCalTemperature = calTemperatureCollectColumn(ui->tempTableWidget, 0);
+    const DensCalTemperature uvCalTemperature = calTemperatureCollectColumn(ui->tempTableWidget, 1);
 
-        if (!calTemperature.isValid()) {
-            QMessageBox::warning(this, tr("Invalid Values"), tr("Cannot set invalid temperature correction values!"));
-            return;
-        }
-
-        densInterface_->sendSetCalVisTemperature(calTemperature);
+    if (!visCalTemperature.isValid() || !uvCalTemperature.isValid()) {
+        QMessageBox::warning(this, tr("Invalid Values"), tr("Cannot set invalid temperature correction values!"));
+        return;
     }
 
-    {
-        DensCalTemperature calTemperature;
-
-        calTemperature.setB0(coefficientSetCollectRow(ui->uvTempTableWidget, 0));
-        calTemperature.setB1(coefficientSetCollectRow(ui->uvTempTableWidget, 1));
-        calTemperature.setB2(coefficientSetCollectRow(ui->uvTempTableWidget, 2));
-
-        if (!calTemperature.isValid()) {
-            QMessageBox::warning(this, tr("Invalid Values"), tr("Cannot set invalid temperature correction values!"));
-            return;
-        }
-
-        densInterface_->sendSetCalUvTemperature(calTemperature);
-    }
+    densInterface_->sendSetCalVisTemperature(visCalTemperature);
+    densInterface_->sendSetCalUvTemperature(uvCalTemperature);
 }
 
 void CalibrationUvVisTab::onCalReflectionSetClicked()
@@ -470,27 +447,20 @@ void CalibrationUvVisTab::onCalGainItemChanged(QTableWidgetItem *item)
 
 void CalibrationUvVisTab::onCalTempItemChanged(QTableWidgetItem *item)
 {
-    bool visEnableSet = true;
-    bool uvEnableSet = true;
+    bool enableSet = true;
     if (densInterface_->connected()) {
-        visEnableSet = !util::tableWidgetHasEmptyCells(ui->visTempTableWidget);
-        uvEnableSet = !util::tableWidgetHasEmptyCells(ui->visTempTableWidget);
+        enableSet = !util::tableWidgetHasEmptyCells(ui->tempTableWidget);
     } else {
-        visEnableSet = false;
-        uvEnableSet = false;
+        enableSet = false;
     }
 
-    ui->tempSetPushButton->setEnabled(editable_ && (visEnableSet || uvEnableSet));
+    ui->tempSetPushButton->setEnabled(editable_ && enableSet);
 
     const DensCalTemperature visCalTemperature = densInterface_->calVisTemperature();
-    coefficientSetCheckDirtyRow(ui->visTempTableWidget, 0, visCalTemperature.b0());
-    coefficientSetCheckDirtyRow(ui->visTempTableWidget, 1, visCalTemperature.b1());
-    coefficientSetCheckDirtyRow(ui->visTempTableWidget, 2, visCalTemperature.b2());
+    calTemperatureCheckDirtyColumn(ui->tempTableWidget, 0, visCalTemperature);
 
     const DensCalTemperature uvCalTemperature = densInterface_->calUvTemperature();
-    coefficientSetCheckDirtyRow(ui->uvTempTableWidget, 0, uvCalTemperature.b0());
-    coefficientSetCheckDirtyRow(ui->uvTempTableWidget, 1, uvCalTemperature.b1());
-    coefficientSetCheckDirtyRow(ui->uvTempTableWidget, 2, uvCalTemperature.b2());
+    calTemperatureCheckDirtyColumn(ui->tempTableWidget, 1, uvCalTemperature);
 }
 
 void CalibrationUvVisTab::onCalReflectionTextChanged()
@@ -573,15 +543,13 @@ void CalibrationUvVisTab::onCalVisTempResponse()
 {
     const DensCalTemperature calTemperature = densInterface_->calVisTemperature();
 
-    disconnect(ui->visTempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalTempItemChanged);
+    disconnect(ui->tempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalTempItemChanged);
 
-    coefficientSetAssignRow(ui->visTempTableWidget, 0, calTemperature.b0());
-    coefficientSetAssignRow(ui->visTempTableWidget, 1, calTemperature.b1());
-    coefficientSetAssignRow(ui->visTempTableWidget, 2, calTemperature.b2());
+    calTemperatureAssignColumn(ui->tempTableWidget, 0, calTemperature);
 
     onCalTempItemChanged(nullptr);
 
-    connect(ui->visTempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalTempItemChanged);
+    connect(ui->tempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalTempItemChanged);
 }
 
 void CalibrationUvVisTab::onCalVisTempSetComplete()
@@ -593,15 +561,13 @@ void CalibrationUvVisTab::onCalUvTempResponse()
 {
     const DensCalTemperature calTemperature = densInterface_->calUvTemperature();
 
-    disconnect(ui->uvTempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalTempItemChanged);
+    disconnect(ui->tempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalTempItemChanged);
 
-    coefficientSetAssignRow(ui->uvTempTableWidget, 0, calTemperature.b0());
-    coefficientSetAssignRow(ui->uvTempTableWidget, 1, calTemperature.b1());
-    coefficientSetAssignRow(ui->uvTempTableWidget, 2, calTemperature.b2());
+    calTemperatureAssignColumn(ui->tempTableWidget, 1, calTemperature);
 
     onCalTempItemChanged(nullptr);
 
-    connect(ui->uvTempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalTempItemChanged);
+    connect(ui->tempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalTempItemChanged);
 }
 
 void CalibrationUvVisTab::onCalUvTempSetComplete()
@@ -660,90 +626,79 @@ void CalibrationUvVisTab::onTempCalibrationToolFinished(int result)
     dialog->deleteLater();
 
     if (result == QDialog::Accepted) {
+        disconnect(ui->tempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalTempItemChanged);
         if (dialog->hasVisValues()) {
-            disconnect(ui->visTempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalTempItemChanged);
-
-            coefficientSetAssignRow(ui->visTempTableWidget, 0, dialog->b0VisValues());
-            coefficientSetAssignRow(ui->visTempTableWidget, 1, dialog->b1VisValues());
-            coefficientSetAssignRow(ui->visTempTableWidget, 2, dialog->b2VisValues());
-
-            onCalTempItemChanged(nullptr);
-            connect(ui->visTempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalTempItemChanged);
+            calTemperatureAssignColumn(ui->tempTableWidget, 0, dialog->visValues());
         }
         if (dialog->hasUvValues()) {
-            disconnect(ui->uvTempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalTempItemChanged);
-
-            coefficientSetAssignRow(ui->uvTempTableWidget, 0, dialog->b0UvValues());
-            coefficientSetAssignRow(ui->uvTempTableWidget, 1, dialog->b1UvValues());
-            coefficientSetAssignRow(ui->uvTempTableWidget, 2, dialog->b2UvValues());
-
-            onCalTempItemChanged(nullptr);
-            connect(ui->uvTempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalTempItemChanged);
+            calTemperatureAssignColumn(ui->tempTableWidget, 1, dialog->uvValues());
         }
+        onCalTempItemChanged(nullptr);
+        connect(ui->tempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalTempItemChanged);
     }
 }
 
-void CalibrationUvVisTab::coefficientSetCheckDirtyRow(QTableWidget *table, int row, const CoefficientSet &sourceValues)
+void CalibrationUvVisTab::calTemperatureCheckDirtyColumn(QTableWidget *table, int col, const DensCalTemperature &sourceValues)
 {
-    if (!table || table->rowCount() <= row || table->columnCount() < 3) { return; }
+    if (!table || table->columnCount() <= col || table->rowCount() < 3) { return; }
 
     QTableWidgetItem *item;
 
-    item = util::tableWidgetItem(table, row, 0);
-    updateItemDirtyState(item, std::get<0>(sourceValues));
+    item = util::tableWidgetItem(table, 0, col);
+    updateItemDirtyState(item, sourceValues.b0());
 
-    item = util::tableWidgetItem(table, row, 1);
-    updateItemDirtyState(item, std::get<1>(sourceValues));
+    item = util::tableWidgetItem(table, 1, col);
+    updateItemDirtyState(item, sourceValues.b1());
 
-    item = util::tableWidgetItem(table, row, 2);
-    updateItemDirtyState(item, std::get<2>(sourceValues));
+    item = util::tableWidgetItem(table, 2, col);
+    updateItemDirtyState(item, sourceValues.b2());
 }
 
-void CalibrationUvVisTab::coefficientSetAssignRow(QTableWidget *table, int row, const CoefficientSet &sourceValues)
+void CalibrationUvVisTab::calTemperatureAssignColumn(QTableWidget *table, int col, const DensCalTemperature &sourceValues)
 {
-    if (!table || table->rowCount() <= row || table->columnCount() < 3) { return; }
+    if (!table || table->columnCount() <= col || table->rowCount() < 3) { return; }
 
     QTableWidgetItem *item;
 
-    item = util::tableWidgetItem(table, row, 0);
-    item->setText(QString::number(std::get<0>(sourceValues)));
+    item = util::tableWidgetItem(table, 0, col);
+    item->setText(QString::number(sourceValues.b0()));
 
-    item = util::tableWidgetItem(table, row, 1);
-    item->setText(QString::number(std::get<1>(sourceValues)));
+    item = util::tableWidgetItem(table, 1, col);
+    item->setText(QString::number(sourceValues.b1()));
 
-    item = util::tableWidgetItem(table, row, 2);
-    item->setText(QString::number(std::get<2>(sourceValues)));
+    item = util::tableWidgetItem(table, 2, col);
+    item->setText(QString::number(sourceValues.b2()));
 }
 
-CoefficientSet CalibrationUvVisTab::coefficientSetCollectRow(QTableWidget *table, int row)
+DensCalTemperature CalibrationUvVisTab::calTemperatureCollectColumn(QTableWidget *table, int col)
 {
     bool ok;
-    float v0 = qSNaN();;
-    float v1 = qSNaN();;
-    float v2 = qSNaN();;
+    float v0 = qSNaN();
+    float v1 = qSNaN();
+    float v2 = qSNaN();
 
-    if (!table || table->rowCount() <= row || table->columnCount() < 3) { return { v0, v1, v2 }; }
+    if (!table || table->columnCount() <= col || table->rowCount() < 3) { return DensCalTemperature(); }
 
     QTableWidgetItem *item;
 
-    item = table->item(row, 0);
+    item = table->item(0, col);
     if (item) {
         v0 = item->text().toFloat(&ok);
         if (!ok) { v0 = qSNaN(); }
     }
 
-    item = table->item(row, 1);
+    item = table->item(1, col);
     if (item) {
         v1 = item->text().toFloat(&ok);
         if (!ok) { v1 = qSNaN(); }
     }
 
-    item = table->item(row, 2);
+    item = table->item(2, col);
     if (item) {
         v2 = item->text().toFloat(&ok);
         if (!ok) { v2 = qSNaN(); }
     }
 
 
-    return { v0, v1, v2 };
+    return DensCalTemperature(v0, v1, v2);
 }

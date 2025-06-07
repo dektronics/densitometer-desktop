@@ -68,9 +68,9 @@ private slots:
 
 private:
     void refreshButtonState();
-    void coefficientSetCheckDirtyRow(QTableWidget *table, int row, const CoefficientSet &sourceValues);
-    void coefficientSetAssignRow(QTableWidget *table, int row, const CoefficientSet &sourceValues);
-    CoefficientSet coefficientSetCollectRow(QTableWidget *table, int row);
+    void calTemperatureCheckDirtyColumn(QTableWidget *table, int col, const DensCalTemperature &sourceValues);
+    void calTemperatureAssignColumn(QTableWidget *table, int col, const DensCalTemperature &sourceValues);
+    DensCalTemperature calTemperatureCollectColumn(QTableWidget *table, int col);
 
     bool editable_ = false;
     int densPrecision_ = 2;

@@ -66,7 +66,7 @@ bool TempCalibrationDialog::hasVisValues() const
     return hasVisValues_;
 }
 
-CoefficientSet TempCalibrationDialog::visValues() const
+DensCalTemperature TempCalibrationDialog::visValues() const
 {
     return coefficientSetCollectColumn(ui->resultsTableWidget, 0);
 }
@@ -76,7 +76,7 @@ bool TempCalibrationDialog::hasUvValues() const
     return hasUvValues_;
 }
 
-CoefficientSet TempCalibrationDialog::uvValues() const
+DensCalTemperature TempCalibrationDialog::uvValues() const
 {
     return coefficientSetCollectColumn(ui->resultsTableWidget, 1);
 }
@@ -381,7 +381,7 @@ void TempCalibrationDialog::calculateCorrections(const QList<QList<double>> &tab
 
     std::tuple<float, float, float> polyResult = util::polyfit(tempList, corrList);
 
-    coefficientSetAssignColumn(resultsTableWidget, resultsCol, polyResult);
+    coefficientSetAssignColumn(resultsTableWidget, resultsCol, DensCalTemperature(polyResult));
 
     qDebug() << "Reference temp:" << QString("%1°C").arg(QString::number(tableData[refTempRow][0], 'f', 1));
 }
@@ -396,30 +396,30 @@ QTableWidgetItem *TempCalibrationDialog::tableWidgetItem(QTableWidget *table, in
     return item;
 }
 
-void TempCalibrationDialog::coefficientSetAssignColumn(QTableWidget *table, int col, const CoefficientSet &sourceValues)
+void TempCalibrationDialog::coefficientSetAssignColumn(QTableWidget *table, int col, const DensCalTemperature &sourceValues)
 {
     if (!table || table->columnCount() <= col || table->rowCount() < 3) { return; }
 
     QTableWidgetItem *item;
 
     item = tableWidgetItem(table, 0, col);
-    item->setText(QString::number(std::get<0>(sourceValues)));
+    item->setText(QString::number(sourceValues.b0()));
 
     item = tableWidgetItem(table, 1, col);
-    item->setText(QString::number(std::get<1>(sourceValues)));
+    item->setText(QString::number(sourceValues.b1()));
 
     item = tableWidgetItem(table, 2, col);
-    item->setText(QString::number(std::get<2>(sourceValues)));
+    item->setText(QString::number(sourceValues.b2()));
 }
 
-CoefficientSet TempCalibrationDialog::coefficientSetCollectColumn(const QTableWidget *table, int col) const
+DensCalTemperature TempCalibrationDialog::coefficientSetCollectColumn(const QTableWidget *table, int col) const
 {
     bool ok;
     float v0 = qSNaN();;
     float v1 = qSNaN();;
     float v2 = qSNaN();;
 
-    if (!table || table->columnCount() <= col || table->rowCount() < 3) { return { v0, v1, v2 }; }
+    if (!table || table->columnCount() <= col || table->rowCount() < 3) { return DensCalTemperature(); }
 
     QTableWidgetItem *item;
 
@@ -442,5 +442,5 @@ CoefficientSet TempCalibrationDialog::coefficientSetCollectColumn(const QTableWi
     }
 
 
-    return { v0, v1, v2 };
+    return DensCalTemperature(v0, v1, v2);
 }
