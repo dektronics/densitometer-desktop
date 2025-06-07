@@ -2,6 +2,8 @@
 #define UTIL_H
 
 #include <QString>
+#include <QJsonValue>
+
 #include <stddef.h>
 #include <stdint.h>
 
@@ -47,6 +49,9 @@ void tableWidgetDelete(QTableWidget *tableWidget, bool clearSelection = true);
 
 QTableWidgetItem *tableWidgetItem(QTableWidget *table, int row, int column);
 bool tableWidgetHasEmptyCells(QTableWidget *tableWidget);
+
+int parseJsonInt(const QJsonValue &value);
+float parseJsonFloat(const QJsonValue &value);
 
 }
 

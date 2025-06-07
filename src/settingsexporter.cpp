@@ -23,6 +23,9 @@ SettingsExporter::SettingsExporter(DensInterface *densInterface, QObject *parent
     connect(densInterface_, &DensInterface::calSlopeResponse, this, &SettingsExporter::onCalSlopeResponse);
     connect(densInterface_, &DensInterface::calReflectionResponse, this, &SettingsExporter::onCalReflectionResponse);
     connect(densInterface_, &DensInterface::calTransmissionResponse, this, &SettingsExporter::onCalTransmissionResponse);
+    connect(densInterface_, &DensInterface::calUvTransmissionResponse, this, &SettingsExporter::onCalUvTransmissionResponse);
+    connect(densInterface_, &DensInterface::calVisTemperatureResponse, this, &SettingsExporter::onCalVisTemperatureResponse);
+    connect(densInterface_, &DensInterface::calUvTemperatureResponse, this, &SettingsExporter::onCalUvTemperatureResponse);
 }
 
 void SettingsExporter::prepareExport()
@@ -32,9 +35,16 @@ void SettingsExporter::prepareExport()
     densInterface_->sendGetSystemBuild();
     densInterface_->sendGetSystemUID();
     densInterface_->sendGetCalGain();
-    densInterface_->sendGetCalSlope();
     densInterface_->sendGetCalReflection();
     densInterface_->sendGetCalTransmission();
+
+    if (densInterface_->deviceType() == DensInterface::DeviceBaseline) {
+        densInterface_->sendGetCalSlope();
+    } else if (densInterface_->deviceType() == DensInterface::DeviceUvVis) {
+        densInterface_->sendGetCalUvTransmission();
+        densInterface_->sendGetCalVisTemperature();
+        densInterface_->sendGetCalUvTemperature();
+    }
 
     timer_->start(5000);
 }
@@ -57,65 +67,61 @@ bool SettingsExporter::saveExport(const QString &filename)
     jsonSystem["buildDescribe"] = densInterface_->buildDescribe();
     jsonSystem["checksum"] = QString::number(densInterface_->buildChecksum(), 16);
     jsonSystem["uid"] = densInterface_->uniqueId();
+    if (densInterface_->deviceType() == DensInterface::DeviceBaseline) {
+        jsonSystem["partNumber"] = "DPD-100";
+    } else if (densInterface_->deviceType() == DensInterface::DeviceUvVis) {
+        jsonSystem["partNumber"] = "DPD-105";
+    }
+
+    // Calibration data
+    QJsonObject jsonCal;
 
     // Sensor calibration
-    QJsonObject jsonCalGain;
-    const DensCalGain calGain = densInterface_->calGain();
-    jsonCalGain["L0"] = QString::number(calGain.low0(), 'f', 6);
-    jsonCalGain["L1"] = QString::number(calGain.low1(), 'f', 6);
-    jsonCalGain["M0"] = QString::number(calGain.med0(), 'f', 6);
-    jsonCalGain["M1"] = QString::number(calGain.med1(), 'f', 6);
-    jsonCalGain["H0"] = QString::number(calGain.high0(), 'f', 6);
-    jsonCalGain["H1"] = QString::number(calGain.high1(), 'f', 6);
-    jsonCalGain["X0"] = QString::number(calGain.max0(), 'f', 6);
-    jsonCalGain["X1"] = QString::number(calGain.max1(), 'f', 6);
-
-    QJsonObject jsonCalSlope;
-    const DensCalSlope calSlope = densInterface_->calSlope();
-    jsonCalSlope["B0"] = QString::number(calSlope.b0(), 'f', 6);
-    jsonCalSlope["B1"] = QString::number(calSlope.b1(), 'f', 6);
-    jsonCalSlope["B2"] = QString::number(calSlope.b2(), 'f', 6);
-
     QJsonObject jsonCalSensor;
-    jsonCalSensor["gain"] = jsonCalGain;
-    jsonCalSensor["slope"] = jsonCalSlope;
+
+    if (densInterface_->deviceType() == DensInterface::DeviceBaseline) {
+        const DensCalGain calGain = densInterface_->calGain();
+        jsonCalSensor["gain"] = calGain.toJson();
+    } else if (densInterface_->deviceType() == DensInterface::DeviceUvVis) {
+        const DensUvVisCalGain calGain = densInterface_->calUvVisGain();
+        jsonCalSensor["gain"] = calGain.toJson();
+    }
+
+    if (densInterface_->deviceType() == DensInterface::DeviceBaseline) {
+        const DensCalSlope calSlope = densInterface_->calSlope();
+        jsonCalSensor["slope"] = calSlope.toJson();
+    }
+
+    jsonCal["sensor"] = jsonCalSensor;
 
     // Target calibration
-    const DensCalTarget calReflection = densInterface_->calReflection();
-    const DensCalTarget calTransmission = densInterface_->calTransmission();
-
-    QJsonObject jsonCalReflLo;
-    jsonCalReflLo["density"] = QString::number(calReflection.loDensity(), 'f', 2);
-    jsonCalReflLo["reading"] = QString::number(calReflection.loReading(), 'f', 6);
-
-    QJsonObject jsonCalReflHi;
-    jsonCalReflHi["density"] = QString::number(calReflection.hiDensity(), 'f', 2);
-    jsonCalReflHi["reading"] = QString::number(calReflection.hiReading(), 'f', 6);
-
-    QJsonObject jsonCalRefl;
-    jsonCalRefl["cal-lo"] = jsonCalReflLo;
-    jsonCalRefl["cal-hi"] = jsonCalReflHi;
-
-    QJsonObject jsonCalTranLo;
-    jsonCalTranLo["density"] = QString::number(calTransmission.loDensity(), 'f', 2);
-    jsonCalTranLo["reading"] = QString::number(calTransmission.loReading(), 'f', 6);
-
-    QJsonObject jsonCalTranHi;
-    jsonCalTranHi["density"] = QString::number(calTransmission.hiDensity(), 'f', 2);
-    jsonCalTranHi["reading"] = QString::number(calTransmission.hiReading(), 'f', 6);
-
-    QJsonObject jsonCalTran;
-    jsonCalTran["cal-lo"] = jsonCalTranLo;
-    jsonCalTran["cal-hi"] = jsonCalTranHi;
-
     QJsonObject jsonCalTarget;
-    jsonCalTarget["reflection"] = jsonCalRefl;
-    jsonCalTarget["transmission"] = jsonCalTran;
 
-    // Combining calibration objects
-    QJsonObject jsonCal;
-    jsonCal["sensor"] = jsonCalSensor;
+    if (densInterface_->deviceType() == DensInterface::DeviceBaseline) {
+        const DensCalTarget calReflection = densInterface_->calReflection();
+        const DensCalTarget calTransmission = densInterface_->calTransmission();
+        jsonCalTarget["reflection"] = calReflection.toJson();
+        jsonCalTarget["transmission"] = calTransmission.toJson();
+    } else if (densInterface_->deviceType() == DensInterface::DeviceUvVis) {
+        const DensCalTarget calVisReflection = densInterface_->calReflection();
+        const DensCalTarget calVisTransmission = densInterface_->calTransmission();
+        const DensCalTarget calUvTransmission = densInterface_->calUvTransmission();
+        jsonCalTarget["visReflection"] = calVisReflection.toJson();
+        jsonCalTarget["visTransmission"] = calVisTransmission.toJson();
+        jsonCalTarget["uvTransmission"] = calUvTransmission.toJson();
+    }
     jsonCal["target"] = jsonCalTarget;
+
+    // Temperature calibration
+    if (densInterface_->deviceType() == DensInterface::DeviceUvVis) {
+        const DensCalTemperature calVisTemperature = densInterface_->calVisTemperature();
+        const DensCalTemperature calUvTemperature = densInterface_->calUvTemperature();
+
+        QJsonObject jsonCalTemperature;
+        jsonCalTemperature["vis"] = calVisTemperature.toJson();
+        jsonCalTemperature["uv"] = calUvTemperature.toJson();
+        jsonCal["temperature"] = jsonCalTemperature;
+    }
 
     // Top level JSON object
     QJsonObject jsonExport;
@@ -195,13 +201,43 @@ void SettingsExporter::onCalTransmissionResponse()
     checkResponses();
 }
 
+void SettingsExporter::onCalUvTransmissionResponse()
+{
+    hasCalUvTransmission_ = true;
+    checkResponses();
+}
+
+void SettingsExporter::onCalVisTemperatureResponse()
+{
+    hasCalVisTemperature_ = true;
+    checkResponses();
+}
+
+void SettingsExporter::onCalUvTemperatureResponse()
+{
+    hasCalUvTemperature_ = true;
+    checkResponses();
+}
+
 void SettingsExporter::checkResponses()
 {
-    if (hasSystemVersion_ && hasSystemBuild_ && hasSystemUid_
-            && hasCalGain_ && hasCalSlope_
-            && hasCalReflection_ && hasCalTransmission_) {
-        hasAllData_ = true;
-        timer_->stop();
-        emit exportReady();
+    if (!hasSystemVersion_ || !hasSystemBuild_ || !hasSystemUid_
+        || !hasCalGain_
+        || !hasCalReflection_ || !hasCalTransmission_) {
+        return;
     }
+
+    if (densInterface_->deviceType() == DensInterface::DeviceBaseline) {
+        if (!hasCalSlope_) {
+            return;
+        }
+    } else if (densInterface_->deviceType() == DensInterface::DeviceUvVis) {
+        if (!hasCalUvTransmission_ || !hasCalVisTemperature_ || !hasCalUvTemperature_) {
+            return;
+        }
+    }
+
+    hasAllData_ = true;
+    timer_->stop();
+    emit exportReady();
 }

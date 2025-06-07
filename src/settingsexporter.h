@@ -2,6 +2,7 @@
 #define SETTINGSEXPORTER_H
 
 #include <QObject>
+#include <QJsonObject>
 
 #include "densinterface.h"
 
@@ -30,8 +31,12 @@ private slots:
     void onCalSlopeResponse();
     void onCalReflectionResponse();
     void onCalTransmissionResponse();
+    void onCalUvTransmissionResponse();
+    void onCalVisTemperatureResponse();
+    void onCalUvTemperatureResponse();
 
 private:
+    QJsonObject createJsonCalTarget(const DensCalTarget &calTarget);
     void checkResponses();
 
     DensInterface *densInterface_;
@@ -43,6 +48,9 @@ private:
     bool hasCalSlope_ = false;
     bool hasCalReflection_ = false;
     bool hasCalTransmission_ = false;
+    bool hasCalUvTransmission_ = false;
+    bool hasCalVisTemperature_ = false;
+    bool hasCalUvTemperature_ = false;
     bool hasAllData_ = false;
     bool prepareFailed_ = false;
 };

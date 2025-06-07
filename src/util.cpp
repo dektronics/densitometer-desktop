@@ -465,4 +465,38 @@ bool tableWidgetHasEmptyCells(QTableWidget *tableWidget)
     return hasEmpty;
 }
 
+int parseJsonInt(const QJsonValue &value)
+{
+    if (value.isDouble()) {
+        return (int)value.toDouble(0);
+    } else if (value.isString()) {
+        bool ok;
+        float result = value.toString().toInt(&ok);
+        if (ok) {
+            return result;
+        } else {
+            return 0;
+        }
+    } else {
+        return 0;
+    }
+}
+
+float parseJsonFloat(const QJsonValue &value)
+{
+    if (value.isDouble()) {
+        return value.toDouble(qSNaN());
+    } else if (value.isString()) {
+        bool ok;
+        float result = value.toString().toFloat(&ok);
+        if (ok) {
+            return result;
+        } else {
+            return qSNaN();
+        }
+    } else {
+        return qSNaN();
+    }
+}
+
 }

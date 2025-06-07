@@ -29,8 +29,6 @@ private:
     bool parseHeader(const QJsonObject &root);
     void parseCalSensor(const QJsonObject &jsonCalSensor);
     void parseCalTarget(const QJsonObject &jsonCalTarget);
-    int parseInt(const QJsonValue &value);
-    float parseFloat(const QJsonValue &value);
 
     Ui::SettingsImportDialog *ui;
 

@@ -3,6 +3,7 @@
 
 #include <QSharedDataPointer>
 #include <QVector>
+#include <QJsonValue>
 
 class DensCalLightData;
 class DensCalGainData;
@@ -64,6 +65,9 @@ public:
 
     bool isValid() const;
 
+    QJsonValue toJson() const;
+    static DensCalGain fromJson(const QJsonValue &jsonValue);
+
 private:
     QSharedDataPointer<DensCalGainData> data;
 };
@@ -97,6 +101,9 @@ public:
 
     bool isValid() const;
 
+    QJsonValue toJson() const;
+    static DensUvVisCalGain fromJson(const QJsonValue &jsonValue);
+
 private:
     QSharedDataPointer<DensUvVisCalGainData> data;
 };
@@ -122,6 +129,9 @@ public:
     float b2() const;
 
     bool isValid() const;
+
+    QJsonValue toJson() const;
+    static DensCalCoefficientSet fromJson(const QJsonValue &jsonValue);
 
 private:
     QSharedDataPointer<DensCalCoefficientSetData> data;
@@ -154,6 +164,9 @@ public:
     bool isValidTransmission() const;
 
     bool isValid() const;
+
+    QJsonValue toJson() const;
+    static DensCalTarget fromJson(const QJsonValue &jsonValue);
 
 private:
     QSharedDataPointer<DensCalTargetData> data;

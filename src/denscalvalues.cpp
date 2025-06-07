@@ -1,6 +1,11 @@
 #include "denscalvalues.h"
 
+#include <QJsonValue>
+#include <QJsonObject>
+#include <QJsonArray>
+
 #include <array>
+#include "util.h"
 
 class DensCalLightData : public QSharedData
 {
@@ -168,12 +173,66 @@ bool DensCalGain::isValid() const
     return true;
 }
 
+QJsonValue DensCalGain::toJson() const
+{
+    QJsonObject jsonCalGain;
+    jsonCalGain["L0"] = QString::number(data->low0, 'f', 6);
+    jsonCalGain["L1"] = QString::number(data->low1, 'f', 6);
+    jsonCalGain["M0"] = QString::number(data->med0, 'f', 6);
+    jsonCalGain["M1"] = QString::number(data->med1, 'f', 6);
+    jsonCalGain["H0"] = QString::number(data->high0, 'f', 6);
+    jsonCalGain["H1"] = QString::number(data->high1, 'f', 6);
+    jsonCalGain["X0"] = QString::number(data->max0, 'f', 6);
+    jsonCalGain["X1"] = QString::number(data->max1, 'f', 6);
+    return jsonCalGain;
+}
+
+DensCalGain DensCalGain::fromJson(const QJsonValue &jsonValue)
+{
+    DensCalGain calGain;
+
+    if (!jsonValue.isObject()) { return calGain; }
+
+    const QJsonObject jsonCalGain = jsonValue.toObject();
+
+    if (jsonCalGain.contains("L0")) {
+        calGain.setLow0(util::parseJsonFloat(jsonCalGain["L0"]));
+    }
+    if (jsonCalGain.contains("L1")) {
+        calGain.setLow1(util::parseJsonFloat(jsonCalGain["L1"]));
+    }
+    if (jsonCalGain.contains("M0")) {
+        calGain.setMed0(util::parseJsonFloat(jsonCalGain["M0"]));
+    }
+    if (jsonCalGain.contains("M1")) {
+        calGain.setMed1(util::parseJsonFloat(jsonCalGain["M1"]));
+    }
+    if (jsonCalGain.contains("H0")) {
+        calGain.setHigh0(util::parseJsonFloat(jsonCalGain["H0"]));
+    }
+    if (jsonCalGain.contains("H1")) {
+        calGain.setHigh1(util::parseJsonFloat(jsonCalGain["H1"]));
+    }
+    if (jsonCalGain.contains("X0")) {
+        calGain.setMax0(util::parseJsonFloat(jsonCalGain["X0"]));
+    }
+    if (jsonCalGain.contains("X1")) {
+        calGain.setMax1(util::parseJsonFloat(jsonCalGain["X1"]));
+    }
+
+    return calGain;
+}
+
 DensUvVisCalGain::DensUvVisCalGain() : data(new DensUvVisCalGainData)
 {
 }
 
 DensUvVisCalGain::DensUvVisCalGain(const DensUvVisCalGain &rhs)
     : data{rhs.data}
+{
+}
+
+DensUvVisCalGain::~DensUvVisCalGain()
 {
 }
 
@@ -232,8 +291,33 @@ bool DensUvVisCalGain::isValid() const
     return true;
 }
 
-DensUvVisCalGain::~DensUvVisCalGain()
+QJsonValue DensUvVisCalGain::toJson() const
 {
+    QJsonArray gainArray;
+    for (size_t i = 0; i <= static_cast<size_t>(DensUvVisCalGain::Gain256X); i++) {
+        gainArray.append(QString::number(data->values[i], 'f', 6));
+    }
+    return gainArray;
+}
+
+DensUvVisCalGain DensUvVisCalGain::fromJson(const QJsonValue &jsonValue)
+{
+    DensUvVisCalGain calGain;
+
+    if (!jsonValue.isArray()) { return calGain; }
+
+    const QJsonArray jsonCalGain = jsonValue.toArray();
+
+    if (jsonCalGain.size() != static_cast<size_t>(DensUvVisCalGain::Gain256X) + 1) {
+        return calGain;
+    }
+
+    for (size_t i = 0; i <= static_cast<size_t>(DensUvVisCalGain::Gain256X); i++) {
+        const float value = util::parseJsonFloat(jsonCalGain.at(i));
+        calGain.setGainValue(static_cast<DensUvVisCalGain::GainLevel>(i), value);
+    }
+
+    return calGain;
 }
 
 DensCalCoefficientSet::DensCalCoefficientSet() : data(new DensCalCoefficientSetData)
@@ -287,6 +371,36 @@ bool DensCalCoefficientSet::isValid() const
     }
 
     return true;
+}
+
+QJsonValue DensCalCoefficientSet::toJson() const
+{
+    QJsonObject jsonCoefficientSet;
+    jsonCoefficientSet["B0"] = data->b0;
+    jsonCoefficientSet["B1"] = data->b1;
+    jsonCoefficientSet["B2"] = data->b2;
+    return jsonCoefficientSet;
+}
+
+DensCalCoefficientSet DensCalCoefficientSet::fromJson(const QJsonValue &jsonValue)
+{
+    DensCalCoefficientSet coefficientSet;
+
+    if (!jsonValue.isObject()) { return coefficientSet; }
+
+    const QJsonObject jsonCoefficientSet = jsonValue.toObject();
+
+    if (jsonCoefficientSet.contains("B0")) {
+        coefficientSet.setB0(util::parseJsonFloat(jsonCoefficientSet["B0"]));
+    }
+    if (jsonCoefficientSet.contains("B1")) {
+        coefficientSet.setB1(util::parseJsonFloat(jsonCoefficientSet["B1"]));
+    }
+    if (jsonCoefficientSet.contains("B2")) {
+        coefficientSet.setB2(util::parseJsonFloat(jsonCoefficientSet["B2"]));
+    }
+
+    return coefficientSet;
 }
 
 DensCalTarget::DensCalTarget() : data(new DensCalTargetData)
@@ -346,6 +460,55 @@ bool DensCalTarget::isValid() const
     }
 
     return true;
+}
+
+QJsonValue DensCalTarget::toJson() const
+{
+    QJsonObject jsonCalLo;
+    jsonCalLo["density"] = QString::number(data->loDensity, 'f', 2);
+    jsonCalLo["reading"] = QString::number(data->loReading, 'f', 6);
+
+    QJsonObject jsonCalHi;
+    jsonCalHi["density"] = QString::number(data->hiDensity, 'f', 2);
+    jsonCalHi["reading"] = QString::number(data->hiReading, 'f', 6);
+
+    QJsonObject jsonCal;
+    jsonCal["cal-lo"] = jsonCalLo;
+    jsonCal["cal-hi"] = jsonCalHi;
+
+    return jsonCal;
+}
+
+DensCalTarget DensCalTarget::fromJson(const QJsonValue &jsonValue)
+{
+    DensCalTarget calTarget;
+
+    if (!jsonValue.isObject()) { return calTarget; }
+
+    const QJsonObject jsonCalTarget = jsonValue.toObject();
+
+    if (jsonCalTarget.contains("cal-lo") && jsonCalTarget["cal-lo"].isObject()) {
+        const QJsonObject jsonCalLo = jsonCalTarget["cal-lo"].toObject();
+
+        if (jsonCalLo.contains("density")) {
+            calTarget.setLoDensity(util::parseJsonFloat(jsonCalLo["density"]));
+        }
+        if (jsonCalLo.contains("reading")) {
+            calTarget.setLoReading(util::parseJsonFloat(jsonCalLo["reading"]));
+        }
+    }
+    if (jsonCalTarget.contains("cal-hi") && jsonCalTarget["cal-hi"].isObject()) {
+        const QJsonObject jsonCalHi = jsonCalTarget["cal-hi"].toObject();
+
+        if (jsonCalHi.contains("density")) {
+            calTarget.setHiDensity(util::parseJsonFloat(jsonCalHi["density"]));
+        }
+        if (jsonCalHi.contains("reading")) {
+            calTarget.setHiReading(util::parseJsonFloat(jsonCalHi["reading"]));
+        }
+    }
+
+    return calTarget;
 }
 
 bool DensCalTarget::isValidReflection() const
