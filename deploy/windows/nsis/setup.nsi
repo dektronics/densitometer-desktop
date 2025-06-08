@@ -29,7 +29,7 @@ Unicode True
 !define COMPANYNAME_FULL             "Dektronics. Inc."
 !define DESCRIPTION                  "Companion application for the Printalyzer Densitometer"
 !define VERSIONMAJOR                 1
-!define VERSIONMINOR                 0
+!define VERSIONMINOR                 1
 !define VERSIONBUILD                 0
 !define MUI_ABORTWARNING
 !define INSTALL_DIR                  "$PROGRAMFILES64\${APPNAME}"
@@ -37,7 +37,7 @@ Unicode True
 !define MUI_FINISHPAGE_RUN_TEXT      "Run ${APPNAME}"
 !define MUI_FINISHPAGE_RUN_FUNCTION  "RunApplication"
 !define MUI_FINISHPAGE_LINK          "Visit project website"
-!define MUI_FINISHPAGE_LINK_LOCATION "https://github.com/dektronics/printalyzer-densitometer/"
+!define MUI_FINISHPAGE_LINK_LOCATION "https://github.com/dektronics/densitometer-desktop/"
 !define MUI_WELCOMEPAGE_TITLE        "Welcome to the ${APPNAME} installer!"
 
 !insertmacro MUI_PAGE_WELCOME

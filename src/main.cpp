@@ -89,7 +89,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     QApplication::setApplicationName("Printalyzer Densitometer Desktop");
-    QApplication::setApplicationVersion("0.3");
+    QApplication::setApplicationVersion("1.1.0");
     QApplication::setOrganizationName("Dektronics, Inc.");
     QApplication::setOrganizationDomain("dektronics.com");
     QApplication::setWindowIcon(QIcon(":/icons/appicon.png"));
