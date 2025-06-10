@@ -69,6 +69,11 @@ bool DensCommand::isDensity() const
             && d->action.isEmpty() && !d->args.isEmpty();
 }
 
+bool DensCommand::isError() const
+{
+    return isValid() && d->args.size() == 1 && d->args.at(0) == QLatin1String("ERR");
+}
+
 DensCommand DensCommand::parse(const QByteArray &data)
 {
     const QStringList elements = splitLine(data);

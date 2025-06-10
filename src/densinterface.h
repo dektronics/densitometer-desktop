@@ -170,7 +170,9 @@ signals:
     void diagSensorUvGetReading(unsigned int ch0, int gain, int sampleTime, int sampleCount);
     void diagSensorBaselineInvokeReading(int ch0, int ch1);
     void diagSensorUvInvokeReading(unsigned int ch0);
+    void diagSensorInvokeReadingError();
     void diagSensorUvInvokeMeasurement(float ch0Basic);
+    void diagSensorInvokeMeasurementError();
     void diagLogLine(const QByteArray &data);
 
     void calLightResponse();

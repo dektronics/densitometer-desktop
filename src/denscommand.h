@@ -35,6 +35,7 @@ public:
     bool isValid() const;
     bool isMatch(const DensCommand &other);
     bool isDensity() const;
+    bool isError() const;
 
     static DensCommand parse(const QByteArray &data);
 

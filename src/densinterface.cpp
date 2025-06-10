@@ -1102,7 +1102,9 @@ void DensInterface::readDiagnosticsResponse(const DensCommand &response)
         }
     } else if (response.type() == DensCommand::TypeInvoke
                && response.action() == QLatin1String("READ")) {
-        if (deviceType_ == DeviceBaseline && response.args().size() >= 2) {
+        if (response.isError()) {
+            emit diagSensorInvokeReadingError();
+        } else if (deviceType_ == DeviceBaseline && response.args().size() >= 2) {
             emit diagSensorBaselineInvokeReading(
                 response.args().at(0).toInt(),
                 response.args().at(1).toInt());
@@ -1114,7 +1116,9 @@ void DensInterface::readDiagnosticsResponse(const DensCommand &response)
         }
     } else if (response.type() == DensCommand::TypeInvoke
                && response.action() == QLatin1String("MEAS")) {
-        if (deviceType_ == DeviceUvVis && response.args().size() >= 1) {
+        if (response.isError()) {
+            emit diagSensorInvokeMeasurementError();
+        } else if (deviceType_ == DeviceUvVis && response.args().size() >= 1) {
             emit diagSensorUvInvokeMeasurement(
                 util::decode_f32(response.args().at(0)));
         } else {
