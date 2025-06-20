@@ -55,7 +55,7 @@ CalibrationUvVisTab::CalibrationUvVisTab(DensInterface *densInterface, QWidget *
     connect(ui->tempTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalTempItemChanged);
 
     // Calibration (VIS reflection density) field validation
-    ui->reflLoDensityLineEdit->setValidator(util::createFloatValidator(0.0, 2.5, 2, this));
+    ui->reflLoDensityLineEdit->setValidator(util::createFloatValidator(-0.5, 2.5, 2, this));
     ui->reflLoReadingLineEdit->setValidator(util::createFloatValidator(0.0, 500.0, 6, this));
     ui->reflHiDensityLineEdit->setValidator(util::createFloatValidator(0.0, 2.5, 2, this));
     ui->reflHiReadingLineEdit->setValidator(util::createFloatValidator(0.0, 500.0, 6, this));

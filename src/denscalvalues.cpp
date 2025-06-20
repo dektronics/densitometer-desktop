@@ -443,8 +443,8 @@ bool DensCalTarget::isValid() const
         return false;
     }
 
-    // Invalid if any values are less than zero
-    if (data->loDensity < 0 || data->loReading < 0
+    // Invalid if CAL-LO is less than -0.5, or any other values are less than zero
+    if (data->loDensity < -0.5F || data->loReading < 0
             || data->hiDensity < 0 || data->hiReading < 0) {
         return false;
     }
