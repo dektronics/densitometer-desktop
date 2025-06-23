@@ -164,6 +164,7 @@ public:
     bool isValidTransmission() const;
 
     bool isValid() const;
+    bool isValidLoOnly() const;
 
     QJsonValue toJson() const;
     static DensCalTarget fromJson(const QJsonValue &jsonValue);

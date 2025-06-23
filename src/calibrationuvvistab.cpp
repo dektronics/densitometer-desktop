@@ -80,6 +80,14 @@ CalibrationUvVisTab::CalibrationUvVisTab(DensInterface *densInterface, QWidget *
     connect(ui->tranUvHiDensityLineEdit, &QLineEdit::textChanged, this, &CalibrationUvVisTab::onCalUvTransmissionTextChanged);
     connect(ui->tranUvHiReadingLineEdit, &QLineEdit::textChanged, this, &CalibrationUvVisTab::onCalUvTransmissionTextChanged);
 
+    ui->reflHiReadingLineEdit->addAction(ui->actionClearValue, QLineEdit::TrailingPosition);
+    ui->actionClearValue->setEnabled(false);
+    ui->actionClearValue->setVisible(false);
+    connect(ui->actionClearValue, &QAction::triggered, this, [this](){
+        ui->reflHiReadingLineEdit->setText(QString::number(qSNaN()));
+        ui->reflHiDensityLineEdit->setText(QString::number(qSNaN()));
+    });
+
     refreshButtonState();
 }
 
@@ -96,6 +104,8 @@ void CalibrationUvVisTab::setAdvancedCalibrationEditable(bool editable)
     ui->gainFilterCalPushButton->setEnabled(editable_);
     onCalTempItemChanged(nullptr);
     ui->tempCalPushButton->setEnabled(editable_);
+    ui->actionClearValue->setVisible(editable_);
+    onCalReflectionTextChanged();
 }
 
 void CalibrationUvVisTab::setDensityPrecision(int precision)
@@ -190,6 +200,7 @@ void CalibrationUvVisTab::refreshButtonState()
     ui->reflLoReadingLineEdit->setReadOnly(!connected);
     ui->reflHiDensityLineEdit->setReadOnly(!connected);
     ui->reflHiReadingLineEdit->setReadOnly(!connected);
+    ui->actionClearValue->setEnabled(connected);
 
     ui->tranLoReadingLineEdit->setReadOnly(!connected);
     ui->tranHiDensityLineEdit->setReadOnly(!connected);
@@ -371,8 +382,23 @@ void CalibrationUvVisTab::onCalReflectionSetClicked()
     if (!ok) { return; }
 
     if (!calTarget.isValid()) {
-        QMessageBox::warning(this, tr("Invalid Values"), tr("Cannot set invalid reflection calibration values!"));
-        return;
+        if (editable_ && calTarget.isValidLoOnly()) {
+            auto result = QMessageBox::warning(
+                this, tr("Single Point Reflection Calibration"),
+                tr("Single point reflection calibration is only recommended when using "
+                   "lab certified reflectance references with more than 2 digits of density precision. "
+                   "It is not recommended when using paper-based reflection reference materials "
+                   "such as those that shipped with your device.\r\n\r\n"
+                   "Are you sure you want to do this?\r\n"),
+                QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+            if (result != QMessageBox::Yes) {
+                return;
+            }
+        } else {
+
+            QMessageBox::warning(this, tr("Invalid Values"), tr("Cannot set invalid reflection calibration values!"));
+            return;
+        }
     }
 
     densInterface_->sendSetCalReflection(calTarget);
@@ -467,10 +493,17 @@ void CalibrationUvVisTab::onCalReflectionTextChanged()
 {
     if (densInterface_->connected()
         && ui->reflLoDensityLineEdit->hasAcceptableInput()
-        && ui->reflLoReadingLineEdit->hasAcceptableInput()
-        && ui->reflHiDensityLineEdit->hasAcceptableInput()
-        && ui->reflHiReadingLineEdit->hasAcceptableInput()) {
-        ui->reflSetPushButton->setEnabled(true);
+        && ui->reflLoReadingLineEdit->hasAcceptableInput()) {
+        if (ui->reflHiDensityLineEdit->hasAcceptableInput()
+            && ui->reflHiReadingLineEdit->hasAcceptableInput()) {
+            ui->reflSetPushButton->setEnabled(true);
+        } else if (editable_
+                   && ui->reflHiDensityLineEdit->text() == QLatin1String("nan")
+                   && ui->reflHiReadingLineEdit->text() == QLatin1String("nan")) {
+            ui->reflSetPushButton->setEnabled(true);
+        } else {
+            ui->reflSetPushButton->setEnabled(false);
+        }
     } else {
         ui->reflSetPushButton->setEnabled(false);
     }

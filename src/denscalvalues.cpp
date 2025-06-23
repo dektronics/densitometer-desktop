@@ -462,6 +462,26 @@ bool DensCalTarget::isValid() const
     return true;
 }
 
+bool DensCalTarget::isValidLoOnly() const
+{
+    // Invalid if low values are NaN
+    if (qIsNaN(data->loDensity) || qIsNaN(data->loReading)) {
+        return false;
+    }
+
+    // Invalid if CAL-LO is less than -0.5
+    if (data->loDensity < -0.5F || data->loReading < 0) {
+        return false;
+    }
+
+    // Invalid if either CAL-HI value is not NAN
+    if (!qIsNaN(data->hiDensity) || !qIsNaN(data->hiReading)) {
+        return false;
+    }
+
+    return true;
+}
+
 QJsonValue DensCalTarget::toJson() const
 {
     QJsonObject jsonCalLo;
