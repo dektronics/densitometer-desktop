@@ -435,13 +435,13 @@ void CalibrationUvVisTab::onCalUvTransmissionSetClicked()
 
     calTarget.setLoDensity(0.0F);
 
-    calTarget.setLoReading(ui->tranLoReadingLineEdit->text().toFloat(&ok));
+    calTarget.setLoReading(ui->tranUvLoReadingLineEdit->text().toFloat(&ok));
     if (!ok) { return; }
 
-    calTarget.setHiDensity(ui->tranHiDensityLineEdit->text().toFloat(&ok));
+    calTarget.setHiDensity(ui->tranUvHiDensityLineEdit->text().toFloat(&ok));
     if (!ok) { return; }
 
-    calTarget.setHiReading(ui->tranHiReadingLineEdit->text().toFloat(&ok));
+    calTarget.setHiReading(ui->tranUvHiReadingLineEdit->text().toFloat(&ok));
     if (!ok) { return; }
 
     if (!calTarget.isValid()) {
