@@ -85,7 +85,7 @@ jobs:
              mkdir -p appdir/usr/share/icons
              cp ../deploy/linux/*.desktop appdir/usr/share/applications/
              cp ../deploy/linux/*.png appdir/usr/share/icons/
-             ./linuxdeployqt appdir/usr/share/applications/*.desktop -appimage
+             ./linuxdeployqt appdir/usr/share/applications/*.desktop -appimage -extra-plugins=iconengines,platformthemes
      
       #
       # Rename AppImage to match "%AppName%-%Version%-Linux.AppImage" format
