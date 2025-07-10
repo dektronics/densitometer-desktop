@@ -4,8 +4,8 @@
 #include <QWidget>
 
 #include "calibrationtab.h"
-#include "densistickrunner.h"
-#include "tsl2585calibration.h"
+#include "densistick/densistickrunner.h"
+#include "densistick/tsl2585calibration.h"
 
 class QLineEdit;
 

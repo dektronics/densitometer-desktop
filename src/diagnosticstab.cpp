@@ -5,8 +5,8 @@
 #include <QDebug>
 
 #include "densinterface.h"
-#include "densistickrunner.h"
-#include "densistickinterface.h"
+#include "densistick/densistickrunner.h"
+#include "densistick/densistickinterface.h"
 #include "remotecontroldialog.h"
 #include "stickremotecontroldialog.h"
 

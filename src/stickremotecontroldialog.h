@@ -2,7 +2,7 @@
 #define STICKREMOTECONTROLDIALOG_H
 
 #include <QDialog>
-#include "densistickinterface.h"
+#include "densistick/densistickinterface.h"
 
 namespace Ui {
 class StickRemoteControlDialog;

@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <QSerialPort>
-#include "ft260deviceinfo.h"
+#include "densistick/ft260deviceinfo.h"
 
 QT_BEGIN_NAMESPACE
 

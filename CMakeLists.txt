@@ -26,7 +26,7 @@ if(LIBUSB_INCLUDE_DIR AND LIBUSB_LIBRARY)
     set(LIBUSB_FOUND TRUE)
 
     set(FT260LIBUSB_SOURCES
-        src/ft260libusb.cpp src/ft260libusb.h
+        src/densistick/ft260libusb.cpp src/densistick/ft260libusb.h
     )
 endif()
 
@@ -64,19 +64,22 @@ set(PROJECT_SOURCES
     src/tempcalibrationdialog.cpp src/tempcalibrationdialog.h src/tempcalibrationdialog.ui
     src/util.cpp src/util.h
     src/qsimplesignalaggregator.cpp src/qsimplesignalaggregator.h src/qsignalaggregator.h
-    src/ft260deviceinfo.cpp src/ft260deviceinfo.h src/ft260deviceinfo_p.h
-    src/ft260.cpp src/ft260.h
-    src/ft260hidapi.cpp src/ft260hidapi.h
-    src/tsl2585.cpp src/tsl2585.h
-    src/m24c08.cpp src/m24c08.h
-    src/tsl2585calibration.cpp src/tsl2585calibration.h
-    src/densisticksettings.cpp src/densisticksettings.h
-    src/densistickinterface.cpp src/densistickinterface.h
-    src/densistickreading.cpp src/densistickreading.h
-    src/densistickrunner.h src/densistickrunner.cpp
     src/stickremotecontroldialog.cpp src/stickremotecontroldialog.h src/stickremotecontroldialog.ui
-    ${FT260LIBUSB_SOURCES}
     ${TS_FILES}
+)
+
+set(DENSISTICK_INTERFACE_SOURCES
+    src/densistick/ft260deviceinfo.cpp src/densistick/ft260deviceinfo.h src/densistick/ft260deviceinfo_p.h
+    src/densistick/ft260.cpp src/densistick/ft260.h
+    src/densistick/ft260hidapi.cpp src/densistick/ft260hidapi.h
+    src/densistick/tsl2585.cpp src/densistick/tsl2585.h
+    src/densistick/m24c08.cpp src/densistick/m24c08.h
+    src/densistick/tsl2585calibration.cpp src/densistick/tsl2585calibration.h
+    src/densistick/densisticksettings.cpp src/densistick/densisticksettings.h
+    src/densistick/densistickinterface.cpp src/densistick/densistickinterface.h
+    src/densistick/densistickreading.cpp src/densistick/densistickreading.h
+    src/densistick/densistickrunner.h src/densistick/densistickrunner.cpp
+    ${FT260LIBUSB_SOURCES}
 )
 
 set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/deploy/windows/resources/info.rc")
@@ -84,6 +87,7 @@ set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/deploy/windows/resour
 qt_add_executable(densitometer
     MANUAL_FINALIZATION
     ${PROJECT_SOURCES}
+    ${DENSISTICK_INTERFACE_SOURCES}
     ${QRC_FILES}
     ${app_icon_resource_windows}
 )

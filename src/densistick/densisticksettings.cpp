@@ -3,9 +3,8 @@
 #include <QByteArray>
 #include <QDebug>
 
-#include "tsl2585.h"
 #include "m24c08.h"
-#include "util.h"
+#include "../util.h"
 
 /*
  * The first 256B are reserved for FT260 configuration and shall never be

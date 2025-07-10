@@ -1,5 +1,5 @@
 #include "stickremotecontroldialog.h"
-#include "densistickinterface.h"
+#include "densistick/densistickinterface.h"
 #include "ui_stickremotecontroldialog.h"
 
 #include <QStyleHints>

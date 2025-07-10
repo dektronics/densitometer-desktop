@@ -5,7 +5,7 @@
 #include <QAbstractItemModel>
 #include <QSerialPortInfo>
 #include "densinterface.h"
-#include "ft260deviceinfo.h"
+#include "densistick/ft260deviceinfo.h"
 
 QT_BEGIN_NAMESPACE
 

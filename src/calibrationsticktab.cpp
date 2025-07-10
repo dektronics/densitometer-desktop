@@ -6,7 +6,7 @@
 
 #include "stickgaincalibrationdialog.h"
 #include "slopecalibrationdialog.h"
-#include "densisticksettings.h"
+#include "densistick/densisticksettings.h"
 #include "util.h"
 
 CalibrationStickTab::CalibrationStickTab(DensiStickRunner *stickRunner, QWidget *parent)

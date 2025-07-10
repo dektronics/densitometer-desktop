@@ -6,7 +6,7 @@
 #include <QPushButton>
 #include <QDebug>
 
-#include "tsl2585.h"
+#include "densistick/tsl2585.h"
 
 GainCalibrationDialog::GainCalibrationDialog(DensInterface *densInterface, QWidget *parent) :
     QDialog(parent),

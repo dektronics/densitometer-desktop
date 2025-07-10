@@ -5,7 +5,7 @@
 #include <QPushButton>
 
 #include "densinterface.h"
-#include "ft260.h"
+#include "densistick/ft260.h"
 
 static const char blankString[] = QT_TRANSLATE_NOOP("ConnectDialog", "N/A");
 

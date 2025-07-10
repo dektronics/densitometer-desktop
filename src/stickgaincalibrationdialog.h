@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <QMap>
-#include "densistickinterface.h"
+#include "densistick/densistickinterface.h"
 
 namespace Ui {
 class StickGainCalibrationDialog;

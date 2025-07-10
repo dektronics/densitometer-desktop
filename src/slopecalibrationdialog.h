@@ -7,7 +7,7 @@
 #include <QPair>
 #include <tuple>
 #include "densinterface.h"
-#include "densistickrunner.h"
+#include "densistick/densistickrunner.h"
 
 namespace Ui {
 class SlopeCalibrationDialog;

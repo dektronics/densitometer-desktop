@@ -26,9 +26,9 @@
 #include "settingsimportdialog.h"
 #include "settingsuvvisimportdialog.h"
 #include "floatitemdelegate.h"
-#include "ft260.h"
-#include "densistickinterface.h"
-#include "densistickrunner.h"
+#include "densistick/ft260.h"
+#include "densistick/densistickinterface.h"
+#include "densistick/densistickrunner.h"
 #include "util.h"
 
 namespace
