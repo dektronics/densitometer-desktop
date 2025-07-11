@@ -172,28 +172,39 @@ TSL2585::TSL2585(Ft260 *ft260) : ft260_(ft260)
 {
 }
 
-bool TSL2585::init()
+bool TSL2585::init(tsl2585_ident_t *ident)
 {
     quint8 data;
+    quint8 devId = 0;
+    quint8 revId = 0;
+    quint8 auxId = 0;
+
 
     qDebug() << "Initializing TSL2585";
 
-    if (!ft260_->i2cReadByte(TSL2585_ADDRESS, TSL2585_ID, &data)) { return false; }
+    if (!ft260_->i2cReadByte(TSL2585_ADDRESS, TSL2585_ID, &devId)) { return false; }
 
-    qDebug() << "Device ID:" << Qt::hex << data;
+    qDebug() << "Device ID:" << Qt::hex << devId;
 
-    if (data != 0x5C) {
+    if (devId != 0x5C) {
         qWarning() << "Invalid Device ID";
         return false;
     }
 
-    if (!ft260_->i2cReadByte(TSL2585_ADDRESS, TSL2585_REV_ID, &data)) { return false; }
+    if (!ft260_->i2cReadByte(TSL2585_ADDRESS, TSL2585_REV_ID, &revId)) { return false; }
 
-    qDebug() << "Revision ID:" << Qt::hex << data;
+    qDebug() << "Revision ID:" << Qt::hex << revId;
 
     if (!ft260_->i2cReadByte(TSL2585_ADDRESS, TSL2585_AUX_ID, &data)) { return false; }
+    auxId = (data & 0x0F);
 
-    qDebug() << "Aux ID:" << Qt::hex << (data & 0x0F);
+    qDebug() << "Aux ID:" << Qt::hex << auxId;
+
+    if (ident) {
+        ident->devId = devId;
+        ident->revId = revId;
+        ident->auxId = auxId;
+    }
 
     if (!ft260_->i2cReadByte(TSL2585_ADDRESS, TSL2585_STATUS, &data)) { return false; }
 
@@ -647,6 +658,22 @@ bool TSL2585::setAlsMsbPosition(uint8_t position)
     return ft260_->i2cWriteByte(TSL2585_ADDRESS, TSL2585_MEAS_MODE1, data);
 }
 
+bool TSL2585::getTriggerMode(tsl2585_trigger_mode_t *mode)
+{
+    uint8_t data;
+    if (!ft260_->i2cReadByte(TSL2585_ADDRESS, TSL2585_TRIGGER_MODE, &data)) { return false; }
+
+    if (mode) {
+        *mode = static_cast<tsl2585_trigger_mode_t>(data & 0x07);
+    }
+    return true;
+}
+
+bool TSL2585::setTriggerMode(tsl2585_trigger_mode_t mode)
+{
+    return ft260_->i2cWriteByte(TSL2585_ADDRESS, TSL2585_TRIGGER_MODE, static_cast<uint8_t>(mode));
+}
+
 bool TSL2585::getAlsData0(uint16_t *data)
 {
     QByteArray buf;
@@ -757,16 +784,102 @@ QByteArray TSL2585::readFifo(uint16_t len)
     return ft260_->i2cRead(TSL2585_ADDRESS, TSL2585_FIFO_DATA, len);
 }
 
-namespace
+bool TSL2585::getVSyncPeriod(uint16_t *period)
 {
-static const char *TSL2585_GAIN_STR[] = {
-    "0.5x", "1x", "2x", "4x", "8x", "16x", "32x", "64x",
-    "128x", "256x", "512x", "1024x", "2048x", "4096x"
-};
+    QByteArray buf;
+    buf = ft260_->i2cRead(TSL2585_ADDRESS, TSL2585_VSYNC_PERIOD_L, 2);
+    if (buf.isEmpty()) { return false; }
+
+    if (period) {
+        *period = static_cast<uint8_t>(buf[0]) | static_cast<uint8_t>(buf[1]) << 8;
+    }
+    return true;
+}
+
+bool TSL2585::setVSyncPeriodTarget(uint16_t periodTarget, bool useFastTiming)
+{
+    QByteArray buf;
+
+    if (periodTarget > 0x7FFF) {
+        return false;
+    }
+
+    buf.append(static_cast<uint8_t>(periodTarget & 0x00FF));
+    buf.append(static_cast<uint8_t>((periodTarget & 0x7F00) >> 8) | (useFastTiming ? 0x80 : 0x00));
+
+    return ft260_->i2cWrite(TSL2585_ADDRESS, TSL2585_VSYNC_PERIOD_TARGET_L, buf);
+}
+
+bool TSL2585::setVSyncControl(uint8_t value)
+{
+    uint8_t data = value & 0x03;
+
+    return ft260_->i2cWriteByte(TSL2585_ADDRESS, TSL2585_VSYNC_CONTROL, data);
+}
+
+bool TSL2585::setVSyncConfig(uint8_t value)
+{
+    uint8_t data = value & 0xC7;
+
+    return ft260_->i2cWriteByte(TSL2585_ADDRESS, TSL2585_VSYNC_CFG, data);
+}
+
+bool TSL2585::setVSyncGpioInt(uint8_t value)
+{
+    uint8_t data = value & 0x7F;
+
+    return ft260_->i2cWriteByte(TSL2585_ADDRESS, TSL2585_VSYNC_GPIO_INT, data);
+}
+
+tsl2585_sensor_type_t TSL2585::sensorType(const tsl2585_ident_t *ident)
+{
+    if (!ident) { return SENSOR_TYPE_UNKNOWN; }
+
+    if (ident->devId == 0x5C && ident->revId == 0x11) {
+        if (ident->auxId == 0b0110) {
+            return SENSOR_TYPE_TSL2585;
+        } else if (ident->auxId == 0b0010) {
+            // TSL2520 and TSL2521 identify the same here, so they will need to be distinguished some other
+            // way when and if that matters.
+            // If the flicker engine is not used, then they can be treated identically.
+            return SENSOR_TYPE_TSL2521;
+        } else if (ident->auxId == 0b0101) {
+            return SENSOR_TYPE_TSL2522;
+        } else if (ident->auxId == 0b0001) {
+            return SENSOR_TYPE_TCS3410;
+        }
+    }
+
+    return SENSOR_TYPE_UNKNOWN;
+}
+
+QString TSL2585::sensorTypeName(tsl2585_sensor_type_t sensorType)
+{
+    switch (sensorType) {
+    case SENSOR_TYPE_TSL2585:
+        return QLatin1String("TSL2585");
+    case SENSOR_TYPE_TSL2520:
+        return QLatin1String("TSL2520");
+    case SENSOR_TYPE_TSL2521:
+        return QLatin1String("TSL2521");
+    case SENSOR_TYPE_TSL2522:
+        return QLatin1String("TSL2522");
+    case SENSOR_TYPE_TCS3410:
+        return QLatin1String("TCS3410");
+    case SENSOR_TYPE_UNKNOWN:
+    default:
+        return QLatin1String("Unknown");
+    }
 }
 
 QString TSL2585::gainString(tsl2585_gain_t gain)
 {
+    static std::array TSL2585_GAIN_STR{
+        "0.5x", "1x", "2x", "4x", "8x", "16x", "32x", "64x",
+        "128x", "256x", "512x", "1024x", "2048x", "4096x"
+    };
+
+
     if (gain >= TSL2585_GAIN_0_5X && gain <= TSL2585_GAIN_4096X) {
         return QString(TSL2585_GAIN_STR[gain]);
     } else {
@@ -774,16 +887,13 @@ QString TSL2585::gainString(tsl2585_gain_t gain)
     }
 }
 
-namespace
-{
-static const float TSL2585_GAIN_VAL[] = {
-    0.5F, 1.0F, 2.0F, 4.0F, 8.0F, 16.0F, 32.0F, 64.0F,
-    128.0F, 256.0F, 512.0F, 1024.0F, 2048.0F, 4096.0F
-};
-}
-
 float TSL2585::gainValue(tsl2585_gain_t gain)
 {
+    static std::array TSL2585_GAIN_VAL{
+        0.5F, 1.0F, 2.0F, 4.0F, 8.0F, 16.0F, 32.0F, 64.0F,
+        128.0F, 256.0F, 512.0F, 1024.0F, 2048.0F, 4096.0F
+    };
+
     if (gain >= TSL2585_GAIN_0_5X && gain <= TSL2585_GAIN_4096X) {
         return TSL2585_GAIN_VAL[gain];
     } else {

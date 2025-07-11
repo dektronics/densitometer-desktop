@@ -4,7 +4,7 @@
 #include <QObject>
 
 #include "densistickinterface.h"
-#include "tsl2585calibration.h"
+#include "peripheralcalvalues.h"
 
 class DensiStickRunner : public QObject
 {
@@ -35,7 +35,7 @@ private:
     bool enabled_ = false;
     bool measuring_ = false;
     QList<DensiStickReading> readingList_;
-    Tsl2585Calibration calData_;
+    DensiStickCalibration calData_;
     qint64 measStartTime_;
     int agcStep_;
 };

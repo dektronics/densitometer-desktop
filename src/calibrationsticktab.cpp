@@ -5,7 +5,6 @@
 #include <QDebug>
 
 #include "stickgaincalibrationdialog.h"
-#include "slopecalibrationdialog.h"
 #include "densistick/densisticksettings.h"
 #include "util.h"
 
@@ -22,9 +21,7 @@ CalibrationStickTab::CalibrationStickTab(DensiStickRunner *stickRunner, QWidget 
     connect(ui->calGetAllPushButton, &QPushButton::clicked, this, &CalibrationStickTab::onCalGetAllValues);
     connect(ui->gainCalPushButton, &QPushButton::clicked, this, &CalibrationStickTab::onCalGainCalClicked);
     connect(ui->gainSetPushButton, &QPushButton::clicked, this, &CalibrationStickTab::onCalGainSetClicked);
-    connect(ui->slopeSetPushButton, &QPushButton::clicked, this, &CalibrationStickTab::onCalSlopeSetClicked);
     connect(ui->reflSetPushButton, &QPushButton::clicked, this, &CalibrationStickTab::onCalReflectionSetClicked);
-    connect(ui->slopeCalPushButton, &QPushButton::clicked, this, &CalibrationStickTab::onSlopeCalibrationTool);
 
     // Calibration (gain) field validation
     for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
@@ -33,14 +30,6 @@ CalibrationStickTab::CalibrationStickTab(DensiStickRunner *stickRunner, QWidget 
         ui->gainTableWidget->setCellWidget(i, 0, lineEdit);
         connect(lineEdit, &QLineEdit::textChanged, this, &CalibrationStickTab::onCalGainTextChanged);
     }
-
-    // Calibration (slope) field validation
-    ui->b0LineEdit->setValidator(util::createFloatValidator(-100.0, 100.0, 6, this));
-    ui->b1LineEdit->setValidator(util::createFloatValidator(-100.0, 100.0, 6, this));
-    ui->b2LineEdit->setValidator(util::createFloatValidator(-100.0, 100.0, 6, this));
-    connect(ui->b0LineEdit, &QLineEdit::textChanged, this, &CalibrationStickTab::onCalSlopeTextChanged);
-    connect(ui->b1LineEdit, &QLineEdit::textChanged, this, &CalibrationStickTab::onCalSlopeTextChanged);
-    connect(ui->b2LineEdit, &QLineEdit::textChanged, this, &CalibrationStickTab::onCalSlopeTextChanged);
 
     // Calibration (reflection density) field validation
     ui->reflLoDensityLineEdit->setValidator(util::createFloatValidator(0.0, 2.5, 2, this));
@@ -51,15 +40,6 @@ CalibrationStickTab::CalibrationStickTab(DensiStickRunner *stickRunner, QWidget 
     connect(ui->reflLoReadingLineEdit, &QLineEdit::textChanged, this, &CalibrationStickTab::onCalReflectionTextChanged);
     connect(ui->reflHiDensityLineEdit, &QLineEdit::textChanged, this, &CalibrationStickTab::onCalReflectionTextChanged);
     connect(ui->reflHiReadingLineEdit, &QLineEdit::textChanged, this, &CalibrationStickTab::onCalReflectionTextChanged);
-
-    // It has been determined that slope calibration is not beneficial
-    // for a reflection-only device, and can even make errors worse.
-    // This is likely because the range of readings is not as large
-    // as with transmission, and thus does not cover the region where
-    // these corrections are most helpful.
-    // As such, slope calibration features are disabled and may be
-    // later removed.
-    ui->slopeGroupBox->setEnabled(false);
 
     refreshButtonState();
 }
@@ -74,7 +54,6 @@ void CalibrationStickTab::setAdvancedCalibrationEditable(bool editable)
     editable_ = editable;
     refreshButtonState();
     onCalGainTextChanged();
-    onCalSlopeTextChanged();
 }
 
 void CalibrationStickTab::setDensityPrecision(int precision)
@@ -92,10 +71,6 @@ void CalibrationStickTab::clear()
             lineEdit->clear();
         }
     }
-
-    ui->b0LineEdit->clear();
-    ui->b1LineEdit->clear();
-    ui->b2LineEdit->clear();
 
     ui->reflLoDensityLineEdit->clear();
     ui->reflLoReadingLineEdit->clear();
@@ -147,10 +122,6 @@ void CalibrationStickTab::refreshButtonState()
         }
     }
 
-    ui->b0LineEdit->setReadOnly(!connected || !editable_);
-    ui->b1LineEdit->setReadOnly(!connected || !editable_);
-    ui->b2LineEdit->setReadOnly(!connected || !editable_);
-
     ui->reflLoDensityLineEdit->setReadOnly(!connected);
     ui->reflLoReadingLineEdit->setReadOnly(!connected);
     ui->reflHiDensityLineEdit->setReadOnly(!connected);
@@ -170,9 +141,8 @@ void CalibrationStickTab::onCalGetAllValues()
 {
     if (!stickRunner_ || !stickRunner_->stickInterface()->connected() || !stickRunner_->stickInterface()->hasSettings()) { return; }
 
-    calData_ = stickRunner_->stickInterface()->settings()->readCalTsl2585();
+    calData_ = stickRunner_->stickInterface()->settings()->readCalibration();
     updateCalGain();
-    updateCalSlope();
     updateCalTarget();
 }
 
@@ -217,19 +187,21 @@ void CalibrationStickTab::onCalGainSetClicked()
 {
     bool ok;
 
-    Tsl2585Calibration updatedCal = calData_;
+    DensiStickCalibration updatedCal = calData_;
 
+    PeripheralCalGain calGain;
     for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
         QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
         if (lineEdit) {
             float gainValue = lineEdit->text().toFloat(&ok);
             if (!ok) { return; }
 
-            updatedCal.setGainCalibration(static_cast<tsl2585_gain_t>(i), gainValue);
+            calGain.setGainValue(static_cast<PeripheralCalGain::GainLevel>(i), gainValue);
         }
     }
+    updatedCal.setGainCalibration(calGain);
 
-    if (stickRunner_->stickInterface()->settings()->writeCalTsl2585(updatedCal)) {
+    if (stickRunner_->stickInterface()->settings()->writeCalibration(updatedCal)) {
         calData_ = updatedCal;
         stickRunner_->reloadCalibration();
         updateCalGain();
@@ -237,28 +209,9 @@ void CalibrationStickTab::onCalGainSetClicked()
     emit calibrationSaved();
 }
 
-void CalibrationStickTab::onCalSlopeSetClicked()
-{
-    Tsl2585CalSlope calSlope;
-    bool ok;
-
-    calSlope.setB0(ui->b0LineEdit->text().toFloat(&ok));
-    if (!ok) { return; }
-
-    calSlope.setB1(ui->b1LineEdit->text().toFloat(&ok));
-    if (!ok) { return; }
-
-    calSlope.setB2(ui->b2LineEdit->text().toFloat(&ok));
-    if (!ok) { return; }
-
-    calData_.setSlopeCalibration(calSlope);
-    //densInterface_->sendSetCalSlope(calSlope);
-    emit calibrationSaved();
-}
-
 void CalibrationStickTab::onCalReflectionSetClicked()
 {
-    Tsl2585CalTarget calTarget;
+    PeripheralCalDensityTarget calTarget;
     bool ok;
 
     calTarget.setLoDensity(ui->reflLoDensityLineEdit->text().toFloat(&ok));
@@ -273,10 +226,10 @@ void CalibrationStickTab::onCalReflectionSetClicked()
     calTarget.setHiReading(ui->reflHiReadingLineEdit->text().toFloat(&ok));
     if (!ok) { return; }
 
-    Tsl2585Calibration updatedCal = calData_;
+    DensiStickCalibration updatedCal = calData_;
     updatedCal.setTargetCalibration(calTarget);
 
-    if (stickRunner_->stickInterface()->settings()->writeCalTsl2585(updatedCal)) {
+    if (stickRunner_->stickInterface()->settings()->writeCalibration(updatedCal)) {
         calData_ = updatedCal;
         stickRunner_->reloadCalibration();
         updateCalTarget();
@@ -302,29 +255,11 @@ void CalibrationStickTab::onCalGainTextChanged()
 
     for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
         QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
-        float gainValue = calData_.gainCalibration(static_cast<tsl2585_gain_t>(i));
+        float gainValue = calData_.gainCalibration().gainValue(static_cast<PeripheralCalGain::GainLevel>(i));
         if (lineEdit) {
             updateLineEditDirtyState(lineEdit, gainValue, 6);
         }
     }
-}
-
-void CalibrationStickTab::onCalSlopeTextChanged()
-{
-    if (stickRunner_ && stickRunner_->stickInterface()->connected() && stickRunner_->stickInterface()->hasSettings()
-        && ui->b0LineEdit->hasAcceptableInput()
-        && ui->b1LineEdit->hasAcceptableInput()
-        && ui->b2LineEdit->hasAcceptableInput()
-        && editable_) {
-        ui->slopeSetPushButton->setEnabled(true);
-    } else {
-        ui->slopeSetPushButton->setEnabled(false);
-    }
-
-    const Tsl2585CalSlope calSlope = calData_.slopeCalibration();
-    updateLineEditDirtyState(ui->b0LineEdit, calSlope.b0(), 6);
-    updateLineEditDirtyState(ui->b1LineEdit, calSlope.b1(), 6);
-    updateLineEditDirtyState(ui->b2LineEdit, calSlope.b2(), 6);
 }
 
 void CalibrationStickTab::onCalReflectionTextChanged()
@@ -339,7 +274,7 @@ void CalibrationStickTab::onCalReflectionTextChanged()
         ui->reflSetPushButton->setEnabled(false);
     }
 
-    const Tsl2585CalTarget calTarget = calData_.targetCalibration();
+    const PeripheralCalDensityTarget calTarget = calData_.targetCalibration();
     updateLineEditDirtyState(ui->reflLoDensityLineEdit, calTarget.loDensity(), densPrecision_);
     updateLineEditDirtyState(ui->reflLoReadingLineEdit, calTarget.loReading(), 6);
     updateLineEditDirtyState(ui->reflHiDensityLineEdit, calTarget.hiDensity(), densPrecision_);
@@ -350,7 +285,7 @@ void CalibrationStickTab::updateCalGain()
 {
     for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
         QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
-        float gainValue = calData_.gainCalibration(static_cast<tsl2585_gain_t>(i));
+        float gainValue = calData_.gainCalibration().gainValue(static_cast<PeripheralCalGain::GainLevel>(i));
         if (lineEdit) {
             if (qIsNaN(gainValue) || !qIsFinite(gainValue) || gainValue <= 0.0F) {
                 lineEdit->setText(QString());
@@ -363,20 +298,9 @@ void CalibrationStickTab::updateCalGain()
     onCalGainTextChanged();
 }
 
-void CalibrationStickTab::updateCalSlope()
-{
-    const Tsl2585CalSlope calSlope = calData_.slopeCalibration();
-
-    ui->b0LineEdit->setText(QString::number(calSlope.b0(), 'f'));
-    ui->b1LineEdit->setText(QString::number(calSlope.b1(), 'f'));
-    ui->b2LineEdit->setText(QString::number(calSlope.b2(), 'f'));
-
-    onCalSlopeTextChanged();
-}
-
 void CalibrationStickTab::updateCalTarget()
 {
-    const Tsl2585CalTarget calReflection = calData_.targetCalibration();
+    const PeripheralCalDensityTarget calReflection = calData_.targetCalibration();
 
     ui->reflLoDensityLineEdit->setText(QString::number(calReflection.loDensity(), 'f', densPrecision_));
     ui->reflLoReadingLineEdit->setText(QString::number(calReflection.loReading(), 'f', 6));
@@ -384,24 +308,4 @@ void CalibrationStickTab::updateCalTarget()
     ui->reflHiReadingLineEdit->setText(QString::number(calReflection.hiReading(), 'f', 6));
 
     onCalReflectionTextChanged();
-}
-
-void CalibrationStickTab::onSlopeCalibrationTool()
-{
-    SlopeCalibrationDialog *dialog = new SlopeCalibrationDialog(stickRunner_, this);
-    connect(dialog, &QDialog::finished, this, &CalibrationStickTab::onSlopeCalibrationToolFinished);
-    dialog->show();
-}
-
-void CalibrationStickTab::onSlopeCalibrationToolFinished(int result)
-{
-    SlopeCalibrationDialog *dialog = dynamic_cast<SlopeCalibrationDialog *>(sender());
-    dialog->deleteLater();
-
-    if (result == QDialog::Accepted) {
-        auto result = dialog->calValues();
-        ui->b0LineEdit->setText(QString::number(std::get<0>(result), 'f'));
-        ui->b1LineEdit->setText(QString::number(std::get<1>(result), 'f'));
-        ui->b2LineEdit->setText(QString::number(std::get<2>(result), 'f'));
-    }
 }

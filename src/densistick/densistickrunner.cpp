@@ -53,7 +53,7 @@ bool DensiStickRunner::enabled() const
 void DensiStickRunner::reloadCalibration()
 {
     if (!stickInterface_ || !stickInterface_->hasSettings()) { return; }
-    calData_ = stickInterface_->settings()->readCalTsl2585();
+    calData_ = stickInterface_->settings()->readCalibration();
 }
 
 void DensiStickRunner::onButtonEvent(bool pressed)
@@ -132,7 +132,8 @@ void DensiStickRunner::finishMeasurement()
 
     const float timeMs = TSL2585::integrationTimeMs(SAMPLE_TIME, SAMPLE_COUNT);
 
-    float gainValue = calData_.gainCalibration(readingList_.last().gain());
+    const int gainIndex = static_cast<int>(readingList_.last().gain());
+    float gainValue = calData_.gainCalibration().gainValue(static_cast<PeripheralCalGain::GainLevel>(gainIndex));
     if (qIsNaN(gainValue) || gainValue <= 0.0F || gainValue > 512.0F) {
         qWarning() << "Bad gain calibration value:" << gainValue;
         gainValue = TSL2585::gainValue(readingList_.last().gain());
@@ -144,7 +145,7 @@ void DensiStickRunner::finishMeasurement()
     qDebug() << "Reading:" << Qt::fixed << rawReading << basicReading;
     emit targetMeasurement(basicReading);
 
-    const Tsl2585CalTarget calTarget = calData_.targetCalibration();
+    const PeripheralCalDensityTarget calTarget = calData_.targetCalibration();
 
     /* Convert all values into log units */
     float meas_ll = std::log10(basicReading);

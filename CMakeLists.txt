@@ -74,7 +74,7 @@ set(DENSISTICK_INTERFACE_SOURCES
     src/densistick/ft260hidapi.cpp src/densistick/ft260hidapi.h
     src/densistick/tsl2585.cpp src/densistick/tsl2585.h
     src/densistick/m24c08.cpp src/densistick/m24c08.h
-    src/densistick/tsl2585calibration.cpp src/densistick/tsl2585calibration.h
+    src/densistick/peripheralcalvalues.cpp src/densistick/peripheralcalvalues.h
     src/densistick/densisticksettings.cpp src/densistick/densisticksettings.h
     src/densistick/densistickinterface.cpp src/densistick/densistickinterface.h
     src/densistick/densistickreading.cpp src/densistick/densistickreading.h

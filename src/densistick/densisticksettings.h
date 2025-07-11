@@ -3,7 +3,7 @@
 
 #include <QByteArray>
 
-#include "tsl2585calibration.h"
+#include "peripheralcalvalues.h"
 
 class M24C08;
 
@@ -25,8 +25,8 @@ public:
 
     bool writeHeaderPage();
 
-    Tsl2585Calibration readCalTsl2585();
-    bool writeCalTsl2585(const Tsl2585Calibration &calData);
+    DensiStickCalibration readCalibration();
+    bool writeCalibration(const DensiStickCalibration &calibrationData);
 
 private:
     M24C08 *eeprom_;

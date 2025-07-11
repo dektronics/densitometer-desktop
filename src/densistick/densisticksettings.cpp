@@ -49,10 +49,7 @@
 #define CAL_TSL2585_GAIN_CRC    60 /* 4B (uint32_t) */
 
 /* TSL2585 Slope Calibration (16B) */
-#define CAL_TSL2585_SLOPE_B0    64 /* 4B (float) */
-#define CAL_TSL2585_SLOPE_B1    68 /* 4B (float) */
-#define CAL_TSL2585_SLOPE_B2    72 /* 4B (float) */
-#define CAL_TSL2585_SLOPE_CRC   76 /* 4B (uint32_t) */
+#define CAL_TSL2585_SLOPE_RESERVED 64 /* 16B (unused) */
 
 /* TSL2585 Target Calibration (32B) */
 #define CAL_TSL2585_TARGET_LO_DENSITY  80 /* 4B (float) */
@@ -140,7 +137,7 @@ bool DensiStickSettings::writeHeaderPage()
     return result;
 }
 
-Tsl2585Calibration DensiStickSettings::readCalTsl2585()
+DensiStickCalibration DensiStickSettings::readCalibration()
 {
     uint32_t version;
     uint32_t crc;
@@ -149,7 +146,7 @@ Tsl2585Calibration DensiStickSettings::readCalTsl2585()
     // Read the full buffer from the EEPROM
     QByteArray buf = eeprom_->readBuffer(PAGE_CAL, PAGE_CAL_SIZE);
 
-    if (buf.isEmpty()) { return Tsl2585Calibration(); }
+    if (buf.isEmpty()) { return DensiStickCalibration(); }
 
     uint8_t *data = reinterpret_cast<uint8_t *>(buf.data());
 
@@ -158,10 +155,10 @@ Tsl2585Calibration DensiStickSettings::readCalTsl2585()
 
     if (version != LATEST_CAL_TSL2585_VERSION) {
         qWarning() << "Unexpected TSL2585 cal version:" << version << "!=" << LATEST_CAL_TSL2585_VERSION;
-        return Tsl2585Calibration();
+        return DensiStickCalibration();
     }
 
-    Tsl2585Calibration calData;
+    DensiStickCalibration calibrationData;
 
     // Validate the gain data CRC
     crc = util::copy_to_u32(data + CAL_TSL2585_GAIN_CRC);
@@ -170,34 +167,20 @@ Tsl2585Calibration DensiStickSettings::readCalTsl2585()
         (CAL_TSL2585_GAIN_CRC - CAL_TSL2585_GAIN_0_5X) / 4UL);
     if (crc == calculated_crc) {
         // Parse the gain data
-        calData.setGainCalibration(TSL2585_GAIN_0_5X, util::copy_to_f32(data + CAL_TSL2585_GAIN_0_5X));
-        calData.setGainCalibration(TSL2585_GAIN_1X, util::copy_to_f32(data + CAL_TSL2585_GAIN_1X));
-        calData.setGainCalibration(TSL2585_GAIN_2X, util::copy_to_f32(data + CAL_TSL2585_GAIN_2X));
-        calData.setGainCalibration(TSL2585_GAIN_4X, util::copy_to_f32(data + CAL_TSL2585_GAIN_4X));
-        calData.setGainCalibration(TSL2585_GAIN_8X, util::copy_to_f32(data + CAL_TSL2585_GAIN_8X));
-        calData.setGainCalibration(TSL2585_GAIN_16X, util::copy_to_f32(data + CAL_TSL2585_GAIN_16X));
-        calData.setGainCalibration(TSL2585_GAIN_32X, util::copy_to_f32(data + CAL_TSL2585_GAIN_32X));
-        calData.setGainCalibration(TSL2585_GAIN_64X, util::copy_to_f32(data + CAL_TSL2585_GAIN_64X));
-        calData.setGainCalibration(TSL2585_GAIN_128X, util::copy_to_f32(data + CAL_TSL2585_GAIN_128X));
-        calData.setGainCalibration(TSL2585_GAIN_256X, util::copy_to_f32(data + CAL_TSL2585_GAIN_256X));
+        PeripheralCalGain calGain;
+        calGain.setGainValue(PeripheralCalGain::Gain0_5X, util::copy_to_f32(data + CAL_TSL2585_GAIN_0_5X));
+        calGain.setGainValue(PeripheralCalGain::Gain1X, util::copy_to_f32(data + CAL_TSL2585_GAIN_1X));
+        calGain.setGainValue(PeripheralCalGain::Gain2X, util::copy_to_f32(data + CAL_TSL2585_GAIN_2X));
+        calGain.setGainValue(PeripheralCalGain::Gain4X, util::copy_to_f32(data + CAL_TSL2585_GAIN_4X));
+        calGain.setGainValue(PeripheralCalGain::Gain8X, util::copy_to_f32(data + CAL_TSL2585_GAIN_8X));
+        calGain.setGainValue(PeripheralCalGain::Gain16X, util::copy_to_f32(data + CAL_TSL2585_GAIN_16X));
+        calGain.setGainValue(PeripheralCalGain::Gain32X, util::copy_to_f32(data + CAL_TSL2585_GAIN_32X));
+        calGain.setGainValue(PeripheralCalGain::Gain64X, util::copy_to_f32(data + CAL_TSL2585_GAIN_64X));
+        calGain.setGainValue(PeripheralCalGain::Gain128X, util::copy_to_f32(data + CAL_TSL2585_GAIN_128X));
+        calGain.setGainValue(PeripheralCalGain::Gain256X, util::copy_to_f32(data + CAL_TSL2585_GAIN_256X));
+        calibrationData.setGainCalibration(calGain);
     } else {
         qWarning() << "Invalid TSL2585 gain cal CRC:" << Qt::hex << crc << "!=" << calculated_crc;
-    }
-
-    // Validate the slope data CRC
-    crc = util::copy_to_u32(data + CAL_TSL2585_SLOPE_CRC);
-    calculated_crc = util::calculateStmCrc32(
-        reinterpret_cast<uint32_t *>(data + CAL_TSL2585_SLOPE_B0),
-        (CAL_TSL2585_SLOPE_CRC - CAL_TSL2585_SLOPE_B0) / 4UL);
-    if (crc == calculated_crc) {
-        // Parse the slope data
-        Tsl2585CalSlope calSlope;
-        calSlope.setB0(util::copy_to_f32(data + CAL_TSL2585_SLOPE_B0));
-        calSlope.setB1(util::copy_to_f32(data + CAL_TSL2585_SLOPE_B1));
-        calSlope.setB2(util::copy_to_f32(data + CAL_TSL2585_SLOPE_B2));
-        calData.setSlopeCalibration(calSlope);
-    } else {
-        qWarning() << "Invalid TSL2585 slope cal CRC:" << Qt::hex << crc << "!=" << calculated_crc;
     }
 
     // Validate the target data CRC
@@ -206,20 +189,20 @@ Tsl2585Calibration DensiStickSettings::readCalTsl2585()
         reinterpret_cast<uint32_t *>(data + CAL_TSL2585_TARGET_LO_DENSITY),
         (CAL_TSL2585_TARGET_CRC - CAL_TSL2585_TARGET_LO_DENSITY) / 4UL);
     if (crc == calculated_crc) {
-        Tsl2585CalTarget calTarget;
+        PeripheralCalDensityTarget calTarget;
         calTarget.setLoDensity(util::copy_to_f32(data + CAL_TSL2585_TARGET_LO_DENSITY));
         calTarget.setLoReading(util::copy_to_f32(data + CAL_TSL2585_TARGET_LO_READING));
         calTarget.setHiDensity(util::copy_to_f32(data + CAL_TSL2585_TARGET_HI_DENSITY));
         calTarget.setHiReading(util::copy_to_f32(data + CAL_TSL2585_TARGET_HI_READING));
-        calData.setTargetCalibration(calTarget);
+        calibrationData.setTargetCalibration(calTarget);
     } else {
         qWarning() << "Invalid TSL2585 target cal CRC:" << Qt::hex << crc << "!=" << calculated_crc;
     }
 
-    return calData;
+    return calibrationData;
 }
 
-bool DensiStickSettings::writeCalTsl2585(const Tsl2585Calibration &calData)
+bool DensiStickSettings::writeCalibration(const DensiStickCalibration &calibrationData)
 {
     uint32_t crc;
 
@@ -230,37 +213,29 @@ bool DensiStickSettings::writeCalTsl2585(const Tsl2585Calibration &calData)
     util::copy_from_u32(data + CAL_TSL2585_VERSION, LATEST_CAL_TSL2585_VERSION);
 
     // Populate the gain data
-    util::copy_from_f32(data + CAL_TSL2585_GAIN_0_5X, calData.gainCalibration(TSL2585_GAIN_0_5X));
-    util::copy_from_f32(data + CAL_TSL2585_GAIN_1X, calData.gainCalibration(TSL2585_GAIN_1X));
-    util::copy_from_f32(data + CAL_TSL2585_GAIN_2X, calData.gainCalibration(TSL2585_GAIN_2X));
-    util::copy_from_f32(data + CAL_TSL2585_GAIN_4X, calData.gainCalibration(TSL2585_GAIN_4X));
-    util::copy_from_f32(data + CAL_TSL2585_GAIN_8X, calData.gainCalibration(TSL2585_GAIN_8X));
-    util::copy_from_f32(data + CAL_TSL2585_GAIN_16X, calData.gainCalibration(TSL2585_GAIN_16X));
-    util::copy_from_f32(data + CAL_TSL2585_GAIN_32X, calData.gainCalibration(TSL2585_GAIN_32X));
-    util::copy_from_f32(data + CAL_TSL2585_GAIN_64X, calData.gainCalibration(TSL2585_GAIN_64X));
-    util::copy_from_f32(data + CAL_TSL2585_GAIN_128X, calData.gainCalibration(TSL2585_GAIN_128X));
-    util::copy_from_f32(data + CAL_TSL2585_GAIN_256X, calData.gainCalibration(TSL2585_GAIN_256X));
+    const PeripheralCalGain calGain = calibrationData.gainCalibration();
+    util::copy_from_f32(data + CAL_TSL2585_GAIN_0_5X, calGain.gainValue(PeripheralCalGain::Gain0_5X));
+    util::copy_from_f32(data + CAL_TSL2585_GAIN_1X, calGain.gainValue(PeripheralCalGain::Gain1X));
+    util::copy_from_f32(data + CAL_TSL2585_GAIN_2X, calGain.gainValue(PeripheralCalGain::Gain2X));
+    util::copy_from_f32(data + CAL_TSL2585_GAIN_4X, calGain.gainValue(PeripheralCalGain::Gain4X));
+    util::copy_from_f32(data + CAL_TSL2585_GAIN_8X, calGain.gainValue(PeripheralCalGain::Gain8X));
+    util::copy_from_f32(data + CAL_TSL2585_GAIN_16X, calGain.gainValue(PeripheralCalGain::Gain16X));
+    util::copy_from_f32(data + CAL_TSL2585_GAIN_32X, calGain.gainValue(PeripheralCalGain::Gain32X));
+    util::copy_from_f32(data + CAL_TSL2585_GAIN_64X, calGain.gainValue(PeripheralCalGain::Gain64X));
+    util::copy_from_f32(data + CAL_TSL2585_GAIN_128X, calGain.gainValue(PeripheralCalGain::Gain128X));
+    util::copy_from_f32(data + CAL_TSL2585_GAIN_256X, calGain.gainValue(PeripheralCalGain::Gain256X));
 
     crc = util::calculateStmCrc32(
         reinterpret_cast<uint32_t *>(data + CAL_TSL2585_GAIN_0_5X),
         (CAL_TSL2585_GAIN_CRC - CAL_TSL2585_GAIN_0_5X) / 4UL);
     util::copy_from_u32(data + CAL_TSL2585_GAIN_CRC, crc);
 
-    // Populate the slope data
-    util::copy_from_f32(data + CAL_TSL2585_SLOPE_B0, calData.slopeCalibration().b0());
-    util::copy_from_f32(data + CAL_TSL2585_SLOPE_B1, calData.slopeCalibration().b1());
-    util::copy_from_f32(data + CAL_TSL2585_SLOPE_B2, calData.slopeCalibration().b2());
-
-    crc = util::calculateStmCrc32(
-        reinterpret_cast<uint32_t *>(data + CAL_TSL2585_SLOPE_B0),
-        (CAL_TSL2585_SLOPE_CRC - CAL_TSL2585_SLOPE_B0) / 4UL);
-    util::copy_from_u32(data + CAL_TSL2585_SLOPE_CRC, crc);
-
     // Populate the target data
-    util::copy_from_f32(data + CAL_TSL2585_TARGET_LO_DENSITY, calData.targetCalibration().loDensity());
-    util::copy_from_f32(data + CAL_TSL2585_TARGET_LO_READING, calData.targetCalibration().loReading());
-    util::copy_from_f32(data + CAL_TSL2585_TARGET_HI_DENSITY, calData.targetCalibration().hiDensity());
-    util::copy_from_f32(data + CAL_TSL2585_TARGET_HI_READING, calData.targetCalibration().hiReading());
+    const PeripheralCalDensityTarget calTarget = calibrationData.targetCalibration();
+    util::copy_from_f32(data + CAL_TSL2585_TARGET_LO_DENSITY, calTarget.loDensity());
+    util::copy_from_f32(data + CAL_TSL2585_TARGET_LO_READING, calTarget.loReading());
+    util::copy_from_f32(data + CAL_TSL2585_TARGET_HI_DENSITY, calTarget.hiDensity());
+    util::copy_from_f32(data + CAL_TSL2585_TARGET_HI_READING, calTarget.hiReading());
 
     crc = util::calculateStmCrc32(
         reinterpret_cast<uint32_t *>(data + CAL_TSL2585_TARGET_LO_DENSITY),

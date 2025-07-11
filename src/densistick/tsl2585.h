@@ -6,12 +6,32 @@
 
 #define TSL2585_SAMPLE_TIME_BASE 1.388889F /*!< Sample time base in microseconds */
 
+typedef struct {
+    uint8_t devId;
+    uint8_t revId;
+    uint8_t auxId;
+} tsl2585_ident_t;
+
+typedef enum {
+    SENSOR_TYPE_UNKNOWN = 0,
+    SENSOR_TYPE_TSL2585,
+    SENSOR_TYPE_TSL2520,
+    SENSOR_TYPE_TSL2521,
+    SENSOR_TYPE_TSL2522,
+    SENSOR_TYPE_TCS3410
+} tsl2585_sensor_type_t;
+
 typedef enum {
     TSL2585_MOD_NONE = 0x00,
     TSL2585_MOD0 = 0x01,
     TSL2585_MOD1 = 0x02,
     TSL2585_MOD2 = 0x04
 } tsl2585_modulator_t;
+
+inline tsl2585_modulator_t operator|(tsl2585_modulator_t a, tsl2585_modulator_t b)
+{
+    return static_cast<tsl2585_modulator_t>(static_cast<uint8_t>(a) | static_cast<uint8_t>(b));
+}
 
 typedef enum {
     TSL2585_STEP0 = 0x01,
@@ -50,6 +70,18 @@ typedef enum {
     TSL2585_GAIN_MAX   = 14
 } tsl2585_gain_t;
 
+inline tsl2585_gain_t operator+(tsl2585_gain_t a, int b)
+{
+    int gainVal = (static_cast<uint8_t>(a) + b) % TSL2585_GAIN_MAX;
+    return static_cast<tsl2585_gain_t>(gainVal);
+}
+
+inline tsl2585_gain_t operator-(tsl2585_gain_t a, int b)
+{
+    int gainVal = (static_cast<uint8_t>(a) - b) % TSL2585_GAIN_MAX;
+    return static_cast<tsl2585_gain_t>(gainVal);
+}
+
 typedef struct {
     bool overflow;
     bool underflow;
@@ -61,6 +93,15 @@ typedef enum {
     TSL2585_ALS_FIFO_24BIT = 0x01,
     TSL2585_ALS_FIFO_32BIT = 0x03
 } tsl2585_als_fifo_data_format_t;
+
+typedef enum {
+    TSL2585_TRIGGER_OFF      = 0x00, /*!< Off */
+    TSL2585_TRIGGER_NORMAL   = 0x01, /*!< 2.844ms * WTIME */
+    TSL2585_TRIGGER_LONG     = 0x02, /*!< 45.511ms * WTIME */
+    TSL2585_TRIGGER_FAST     = 0x03, /*!< 88.889us * WTIME */
+    TSL2585_TRIGGER_FASTLONG = 0x04, /*!< 1.422ms * WTIME */
+    TSL2585_TRIGGER_VSYNC    = 0x05  /*!< One VSYNC per WTIME step */
+} tsl2585_trigger_mode_t;
 
 /* ENABLE register values */
 #define TSL2585_ENABLE_FDEN 0x40 /*!< Flicker detection enable */
@@ -86,6 +127,15 @@ typedef enum {
 #define TSL2585_STATUS2_MOD_ANALOG_SATURATION2 0x04 /*!< ALS Analog Saturation of modulator 2 */
 #define TSL2585_STATUS2_MOD_ANALOG_SATURATION1 0x02 /*!< ALS Analog Saturation of modulator 1 */
 #define TSL2585_STATUS2_MOD_ANALOG_SATURATION0 0x01 /*!< ALS Analog Saturation of modulator 0 */
+
+/* STATUS3 register values */
+#define TSL2585_STATUS3_AINT_HYST_STATE_VALID 0x80 /*!< Indicates that the ALS interrupt hysteresis state is valid */
+#define TSL2585_STATUS3_AINT_HYST_STATE_RD    0x40 /*!< Indicates the state in the hysteresis defined with AINT_AILT and AINT_AIHT */
+#define TSL2585_STATUS3_AINT_AIHT             0x20 /*!< ALS Interrupt High */
+#define TSL2585_STATUS3_AINT_AILT             0x10 /*!< ALS Interrupt Low */
+#define TSL2585_STATUS3_VSYNC_LOST            0x08 /*!< Indicates that synchronization is out of sync with clock provided at the VSYNC pin */
+#define TSL2585_STATUS3_OSC_CALIB_SATURATION  0x02 /*!< Indicates that oscillator calibration is out of range */
+#define TSL2585_STATUS3_OSC_CALIB_FINISHED    0x01 /*!< Indicates that oscillator calibration is finished */
 
 /* STATUS4 register values */
 #define TSL2585_STATUS4_MOD_SAMPLE_TRIGGER_ERROR 0x08 /*!< Measured data is corrupted */
@@ -126,7 +176,7 @@ class TSL2585
 public:
     explicit TSL2585(Ft260 *ft260);
 
-    bool init();
+    bool init(tsl2585_ident_t *ident = nullptr);
 
     bool setEnable(uint8_t value);
     bool enable();
@@ -174,6 +224,9 @@ public:
     bool getAlsMsbPosition(uint8_t *position);
     bool setAlsMsbPosition(uint8_t position);
 
+    bool getTriggerMode(tsl2585_trigger_mode_t *mode);
+    bool setTriggerMode(tsl2585_trigger_mode_t mode);
+
     bool getAlsData0(uint16_t *data);
     bool getAlsData1(uint16_t *data);
     bool getAlsData2(uint16_t *data);
@@ -184,6 +237,14 @@ public:
 
     QByteArray readFifo(uint16_t len);
 
+    bool getVSyncPeriod(uint16_t *period);
+    bool setVSyncPeriodTarget(uint16_t periodTarget, bool useFastTiming);
+    bool setVSyncControl(uint8_t value);
+    bool setVSyncConfig(uint8_t value);
+    bool setVSyncGpioInt(uint8_t value);
+
+    static tsl2585_sensor_type_t sensorType(const tsl2585_ident_t *ident);
+    static QString sensorTypeName(tsl2585_sensor_type_t sensorType);
     static QString gainString(tsl2585_gain_t gain);
     static float gainValue(tsl2585_gain_t gain);
     static float integrationTimeMs(uint16_t sampleTime, uint16_t numSamples);

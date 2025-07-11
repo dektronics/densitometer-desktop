@@ -5,7 +5,7 @@
 
 #include "calibrationtab.h"
 #include "densistick/densistickrunner.h"
-#include "densistick/tsl2585calibration.h"
+#include "densistick/peripheralcalvalues.h"
 
 class QLineEdit;
 
@@ -41,27 +41,21 @@ private slots:
     void onCalGetAllValues();
     void onCalGainCalClicked();
     void onCalGainSetClicked();
-    void onCalSlopeSetClicked();
     void onCalReflectionSetClicked();
 
     void onCalGainTextChanged();
-    void onCalSlopeTextChanged();
     void onCalReflectionTextChanged();
-
-    void onSlopeCalibrationTool();
-    void onSlopeCalibrationToolFinished(int result);
 
 private:
     void refreshButtonState();
     void updateCalGain();
-    void updateCalSlope();
     void updateCalTarget();
 
     bool editable_ = false;
     int densPrecision_ = 2;
     Ui::CalibrationStickTab *ui;
     DensiStickRunner *stickRunner_ = nullptr;
-    Tsl2585Calibration calData_;
+    DensiStickCalibration calData_;
 };
 
 #endif // CALIBRATIONSTICKTAB_H
