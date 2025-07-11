@@ -13,9 +13,15 @@ static const uint8_t EEPROM_ADDRESS = 0x50;
 static const uint8_t MCP4017_ADDRESS = 0x2F;
 
 /* TSL2585: Only enable Photopic photodiodes on modulator 0 */
-static const tsl2585_modulator_t sensor_tsl2585_phd_mod_vis[] = {
+static const photodiode_modulator_array_t sensor_tsl2585_phd_mod_vis{
     TSL2585_MOD_NONE, TSL2585_MOD0, TSL2585_MOD_NONE, TSL2585_MOD_NONE, TSL2585_MOD_NONE, TSL2585_MOD0
 };
+
+/* TSL2522: Only enable Photopic photodiodes on modulator 0 */
+static const photodiode_modulator_array_t sensor_tsl2522_phd_mod_vis{
+    TSL2585_MOD_NONE, TSL2585_MOD0, TSL2585_MOD0, TSL2585_MOD0, TSL2585_MOD0, TSL2585_MOD_NONE
+};
+
 }
 
 DensiStickInterface::DensiStickInterface(Ft260 *ft260, QObject *parent)
@@ -64,11 +70,13 @@ bool DensiStickInterface::open()
 
     // Create the light sensor device handler
     sensor_ = new TSL2585(ft260_);
-    if (!sensor_->init()) {
+    tsl2585_ident_t ident;
+    if (!sensor_->init(&ident)) {
         qWarning() << "Unable to initialize sensor";
         close();
         return false;
     }
+    sensorType_ = TSL2585::sensorType(&ident);
 
     // Populate the version string
     Ft260ChipVersion chipVersion;
@@ -389,7 +397,14 @@ bool DensiStickInterface::sensorStart()
         if (!sensor_->setCalibrationNthIteration(1)) { break; }
 
         // Configure photodiodes
-        if (!sensor_->setModPhotodiodeSmux(TSL2585_STEP0, sensor_tsl2585_phd_mod_vis)) { break; }
+        if (sensorType_ == SENSOR_TYPE_TSL2522) {
+            if (!sensor_->setModPhotodiodeSmux(TSL2585_STEP0, sensor_tsl2522_phd_mod_vis)) { break; }
+        } else if (sensorType_ == SENSOR_TYPE_TSL2585) {
+            if (!sensor_->setModPhotodiodeSmux(TSL2585_STEP0, sensor_tsl2585_phd_mod_vis)) { break; }
+        } else {
+            qWarning() << "Unsupported sensor type, cannot configure SMUX";
+            break;
+        }
 
         // Set initial gain
         if (!sensor_->setModGain(TSL2585_MOD0, TSL2585_STEP0, static_cast<tsl2585_gain_t>(sensorGain_))) { break; }

@@ -9,6 +9,9 @@
 static const uint8_t TSL2585_ADDRESS = 0x39;
 
 /*
+ * These notes indicate the default configuration of the TSL2585 specifically.
+ * Other sensors in the series may have different defaults.
+ *
  * Photodiode numbering:
  * 0 - IR        {1, x, 2, x}
  * 1 - Photopic  {0, 0, 0, 0}
@@ -17,7 +20,8 @@ static const uint8_t TSL2585_ADDRESS = 0x39;
  * 4 - UV-A      {1, 2, x, 2}
  * 5 - Photopic  {0, x, 1, x}
  *
- * Startup configuration:
+ * Startup configuration for the TSL2585:
+ *
  * Sequencer step 0:
  * - Photodiode 0(IR)  -> Modulator 1
  * - Photodiode 1(Pho) -> Modulator 0
@@ -180,7 +184,7 @@ bool TSL2585::init(tsl2585_ident_t *ident)
     quint8 auxId = 0;
 
 
-    qDebug() << "Initializing TSL2585";
+    qDebug() << "Initializing TSL25XX sensor";
 
     if (!ft260_->i2cReadByte(TSL2585_ADDRESS, TSL2585_ID, &devId)) { return false; }
 
@@ -231,7 +235,7 @@ bool TSL2585::init(tsl2585_ident_t *ident)
         return false;
     }
 
-    qDebug() << "TSL2585 Initialized";
+    qDebug() << "TSL25XX Initialized";
 
     return true;
 }
@@ -461,7 +465,7 @@ bool TSL2585::setModResidualEnable(tsl2585_modulator_t mod, tsl2585_step_t steps
     return ft260_->i2cWriteByte(TSL2585_ADDRESS, reg, data);
 }
 
-bool TSL2585::setModPhotodiodeSmux(tsl2585_step_t step, const tsl2585_modulator_t phd_mod[TSL2585_PHD_MAX])
+bool TSL2585::setModPhotodiodeSmux(tsl2585_step_t step, const photodiode_modulator_array_t &phd_mod)
 {
     QByteArray buf;
     uint8_t reg;

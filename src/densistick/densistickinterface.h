@@ -59,6 +59,7 @@ private:
     bool connected_ = false;
     Ft260 *ft260_ = nullptr;
     M24C08 *eeprom_ = nullptr;
+    tsl2585_sensor_type_t sensorType_ = SENSOR_TYPE_UNKNOWN;
     QString ft260Version_;
     QString ft260SystemClock_;
     DensiStickSettings *settings_ = nullptr;

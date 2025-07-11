@@ -12,6 +12,15 @@ typedef struct {
     uint8_t auxId;
 } tsl2585_ident_t;
 
+/**
+ * Identifier for the detected sensor type.
+ *
+ * All of these sensors have the same I2C interface, and primarily differ
+ * in terms of:
+ * - How many modulators are available
+ * - The configuration of photodiodes
+ * - Whether or not flicker detection is supported
+ */
 typedef enum {
     SENSOR_TYPE_UNKNOWN = 0,
     SENSOR_TYPE_TSL2585,
@@ -21,6 +30,15 @@ typedef enum {
     SENSOR_TYPE_TCS3410
 } tsl2585_sensor_type_t;
 
+/**
+ * The number of modulators depends on the sensor model:
+ *
+ *      | TSL2585 | TSL2520 | TSL2521 | TSL2522 | TCS3410 |
+ * -----+---------+---------+---------+---------+---------+
+ * MOD0 |    x    |    x    |    x    |    x    |    x    |
+ * MOD1 |    x    |    x    |    x    |    x    |    x    |
+ * MOD2 |    x    |   ---   |   ---   |   ---   |    x    |
+ */
 typedef enum {
     TSL2585_MOD_NONE = 0x00,
     TSL2585_MOD0 = 0x01,
@@ -42,15 +60,29 @@ typedef enum {
     TSL2585_STEPS_ALL = 0x0F
 } tsl2585_step_t;
 
+/**
+ * The photodiode assignment depends on the sensor model:
+ *
+ *       | TSL2585  | TSL2520 | TSL2521 | TSL2522  | TCS3410 |
+ * ------+----------+---------+---------+----------+---------+
+ * PHD_0 | IR       | IR      | IR      | IR       | Flicker |
+ * PHD_1 | Photopic | Clear   | Clear   | Photopic | Clear   |
+ * PHD_2 | IR       | Clear   | Clear   | Photopic | Flicker |
+ * PHD_3 | UV-A     | Clear   | Clear   | Photopic | Green   |
+ * PHD_4 | UV-A     | Clear   | Clear   | Photopic | Blue    |
+ * PHD_5 | Photopic | IR      | IR      | IR       | Red     |
+ */
 typedef enum {
-    TSL2585_PHD_0 = 0, /*!< IR */
-    TSL2585_PHD_1,     /*!< Photopic */
-    TSL2585_PHD_2,     /*!< IR */
-    TSL2585_PHD_3,     /*!< UV-A */
-    TSL2585_PHD_4,     /*!< UV-A */
-    TSL2585_PHD_5,     /*!< Photopic */
+    TSL2585_PHD_0 = 0,
+    TSL2585_PHD_1,
+    TSL2585_PHD_2,
+    TSL2585_PHD_3,
+    TSL2585_PHD_4,
+    TSL2585_PHD_5,
     TSL2585_PHD_MAX
 } tsl2585_photodiode_t;
+
+typedef std::array<tsl2585_modulator_t, TSL2585_PHD_MAX> photodiode_modulator_array_t;
 
 typedef enum {
     TSL2585_GAIN_0_5X  = 0,
@@ -203,7 +235,16 @@ public:
 
     bool setModResidualEnable(tsl2585_modulator_t mod, tsl2585_step_t steps);
 
-    bool setModPhotodiodeSmux(tsl2585_step_t step, const tsl2585_modulator_t phd_mod[TSL2585_PHD_MAX]);
+    /**
+     * Set the photodiode SMUX configuration for a given sequencer step
+     *
+     * Each element of the array corresponds to a different photodiode,
+     * and specifies its modulator assignment.
+     *
+     * @param step The sequencer step to configure
+     * @param phd_mod An array of photodiode modulator assignments
+     */
+    bool setModPhotodiodeSmux(tsl2585_step_t step, const photodiode_modulator_array_t &phd_mod);
 
     bool setCalibrationNthIteration(uint8_t iteration);
 
