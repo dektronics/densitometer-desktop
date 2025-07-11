@@ -313,6 +313,17 @@
    </item>
   </layout>
  </widget>
+ <tabstops>
+  <tabstop>gainTableWidget</tabstop>
+  <tabstop>gainCalPushButton</tabstop>
+  <tabstop>gainSetPushButton</tabstop>
+  <tabstop>reflLoDensityLineEdit</tabstop>
+  <tabstop>reflLoReadingLineEdit</tabstop>
+  <tabstop>reflHiDensityLineEdit</tabstop>
+  <tabstop>reflHiReadingLineEdit</tabstop>
+  <tabstop>reflSetPushButton</tabstop>
+  <tabstop>calGetAllPushButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
