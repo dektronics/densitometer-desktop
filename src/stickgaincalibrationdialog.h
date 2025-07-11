@@ -31,7 +31,6 @@ protected:
 
 private slots:
     void onSensorReading(const DensiStickReading& reading);
-    void onCalGainCalStatus(int status, int param);
     void onCalGainCalFinished();
     void onCalGainCalError();
 
@@ -51,6 +50,8 @@ private:
     bool stepNew_;
     int stepGain_;
     quint8 stepBrightness_;
+    quint8 minBrightness_;
+    quint8 satBrightness_;
     int skipCount_;
     int delayCount_;
     bool captureReadings_;

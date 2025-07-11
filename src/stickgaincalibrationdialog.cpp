@@ -28,7 +28,9 @@ StickGainCalibrationDialog::StickGainCalibrationDialog(DensiStickInterface *stic
     started_(false), running_(false), success_(false),
     lastStatus_(-1), lastParam_(-1),
     timerId_(-1),
-    step_(0), stepNew_(false), stepGain_(0), stepBrightness_(0), skipCount_(0), delayCount_(0),
+    step_(0), stepNew_(false), stepGain_(0),
+    stepBrightness_(0), minBrightness_(0), satBrightness_(0),
+    skipCount_(0), delayCount_(0),
     upperGain_(false), captureReadings_(false)
 {
     ui->setupUi(this);
@@ -110,9 +112,11 @@ void StickGainCalibrationDialog::timerEvent(QTimerEvent *event)
         // Initialize finding gain measurement brightness values
         if (stepNew_) { addText(tr("Initializing...")); stepNew_ = false; }
         stepGain_ = MAX_GAIN;
-        stepBrightness_ = 0;
+        stepBrightness_ = 127;
+        minBrightness_ = 0;
+        satBrightness_ = 0;
         skipCount_ = LED_SKIP_READINGS;
-        stickInterface_->setLightBrightness(stepBrightness_);
+        stickInterface_->setLightBrightness(127 - stepBrightness_);
         stickInterface_->setLightEnable(true);
         stickInterface_->setSensorAgcDisable();
         stickInterface_->setSensorGain(stepGain_);
@@ -129,28 +133,58 @@ void StickGainCalibrationDialog::timerEvent(QTimerEvent *event)
         }
         if (readingList_.size() < LED_SAMPLE_READINGS) { return; }
         const DensiStickReading reading = readingList_.last();
-        if (reading.status() == DensiStickReading::ResultSaturated || reading.status() == DensiStickReading::ResultOverflow) {
-            stepBrightness_ = ((stepBrightness_ + 1) << 1) - 1;
-            qDebug() << "Changing brightness to" << stepBrightness_;
-            stickInterface_->setLightBrightness(stepBrightness_);
-        } else if (reading.reading() > 1000000) {
-            stepBrightness_--;
-            qDebug() << "Changing brightness to" << stepBrightness_;
-            stickInterface_->setLightBrightness(stepBrightness_);
+
+        bool foundBrightness = false;
+        if (reading.status() == DensiStickReading::ResultValid) {
+            if (stepBrightness_ == 127) {
+                qDebug() << "Does not saturate at max brightness";
+                foundBrightness = true;
+            } else {
+                // Sensor not saturated, need to increase brightness
+                if (stepBrightness_ + 1 == satBrightness_) {
+                    qDebug() << "Found target brightness:" << (127 - stepBrightness_);
+                    foundBrightness = true;
+                } else {
+                    minBrightness_ = stepBrightness_;
+                    if (satBrightness_ == 0) {
+                        stepBrightness_ = (stepBrightness_ + 127) / 2;
+                    } else {
+                        stepBrightness_ = (stepBrightness_ + satBrightness_) / 2;
+                    }
+                    qDebug() << "Changing brightness to:" << (127 - stepBrightness_);
+                    stickInterface_->setLightBrightness(127 - stepBrightness_);
+                }
+            }
+        } else if (reading.status() == DensiStickReading::ResultSaturated || reading.status() == DensiStickReading::ResultOverflow) {
+            // Sensor saturated, need to reduce brightness by half
+            satBrightness_ = stepBrightness_;
+            stepBrightness_ = minBrightness_ + ((stepBrightness_ - minBrightness_) / 2);
+            if (stepBrightness_ == satBrightness_) { stepBrightness_--; }
+            qDebug() << "Changing brightness to:" << (127 - stepBrightness_);
+            stickInterface_->setLightBrightness(127 - stepBrightness_);
         } else {
-            gainBrightness_.insert(stepGain_, stepBrightness_);
+            qWarning() << "Sensor read error";
+            addText(tr("Sensor read error"));
+            step_ = 99;
+            return;
+        }
+
+        if (foundBrightness) {
+            gainBrightness_.insert(stepGain_, 127 - stepBrightness_);
             qDebug() << "Gain" << TSL2585::gainString(static_cast<tsl2585_gain_t>(stepGain_))
-                     << "brightness set to" << stepBrightness_;
+                     << "brightness set to" << (127 - stepBrightness_);
             addText(tr("Selected %1 for measuring %2")
-                        .arg(stepBrightness_)
+                        .arg(127 - stepBrightness_)
                         .arg(TSL2585::gainString(static_cast<tsl2585_gain_t>(stepGain_))));
             stepGain_--;
             stepNew_ = true;
             if (stepGain_ <= 0) {
                 step_ = 3;
             } else {
-                stepBrightness_ = 0;
-                stickInterface_->setLightBrightness(stepBrightness_);
+                stepBrightness_ = 127;
+                minBrightness_ = 0;
+                satBrightness_ = 0;
+                stickInterface_->setLightBrightness(127 - stepBrightness_);
                 stickInterface_->setSensorGain(stepGain_);
                 stickInterface_->setSensorIntegration(SAMPLE_TIME, LED_SAMPLE_COUNT);
             }
@@ -265,6 +299,14 @@ void StickGainCalibrationDialog::timerEvent(QTimerEvent *event)
 
         step_++;
         onCalGainCalFinished();
+    } else if (step_ == 99) {
+        // Error condition
+        stickInterface_->setLightEnable(false);
+        if (timerId_ != -1) {
+            killTimer(timerId_);
+            timerId_ = -1;
+        }
+        onCalGainCalError();
     }
 }
 
@@ -275,61 +317,6 @@ void StickGainCalibrationDialog::onSensorReading(const DensiStickReading& readin
         skipCount_--;
     } else {
         readingList_.append(reading);
-    }
-}
-
-void StickGainCalibrationDialog::onCalGainCalStatus(int status, int param)
-{
-    if (status == lastStatus_ && param == lastParam_) {
-        return;
-    }
-
-    switch (status) {
-    case 0:
-        if (param == 0) {
-            addText(tr("Initializing..."));
-        }
-        break;
-    case 1:
-        addText(tr("Measuring medium gain... [%1]").arg(gainParamText(param)));
-        break;
-    case 2:
-        addText(tr("Measuring high gain... [%1]").arg(gainParamText(param)));
-        break;
-    case 3:
-        addText(tr("Measuring maximum gain... [%1]").arg(gainParamText(param)));
-        break;
-    case 5:
-        addText(tr("Finding gain measurement brightness... [%1]").arg(lightParamText(param)));
-        break;
-    case 6:
-        if (param == 0) {
-            addText(tr("Waiting between measurements..."));
-        }
-        break;
-    }
-
-    lastStatus_ = status;
-    lastParam_ = param;
-}
-
-QString StickGainCalibrationDialog::gainParamText(int param)
-{
-    if (param == 0) {
-        return tr("lower");
-    } else if (param == 1) {
-        return tr("higher");
-    } else {
-        return QString::number(param);
-    }
-}
-
-QString StickGainCalibrationDialog::lightParamText(int param)
-{
-    if (param == 0) {
-        return tr("init");
-    } else {
-        return QString::number(param);
     }
 }
 
