@@ -1,5 +1,7 @@
 #include "peripheralcalvalues.h"
 
+#include <array>
+
 class PeripheralCalGainData : public QSharedData
 {
 public:

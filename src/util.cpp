@@ -368,7 +368,6 @@ void tableWidgetPaste(QTableWidget *tableWidget)
         const QStringList elements = text.split(reLine, Qt::SkipEmptyParts);
         for (const QString& element : elements) {
             QStringList rowElements = element.split(reRow, Qt::SkipEmptyParts);
-            float num;
             bool ok;
             bool hasNums = false;
 
