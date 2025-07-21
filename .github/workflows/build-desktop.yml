@@ -156,6 +156,24 @@ jobs:
              mv "${{env.EXECUTABLE}}.app" "${{env.APPLICATION}}.app"  
       
       #
+      # Code signing
+      #
+      - name: Codesign app
+        working-directory: ${{github.workspace}}/build
+        env:
+          MACOS_CERTIFICATE: ${{secrets.MACOS_CERTIFICATE}}
+          MACOS_CERTIFICATE_PWD: ${{secrets.MACOS_CERTIFICATE_PWD}}
+          MACOS_CERTIFICATE_IDENTITY_ID: ${{secrets.MACOS_CERTIFICATE_IDENTITY_ID}}
+        run: |
+             echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
+             security create-keychain -p b4ldkChain1234 build.keychain
+             security default-keychain -s build.keychain
+             security unlock-keychain -p b4ldkChain1234 build.keychain
+             security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
+             security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k b4ldkChain1234 build.keychain
+             /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_IDENTITY_ID" "${{env.EXECUTABLE}}.app" -v
+
+      #
       # ZIP application "%AppName%-%Version%-macOS.zip"
       # We use ditto instead of zip to use the same commands as Finder
       #
