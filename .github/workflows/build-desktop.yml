@@ -171,7 +171,7 @@ jobs:
              security unlock-keychain -p b4ldkChain1234 build.keychain
              security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
              security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k b4ldkChain1234 build.keychain
-             /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_IDENTITY_ID" "${{env.EXECUTABLE}}.app" -v
+             /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_IDENTITY_ID" "${{env.APPLICATION}}.app" -v
 
       #
       # ZIP application "%AppName%-%Version%-macOS.zip"
