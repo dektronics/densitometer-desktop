@@ -145,57 +145,58 @@ jobs:
       - name: Build
         working-directory: ${{github.workspace}}/build
         run: make -j $(nproc)
+
+      #
+      # Code signing setup
+      #
+      - name: Codesign setup
+        working-directory: ${{github.workspace}}/build
+        env:
+          MACOS_DEV_CERTIFICATE: ${{secrets.MACOS_DEV_CERTIFICATE}}
+          MACOS_DEV_CERTIFICATE_PASSWORD: ${{secrets.MACOS_DEV_CERTIFICATE_PASSWORD}}
+        run: |
+             echo $MACOS_DEV_CERTIFICATE | base64 --decode > certificate.p12
+             security create-keychain -p b4ldkChain1234 build.keychain
+             security default-keychain -s build.keychain
+             security unlock-keychain -p b4ldkChain1234 build.keychain
+             security import certificate.p12 -k build.keychain -P "$MACOS_DEV_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+             security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k b4ldkChain1234 build.keychain
              
       #
       # Deploy application
       #
       - name: Deploy app
         working-directory: ${{github.workspace}}/build
-        run: |
-             macdeployqt ${{env.EXECUTABLE}}.app
-             mv "${{env.EXECUTABLE}}.app" "${{env.APPLICATION}}.app"  
-      
-      #
-      # Code signing
-      #
-      - name: Codesign app
-        working-directory: ${{github.workspace}}/build
         env:
-          MACOS_CERTIFICATE: ${{secrets.MACOS_CERTIFICATE}}
-          MACOS_CERTIFICATE_PWD: ${{secrets.MACOS_CERTIFICATE_PWD}}
-          MACOS_CERTIFICATE_IDENTITY_ID: ${{secrets.MACOS_CERTIFICATE_IDENTITY_ID}}
+          MACOS_DEV_IDENT: ${{secrets.MACOS_DEV_IDENT}}
         run: |
-             echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
-             security create-keychain -p b4ldkChain1234 build.keychain
-             security default-keychain -s build.keychain
-             security unlock-keychain -p b4ldkChain1234 build.keychain
-             security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
-             security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k b4ldkChain1234 build.keychain
-             /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_IDENTITY_ID" "${{env.APPLICATION}}.app" -v
+             mv "${{env.EXECUTABLE}}.app" "${{env.APPLICATION}}.app"
+             macdeployqt "${{env.APPLICATION}}.app" -sign-for-notarization="$MACOS_DEV_IDENT" -dmg
+             mv "${{env.APPLICATION}}.dmg" ${{env.EXECUTABLE}}-${{env.VERSION}}-macOS.dmg
 
       #
       # ZIP application "%AppName%-%Version%-macOS.zip"
       # We use ditto instead of zip to use the same commands as Finder
       #
-      - name: Create ZIP file
-        working-directory: ${{github.workspace}}/build
-        run: |
-             ditto -c -k --sequesterRsrc --keepParent "${{env.APPLICATION}}.app" ${{env.EXECUTABLE}}-${{env.VERSION}}-macOS.zip
+      # - name: Create ZIP file
+      #   working-directory: ${{github.workspace}}/build
+      #   run: |
+      #        ditto -c -k --sequesterRsrc --keepParent "${{env.APPLICATION}}.app" ${{env.EXECUTABLE}}-${{env.VERSION}}-macOS.zip
      
       #
-      # Upload ZIP to build artifacts
+      # Upload DMG to build artifacts
       #
-      - name: Upload ZIP
+      - name: Upload DMG
         uses: actions/upload-artifact@v4
         with:
-          name: ${{env.EXECUTABLE}}-${{env.VERSION}}-macOS.zip
-          path: ${{github.workspace}}/build/${{env.EXECUTABLE}}-${{env.VERSION}}-macOS.zip
+          name: ${{env.EXECUTABLE}}-${{env.VERSION}}-macOS.dmg
+          path: ${{github.workspace}}/build/${{env.EXECUTABLE}}-${{env.VERSION}}-macOS.dmg
           
   #
   # Windows build
   #
   build-windows:
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       #
       # Checkout the repository
@@ -236,11 +237,9 @@ jobs:
       # Install NSIS
       #  
       - name: Install NSIS
-        run: |
-             (New-Object System.Net.WebClient).DownloadFile('https://get.scoop.sh', 'scoop.ps1') 
-             ./scoop.ps1 -RunAsAdmin
-             scoop bucket add extras
-             scoop install nsis
+        uses: repolevedavaj/install-nsis@v1.0.1
+        with:
+          nsis-version: '3.11'
  
       #
       # Compile application
@@ -268,6 +267,25 @@ jobs:
              xcopy ..\deploy\windows\openssl\*.dll "${{env.APPLICATION}}\bin"
       
       #
+      # Sign build
+      #
+      - name: Sign build with Trusted Signing
+        uses: azure/trusted-signing-action@v0
+        with:
+          azure-tenant-id: ${{secrets.AZURE_TENANT_ID}}
+          azure-client-id: ${{secrets.AZURE_CLIENT_ID}}
+          azure-client-secret: ${{secrets.AZURE_CLIENT_SECRET}}
+          endpoint: https://wus2.codesigning.azure.net/
+          trusted-signing-account-name: dektronics
+          certificate-profile-name: code-sign-profile
+          files-folder: "${{github.workspace}}/build/${{env.APPLICATION}}"
+          files-folder-filter: exe,dll
+          files-folder-recurse: true
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      #
       # Create NSIS installer
       #
       - name: Make NSIS installer
@@ -277,7 +295,24 @@ jobs:
              cd ..\deploy\windows\nsis
              makensis /X"SetCompressor /FINAL lzma" setup.nsi
              ren *.exe ${{env.EXECUTABLE}}-${{env.VERSION}}-Windows.exe
-             
+
+      #
+      # Sign installer
+      #
+      - name: Sign installer with Trusted Signing
+        uses: azure/trusted-signing-action@v0
+        with:
+          azure-tenant-id: ${{secrets.AZURE_TENANT_ID}}
+          azure-client-id: ${{secrets.AZURE_CLIENT_ID}}
+          azure-client-secret: ${{secrets.AZURE_CLIENT_SECRET}}
+          endpoint: https://wus2.codesigning.azure.net/
+          trusted-signing-account-name: dektronics
+          certificate-profile-name: code-sign-profile
+          files: ${{github.workspace}}/deploy/windows/nsis/${{env.EXECUTABLE}}-${{env.VERSION}}-Windows.exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
       #
       # Upload installer to build artifacts
       #
