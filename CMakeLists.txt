@@ -82,15 +82,34 @@ set(DENSISTICK_INTERFACE_SOURCES
     ${FT260LIBUSB_SOURCES}
 )
 
-set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/deploy/windows/resources/info.rc")
-
-qt_add_executable(densitometer
-    MANUAL_FINALIZATION
+set(DENSITOMETER_SOURCES
     ${PROJECT_SOURCES}
     ${DENSISTICK_INTERFACE_SOURCES}
     ${QRC_FILES}
-    ${app_icon_resource_windows}
 )
+
+if (WIN32)
+    set(app_icon_resource_windows "${CMAKE_CURRENT_SOURCE_DIR}/deploy/windows/resources/info.rc")
+    qt_add_executable(densitometer
+        MANUAL_FINALIZATION
+        ${DENSITOMETER_SOURCES}
+        ${app_icon_resource_windows}
+    )
+elseif (APPLE)
+    set(app_icon_macos "${CMAKE_CURRENT_SOURCE_DIR}/deploy/macOS/icon.icns")
+    set_source_files_properties(${app_icon_macos} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources")
+    qt_add_executable(densitometer
+        MANUAL_FINALIZATION
+        ${DENSITOMETER_SOURCES}
+        ${app_icon_resource_windows}
+        ${app_icon_macos}
+    )
+else()
+    qt_add_executable(densitometer
+        MANUAL_FINALIZATION
+        ${DENSITOMETER_SOURCES}
+    )
+endif()
 
 qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 
