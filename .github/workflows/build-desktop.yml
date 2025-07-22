@@ -155,7 +155,6 @@ jobs:
         env:
           MACOS_CERTIFICATE: ${{secrets.MACOS_CERTIFICATE}}
           MACOS_CERTIFICATE_PWD: ${{secrets.MACOS_CERTIFICATE_PWD}}
-          MACOS_CERTIFICATE_IDENTITY_ID: ${{secrets.MACOS_CERTIFICATE_IDENTITY_ID}}
         run: |
              echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
              security create-keychain -p b4ldkChain1234 build.keychain
@@ -169,6 +168,8 @@ jobs:
       #
       - name: Deploy app
         working-directory: ${{github.workspace}}/build
+        env:
+          MACOS_CERTIFICATE_IDENTITY_ID: ${{secrets.MACOS_CERTIFICATE_IDENTITY_ID}}
         run: |
              mv "${{env.EXECUTABLE}}.app" "${{env.APPLICATION}}.app"
              macdeployqt "${{env.APPLICATION}}.app" -codesign="$MACOS_CERTIFICATE_IDENTITY_ID" -dmg
