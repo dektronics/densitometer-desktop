@@ -24,6 +24,7 @@ jobs:
   # GNU/Linux build (we run on Ubuntu 22.04 to generate AppImage)
   #
   build-linux:
+    if: false #XXX Temporarily disable for testing
     runs-on: ubuntu-22.04
     steps:
       #
@@ -145,20 +146,11 @@ jobs:
       - name: Build
         working-directory: ${{github.workspace}}/build
         run: make -j $(nproc)
-             
+
       #
-      # Deploy application
+      # Code signing setup
       #
-      - name: Deploy app
-        working-directory: ${{github.workspace}}/build
-        run: |
-             macdeployqt ${{env.EXECUTABLE}}.app
-             mv "${{env.EXECUTABLE}}.app" "${{env.APPLICATION}}.app"  
-      
-      #
-      # Code signing
-      #
-      - name: Codesign app
+      - name: Codesign setup
         working-directory: ${{github.workspace}}/build
         env:
           MACOS_CERTIFICATE: ${{secrets.MACOS_CERTIFICATE}}
@@ -171,31 +163,40 @@ jobs:
              security unlock-keychain -p b4ldkChain1234 build.keychain
              security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
              security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k b4ldkChain1234 build.keychain
-             security find-identity -v
-             /usr/bin/codesign --force -s "$MACOS_CERTIFICATE_IDENTITY_ID" "${{env.APPLICATION}}.app" -v
+             
+      #
+      # Deploy application
+      #
+      - name: Deploy app
+        working-directory: ${{github.workspace}}/build
+        run: |
+             mv "${{env.EXECUTABLE}}.app" "${{env.APPLICATION}}.app"
+             macdeployqt "${{env.APPLICATION}}.app" -codesign="$MACOS_CERTIFICATE_IDENTITY_ID" -dmg
+             mv "${{env.APPLICATION}}.dmg" ${{env.EXECUTABLE}}-${{env.VERSION}}-macOS.dmg
 
       #
       # ZIP application "%AppName%-%Version%-macOS.zip"
       # We use ditto instead of zip to use the same commands as Finder
       #
-      - name: Create ZIP file
-        working-directory: ${{github.workspace}}/build
-        run: |
-             ditto -c -k --sequesterRsrc --keepParent "${{env.APPLICATION}}.app" ${{env.EXECUTABLE}}-${{env.VERSION}}-macOS.zip
+      # - name: Create ZIP file
+      #   working-directory: ${{github.workspace}}/build
+      #   run: |
+      #        ditto -c -k --sequesterRsrc --keepParent "${{env.APPLICATION}}.app" ${{env.EXECUTABLE}}-${{env.VERSION}}-macOS.zip
      
       #
-      # Upload ZIP to build artifacts
+      # Upload DMG to build artifacts
       #
-      - name: Upload ZIP
+      - name: Upload DMG
         uses: actions/upload-artifact@v4
         with:
-          name: ${{env.EXECUTABLE}}-${{env.VERSION}}-macOS.zip
-          path: ${{github.workspace}}/build/${{env.EXECUTABLE}}-${{env.VERSION}}-macOS.zip
+          name: ${{env.EXECUTABLE}}-${{env.VERSION}}-macOS.dmg
+          path: ${{github.workspace}}/build/${{env.EXECUTABLE}}-${{env.VERSION}}-macOS.dmg
           
   #
   # Windows build
   #
   build-windows:
+    if: false #XXX Temporarily disable for testing
     runs-on: windows-latest
     steps:
       #
