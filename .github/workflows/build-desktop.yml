@@ -172,7 +172,7 @@ jobs:
           MACOS_CERTIFICATE_IDENTITY_ID: ${{secrets.MACOS_CERTIFICATE_IDENTITY_ID}}
         run: |
              mv "${{env.EXECUTABLE}}.app" "${{env.APPLICATION}}.app"
-             macdeployqt "${{env.APPLICATION}}.app" -codesign="$MACOS_CERTIFICATE_IDENTITY_ID" -dmg
+             macdeployqt "${{env.APPLICATION}}.app" -sign-for-notarization="$MACOS_CERTIFICATE_IDENTITY_ID" -dmg
              mv "${{env.APPLICATION}}.dmg" ${{env.EXECUTABLE}}-${{env.VERSION}}-macOS.dmg
 
       #
