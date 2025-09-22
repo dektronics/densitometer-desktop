@@ -153,14 +153,14 @@ jobs:
       - name: Codesign setup
         working-directory: ${{github.workspace}}/build
         env:
-          MACOS_CERTIFICATE: ${{secrets.MACOS_CERTIFICATE}}
-          MACOS_CERTIFICATE_PWD: ${{secrets.MACOS_CERTIFICATE_PWD}}
+          MACOS_DEV_CERTIFICATE: ${{secrets.MACOS_DEV_CERTIFICATE}}
+          MACOS_DEV_CERTIFICATE_PASSWORD: ${{secrets.MACOS_DEV_CERTIFICATE_PASSWORD}}
         run: |
-             echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
+             echo $MACOS_DEV_CERTIFICATE | base64 --decode > certificate.p12
              security create-keychain -p b4ldkChain1234 build.keychain
              security default-keychain -s build.keychain
              security unlock-keychain -p b4ldkChain1234 build.keychain
-             security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
+             security import certificate.p12 -k build.keychain -P "$MACOS_DEV_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
              security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k b4ldkChain1234 build.keychain
              
       #
@@ -169,10 +169,10 @@ jobs:
       - name: Deploy app
         working-directory: ${{github.workspace}}/build
         env:
-          MACOS_CERTIFICATE_IDENTITY_ID: ${{secrets.MACOS_CERTIFICATE_IDENTITY_ID}}
+          MACOS_DEV_IDENT: ${{secrets.MACOS_DEV_IDENT}}
         run: |
              mv "${{env.EXECUTABLE}}.app" "${{env.APPLICATION}}.app"
-             macdeployqt "${{env.APPLICATION}}.app" -sign-for-notarization="$MACOS_CERTIFICATE_IDENTITY_ID" -dmg
+             macdeployqt "${{env.APPLICATION}}.app" -sign-for-notarization="$MACOS_DEV_IDENT" -dmg
              mv "${{env.APPLICATION}}.dmg" ${{env.EXECUTABLE}}-${{env.VERSION}}-macOS.dmg
 
       #
