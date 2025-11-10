@@ -1,12 +1,17 @@
 #include "logger.h"
 
 #include <QScrollBar>
+#include <QFont>
 
 Logger::Logger(QWidget *parent)
     : QPlainTextEdit(parent)
     , autoScroll_(true)
 {
-    document()->setMaximumBlockCount(1000);
+    document()->setMaximumBlockCount(5000);
+
+    const QFont fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    setFont(fixedFont);
+
     QPalette p = palette();
     p.setColor(QPalette::Base, Qt::black);
     p.setColor(QPalette::Text, Qt::green);
