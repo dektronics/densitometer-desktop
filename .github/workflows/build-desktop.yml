@@ -239,11 +239,9 @@ jobs:
       # Install NSIS
       #  
       - name: Install NSIS
-        run: |
-             (New-Object System.Net.WebClient).DownloadFile('https://get.scoop.sh', 'scoop.ps1') 
-             ./scoop.ps1 -RunAsAdmin
-             scoop bucket add extras
-             scoop install nsis
+        uses: repolevedavaj/install-nsis@v1.0.1
+        with:
+          nsis-version: '3.11'
  
       #
       # Compile application
