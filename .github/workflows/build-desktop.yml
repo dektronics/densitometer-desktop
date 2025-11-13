@@ -310,7 +310,7 @@ jobs:
           endpoint: https://wus2.codesigning.azure.net/
           trusted-signing-account-name: dektronics
           certificate-profile-name: code-sign-profile
-          files: ${{github.workspace}}/build/${{env.EXECUTABLE}}-${{env.VERSION}}-Windows.exe
+          files: ${{github.workspace}}/deploy/windows/nsis/${{env.EXECUTABLE}}-${{env.VERSION}}-Windows.exe
           file-digest: SHA256
           timestamp-rfc3161: http://timestamp.acs.microsoft.com
           timestamp-digest: SHA256
