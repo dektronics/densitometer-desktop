@@ -108,6 +108,7 @@ jobs:
   # macOS build
   #
   build-mac:
+    if: false #XXX Temporarily disable for testing
     runs-on: macos-latest
     steps:
       #
@@ -197,7 +198,6 @@ jobs:
   # Windows build
   #
   build-windows:
-    if: false #XXX Temporarily disable for testing
     runs-on: windows-latest
     steps:
       #
