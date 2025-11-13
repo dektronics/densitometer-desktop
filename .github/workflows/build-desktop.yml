@@ -282,7 +282,7 @@ jobs:
           endpoint: https://wus2.codesigning.azure.net/
           trusted-signing-account-name: dektronics
           certificate-profile-name: code-sign-profile
-          files-folder: ${{github.workspace}}/build
+          files-folder: "${{github.workspace}}/build/${{env.APPLICATION}}"
           files-folder-filter: exe,dll
           files-folder-recurse: true
           file-digest: SHA256
