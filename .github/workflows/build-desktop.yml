@@ -295,7 +295,7 @@ jobs:
         run: |
              move "${{env.APPLICATION}}" ..\deploy\windows\nsis\
              cd ..\deploy\windows\nsis
-             "C:\Program Files (x86)\NSIS\makensis" /X"SetCompressor /FINAL lzma" setup.nsi
+             & "C:\Program Files (x86)\NSIS\makensis" /X"SetCompressor /FINAL lzma" setup.nsi
              ren *.exe ${{env.EXECUTABLE}}-${{env.VERSION}}-Windows.exe
 
       #
