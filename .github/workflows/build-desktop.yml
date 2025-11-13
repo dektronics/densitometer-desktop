@@ -293,10 +293,9 @@ jobs:
       - name: Make NSIS installer
         working-directory: ${{github.workspace}}/build
         run: |
-             $Env:Path += "C:\Program Files (x86)\NSIS"
              move "${{env.APPLICATION}}" ..\deploy\windows\nsis\
              cd ..\deploy\windows\nsis
-             makensis /X"SetCompressor /FINAL lzma" setup.nsi
+             "C:\Program Files (x86)\NSIS\makensis" /X"SetCompressor /FINAL lzma" setup.nsi
              ren *.exe ${{env.EXECUTABLE}}-${{env.VERSION}}-Windows.exe
 
       #
