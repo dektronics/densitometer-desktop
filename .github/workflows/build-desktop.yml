@@ -271,6 +271,24 @@ jobs:
              xcopy ..\deploy\windows\openssl\*.dll "${{env.APPLICATION}}\bin"
       
       #
+      # Sign build
+      #
+      - name: Sign build with Trusted Signing
+        uses: azure/trusted-signing-action@v0
+        with:
+          azure-tenant-id: ${{secrets.AZURE_TENANT_ID}}
+          azure-client-id: ${{secrets.AZURE_CLIENT_ID}}
+          azure-client-secret: ${{secrets.AZURE_CLIENT_SECRET}}
+          endpoint: https://wus2.codesigning.azure.net/
+          trusted-signing-account-name: dektronics
+          certificate-profile-name: code-sign-profile
+          files-folder: ${{github.workspace}}/build
+          files-folder-filter: exe,dll
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
+      #
       # Create NSIS installer
       #
       - name: Make NSIS installer
@@ -280,7 +298,24 @@ jobs:
              cd ..\deploy\windows\nsis
              makensis /X"SetCompressor /FINAL lzma" setup.nsi
              ren *.exe ${{env.EXECUTABLE}}-${{env.VERSION}}-Windows.exe
-             
+
+      #
+      # Sign installer
+      #
+      - name: Sign installer with Trusted Signing
+        uses: azure/trusted-signing-action@v0
+        with:
+          azure-tenant-id: ${{secrets.AZURE_TENANT_ID}}
+          azure-client-id: ${{secrets.AZURE_CLIENT_ID}}
+          azure-client-secret: ${{secrets.AZURE_CLIENT_SECRET}}
+          endpoint: https://wus2.codesigning.azure.net/
+          trusted-signing-account-name: dektronics
+          certificate-profile-name: code-sign-profile
+          files: ${{github.workspace}}/build/${{env.EXECUTABLE}}-${{env.VERSION}}-Windows.exe
+          file-digest: SHA256
+          timestamp-rfc3161: http://timestamp.acs.microsoft.com
+          timestamp-digest: SHA256
+
       #
       # Upload installer to build artifacts
       #
