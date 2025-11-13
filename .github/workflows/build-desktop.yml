@@ -243,6 +243,10 @@ jobs:
         with:
           nsis-version: '3.11'
  
+      # Test
+      - name: Debug Shell
+        uses: valeriangalliat/action-sshd-cloudflared@v1
+
       #
       # Compile application
       #
@@ -292,15 +296,11 @@ jobs:
       #
       - name: Make NSIS installer
         working-directory: ${{github.workspace}}/build
-        uses: joncloud/makensis-action@v5.0
-        with:
-          script-file: "setup.nsi"
-          arguments: "/X\"SetCompressor /FINAL lzma\""
-        # run: |
-        #      move "${{env.APPLICATION}}" ..\deploy\windows\nsis\
-        #      cd ..\deploy\windows\nsis
-        #      & "C:\Program Files (x86)\NSIS\makensis" /X"SetCompressor /FINAL lzma" setup.nsi
-        #      ren *.exe ${{env.EXECUTABLE}}-${{env.VERSION}}-Windows.exe
+        run: |
+             move "${{env.APPLICATION}}" ..\deploy\windows\nsis\
+             cd ..\deploy\windows\nsis
+             makensis /X"SetCompressor /FINAL lzma" setup.nsi
+             ren *.exe ${{env.EXECUTABLE}}-${{env.VERSION}}-Windows.exe
 
       #
       # Sign installer
