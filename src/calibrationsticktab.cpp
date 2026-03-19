@@ -4,6 +4,7 @@
 #include <QtWidgets/QMessageBox>
 #include <QDebug>
 
+#include "floatitemdelegate.h"
 #include "stickgaincalibrationdialog.h"
 #include "densistick/densisticksettings.h"
 #include "util.h"
@@ -24,12 +25,8 @@ CalibrationStickTab::CalibrationStickTab(DensiStickRunner *stickRunner, QWidget 
     connect(ui->reflSetPushButton, &QPushButton::clicked, this, &CalibrationStickTab::onCalReflectionSetClicked);
 
     // Calibration (gain) field validation
-    for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
-        QLineEdit *lineEdit = new QLineEdit();
-        lineEdit->setValidator(util::createFloatValidator(0.0, 512.0, 6, this));
-        ui->gainTableWidget->setCellWidget(i, 0, lineEdit);
-        connect(lineEdit, &QLineEdit::textChanged, this, &CalibrationStickTab::onCalGainTextChanged);
-    }
+    ui->gainTableWidget->setItemDelegate(new FloatItemDelegate(0.0, 512.0, 6));
+    connect(ui->gainTableWidget, &QTableWidget::itemChanged, this, &CalibrationStickTab::onCalGainItemChanged);
 
     // Calibration (reflection density) field validation
     ui->reflLoDensityLineEdit->setValidator(util::createFloatValidator(0.0, 2.5, 2, this));
@@ -53,7 +50,7 @@ void CalibrationStickTab::setAdvancedCalibrationEditable(bool editable)
 {
     editable_ = editable;
     refreshButtonState();
-    onCalGainTextChanged();
+    onCalGainItemChanged(nullptr);
 }
 
 void CalibrationStickTab::setDensityPrecision(int precision)
@@ -65,13 +62,7 @@ void CalibrationStickTab::setDensityPrecision(int precision)
 
 void CalibrationStickTab::clear()
 {
-    for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
-        QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
-        if (lineEdit) {
-            lineEdit->clear();
-        }
-    }
-
+    ui->gainTableWidget->clearContents();
     ui->reflLoDensityLineEdit->clear();
     ui->reflLoReadingLineEdit->clear();
     ui->reflHiDensityLineEdit->clear();
@@ -115,11 +106,10 @@ void CalibrationStickTab::refreshButtonState()
     }
 
     // Make calibration values editable only if connected
-    for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
-        QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
-        if (lineEdit) {
-            lineEdit->setReadOnly(!connected || !editable_);
-        }
+    if (connected && editable_) {
+        ui->gainTableWidget->setEditTriggers(QAbstractItemView::DoubleClicked|QAbstractItemView::EditKeyPressed|QAbstractItemView::AnyKeyPressed);
+    } else {
+        ui->gainTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     }
 
     ui->reflLoDensityLineEdit->setReadOnly(!connected);
@@ -165,17 +155,21 @@ void CalibrationStickTab::onCalGainCalClicked()
         if (dialog.success()) {
             const QMap<int, float> gainMeasurements = dialog.gainMeasurements();
 
+            disconnect(ui->gainTableWidget, &QTableWidget::itemChanged, this, &CalibrationStickTab::onCalGainItemChanged);
+
             for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
-                QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
+                QTableWidgetItem *item = util::tableWidgetItem(ui->gainTableWidget, i, 0);
                 const float gainValue = gainMeasurements.value(i);
-                if (lineEdit) {
-                    if (qIsNaN(gainValue) || !qIsFinite(gainValue) || gainValue <= 0.0F) {
-                        lineEdit->setText(QString());
-                    } else {
-                        lineEdit->setText(QString::number(gainValue, 'f'));
-                    }
+                if (qIsNaN(gainValue) || !qIsFinite(gainValue) || gainValue <= 0.0F) {
+                    item->setText(QString());
+                } else {
+                    item->setText(QString::number(gainValue, 'f'));
                 }
             }
+
+            onCalGainItemChanged(nullptr);
+
+            connect(ui->gainTableWidget, &QTableWidget::itemChanged, this, &CalibrationStickTab::onCalGainItemChanged);
         }
         stickRunner_->setEnabled(true);
     }
@@ -190,15 +184,17 @@ void CalibrationStickTab::onCalGainSetClicked()
     DensiStickCalibration updatedCal = calData_;
 
     PeripheralCalGain calGain;
-    for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
-        QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
-        if (lineEdit) {
-            float gainValue = lineEdit->text().toFloat(&ok);
-            if (!ok) { return; }
 
-            calGain.setGainValue(static_cast<PeripheralCalGain::GainLevel>(i), gainValue);
-        }
+    for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
+        QTableWidgetItem *item = ui->gainTableWidget->item(i, 0);
+        if (!item) { return; }
+
+        float gainValue = item->text().toFloat(&ok);
+        if (!ok) { return; }
+
+        calGain.setGainValue(static_cast<PeripheralCalGain::GainLevel>(i), gainValue);
     }
+
     updatedCal.setGainCalibration(calGain);
 
     if (stickRunner_->stickInterface()->settings()->writeCalibration(updatedCal)) {
@@ -237,28 +233,20 @@ void CalibrationStickTab::onCalReflectionSetClicked()
     emit calibrationSaved();
 }
 
-void CalibrationStickTab::onCalGainTextChanged()
+void CalibrationStickTab::onCalGainItemChanged(QTableWidgetItem *item)
 {
     bool enableSet = true;
     if (stickRunner_ && stickRunner_->stickInterface()->connected() && stickRunner_->stickInterface()->hasSettings() && editable_) {
-        for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
-            QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
-            if (lineEdit && (lineEdit->text().isEmpty() || !lineEdit->hasAcceptableInput())) {
-                enableSet = false;
-                break;
-            }
-        }
+        enableSet = !util::tableWidgetHasEmptyCells(ui->gainTableWidget);
     } else {
         enableSet = false;
     }
     ui->gainSetPushButton->setEnabled(enableSet);
 
     for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
-        QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
+        QTableWidgetItem *item = ui->gainTableWidget->item(i, 0);
         float gainValue = calData_.gainCalibration().gainValue(static_cast<PeripheralCalGain::GainLevel>(i));
-        if (lineEdit) {
-            updateLineEditDirtyState(lineEdit, gainValue, 6);
-        }
+        updateItemDirtyState(item, gainValue, 6);
     }
 }
 
@@ -283,19 +271,21 @@ void CalibrationStickTab::onCalReflectionTextChanged()
 
 void CalibrationStickTab::updateCalGain()
 {
+    disconnect(ui->gainTableWidget, &QTableWidget::itemChanged, this, &CalibrationStickTab::onCalGainItemChanged);
+
     for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
-        QLineEdit *lineEdit = qobject_cast<QLineEdit *>(ui->gainTableWidget->cellWidget(i, 0));
+        QTableWidgetItem *item = util::tableWidgetItem(ui->gainTableWidget, i, 0);
         float gainValue = calData_.gainCalibration().gainValue(static_cast<PeripheralCalGain::GainLevel>(i));
-        if (lineEdit) {
-            if (qIsNaN(gainValue) || !qIsFinite(gainValue) || gainValue <= 0.0F) {
-                lineEdit->setText(QString());
-            } else {
-                lineEdit->setText(QString::number(gainValue, 'f'));
-            }
+        if (qIsNaN(gainValue) || !qIsFinite(gainValue) || gainValue <= 0.0F) {
+            item->setText(QString());
+        } else {
+            item->setText(QString::number(gainValue, 'f'));
         }
     }
 
-    onCalGainTextChanged();
+    onCalGainItemChanged(nullptr);
+
+    connect(ui->gainTableWidget, &QTableWidget::itemChanged, this, &CalibrationStickTab::onCalGainItemChanged);
 }
 
 void CalibrationStickTab::updateCalTarget()

@@ -43,7 +43,7 @@ private slots:
     void onCalGainSetClicked();
     void onCalReflectionSetClicked();
 
-    void onCalGainTextChanged();
+    void onCalGainItemChanged(QTableWidgetItem *item);
     void onCalReflectionTextChanged();
 
 private:
