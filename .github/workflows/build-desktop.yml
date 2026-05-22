@@ -24,6 +24,7 @@ jobs:
   # GNU/Linux build (we run on Ubuntu 22.04 to generate AppImage)
   #
   build-linux:
+    if: false # Disable job for testing
     runs-on: ubuntu-22.04
     steps:
       #
@@ -107,7 +108,10 @@ jobs:
   # macOS build
   #
   build-mac:
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, macos-14, macos-15]
     steps:
       #
       # Checkout the repository
@@ -196,6 +200,7 @@ jobs:
   # Windows build
   #
   build-windows:
+    if: false # Disable job for testing
     runs-on: windows-2022
     steps:
       #
