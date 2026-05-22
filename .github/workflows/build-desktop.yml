@@ -30,7 +30,7 @@ jobs:
       # Checkout the repository
       #
       - name: Checkout repository and submodules
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -40,7 +40,7 @@ jobs:
       - name: Setup cmake
         uses: jwlawson/actions-setup-cmake@v2
         with:
-          cmake-version: '3.25.x'
+          cmake-version: '3.30.x'
 
       #
       # Install Qt
@@ -60,7 +60,7 @@ jobs:
         run: |
              sudo apt-get update
              sudo apt-get install libgl1-mesa-dev libxkbcommon-x11-0 libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-render-util0 libxcb-xinerama0 libzstd-dev libudev-dev libusb-1.0-0-dev libhidapi-dev libfuse2
-        
+
       #
       # Compile the application
       #
@@ -85,7 +85,7 @@ jobs:
              mkdir -p appdir/usr/share/icons
              cp ../deploy/linux/*.desktop appdir/usr/share/applications/
              cp ../deploy/linux/*.png appdir/usr/share/icons/
-             ./linuxdeployqt appdir/usr/share/applications/*.desktop -appimage -extra-plugins=iconengines,platformthemes
+             ./linuxdeployqt appdir/usr/share/applications/*.desktop -appimage -extra-plugins=iconengines,platformthemes,platforms/libqwayland.so,wayland-graphics-integration-client,wayland-decoration-client,wayland-shell-integration
      
       #
       # Rename AppImage to match "%AppName%-%Version%-Linux.AppImage" format
@@ -98,7 +98,7 @@ jobs:
       # Upload AppImage to build artifacts
       #
       - name: Upload AppImage
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{env.EXECUTABLE}}-${{env.VERSION}}-Linux.AppImage
           path: ${{github.workspace}}/build/${{env.EXECUTABLE}}-${{env.VERSION}}-Linux.AppImage
@@ -107,13 +107,16 @@ jobs:
   # macOS build
   #
   build-mac:
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, macos-15]
     steps:
       #
       # Checkout the repository
       #
       - name: Checkout repository and submodules
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -123,7 +126,7 @@ jobs:
       - name: Setup cmake
         uses: jwlawson/actions-setup-cmake@v2
         with:
-          cmake-version: '3.25.x'
+          cmake-version: '3.30.x'
 
       #
       # Install Qt
@@ -187,9 +190,9 @@ jobs:
       # Upload DMG to build artifacts
       #
       - name: Upload DMG
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
-          name: ${{env.EXECUTABLE}}-${{env.VERSION}}-macOS.dmg
+          name: ${{env.EXECUTABLE}}-${{env.VERSION}}-${{ matrix.os }}.dmg
           path: ${{github.workspace}}/build/${{env.EXECUTABLE}}-${{env.VERSION}}-macOS.dmg
           
   #
@@ -202,7 +205,7 @@ jobs:
       # Checkout the repository
       #
       - name: Checkout repository and submodules
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
@@ -212,7 +215,7 @@ jobs:
       - name: Setup cmake
         uses: jwlawson/actions-setup-cmake@v2
         with:
-          cmake-version: '3.25.x'
+          cmake-version: '3.30.x'
 
       #
       # Configure MSVC
@@ -229,7 +232,7 @@ jobs:
       - name: Install Qt
         uses: jurplel/install-qt-action@v4
         with:
-          version: '6.12.0'
+          version: '6.10.3' # 6.12 does not yet work on Windows with this action
           modules: 'qtserialport'
           cache: 'true'
           
@@ -237,9 +240,9 @@ jobs:
       # Install NSIS
       #  
       - name: Install NSIS
-        uses: repolevedavaj/install-nsis@v1.0.1
+        uses: repolevedavaj/install-nsis@v1
         with:
-          nsis-version: '3.11'
+          nsis-version: '3.13'
  
       #
       # Compile application
@@ -270,13 +273,13 @@ jobs:
       # Sign build
       #
       - name: Sign build with Trusted Signing
-        uses: azure/trusted-signing-action@v0
+        uses: azure/artifact-signing-action@v2
         with:
           azure-tenant-id: ${{secrets.AZURE_TENANT_ID}}
           azure-client-id: ${{secrets.AZURE_CLIENT_ID}}
           azure-client-secret: ${{secrets.AZURE_CLIENT_SECRET}}
           endpoint: https://wus2.codesigning.azure.net/
-          trusted-signing-account-name: dektronics
+          signing-account-name: dektronics
           certificate-profile-name: code-sign-profile
           files-folder: "${{github.workspace}}/build/${{env.APPLICATION}}"
           files-folder-filter: exe,dll
@@ -300,13 +303,13 @@ jobs:
       # Sign installer
       #
       - name: Sign installer with Trusted Signing
-        uses: azure/trusted-signing-action@v0
+        uses: azure/artifact-signing-action@v2
         with:
           azure-tenant-id: ${{secrets.AZURE_TENANT_ID}}
           azure-client-id: ${{secrets.AZURE_CLIENT_ID}}
           azure-client-secret: ${{secrets.AZURE_CLIENT_SECRET}}
           endpoint: https://wus2.codesigning.azure.net/
-          trusted-signing-account-name: dektronics
+          signing-account-name: dektronics
           certificate-profile-name: code-sign-profile
           files: ${{github.workspace}}/deploy/windows/nsis/${{env.EXECUTABLE}}-${{env.VERSION}}-Windows.exe
           file-digest: SHA256
@@ -317,7 +320,7 @@ jobs:
       # Upload installer to build artifacts
       #
       - name: Upload NSIS installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{env.EXECUTABLE}}-${{env.VERSION}}-Windows.exe
           path: ${{github.workspace}}/deploy/windows/nsis/${{env.EXECUTABLE}}-${{env.VERSION}}-Windows.exe
