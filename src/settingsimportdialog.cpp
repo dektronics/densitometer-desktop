@@ -159,18 +159,20 @@ bool SettingsImportDialog::parseHeader(const QJsonObject &root)
 
 void SettingsImportDialog::parseCalSensor(const QJsonObject &jsonCalSensor)
 {
+    const QLocale locale = util::numberLocale();
+
     if (jsonCalSensor.contains("gain")) {
         calGain_ = DensCalGain::fromJson(jsonCalSensor["gain"]);
 
         // Assign UI labels
-        ui->lowCh0Label->setText(QString::number(calGain_.low0(), 'f', 1));
-        ui->lowCh1Label->setText(QString::number(calGain_.low1(), 'f', 1));
-        ui->medCh0Label->setText(QString::number(calGain_.med0(), 'f', 6));
-        ui->medCh1Label->setText(QString::number(calGain_.med1(), 'f', 6));
-        ui->highCh0Label->setText(QString::number(calGain_.high0(), 'f', 6));
-        ui->highCh1Label->setText(QString::number(calGain_.high1(), 'f', 6));
-        ui->maxCh0Label->setText(QString::number(calGain_.max0(), 'f', 6));
-        ui->maxCh1Label->setText(QString::number(calGain_.max1(), 'f', 6));
+        ui->lowCh0Label->setText(locale.toString(calGain_.low0(), 'f', 1));
+        ui->lowCh1Label->setText(locale.toString(calGain_.low1(), 'f', 1));
+        ui->medCh0Label->setText(locale.toString(calGain_.med0(), 'f', 6));
+        ui->medCh1Label->setText(locale.toString(calGain_.med1(), 'f', 6));
+        ui->highCh0Label->setText(locale.toString(calGain_.high0(), 'f', 6));
+        ui->highCh1Label->setText(locale.toString(calGain_.high1(), 'f', 6));
+        ui->maxCh0Label->setText(locale.toString(calGain_.max0(), 'f', 6));
+        ui->maxCh1Label->setText(locale.toString(calGain_.max1(), 'f', 6));
 
         // Do basic validation to enable the checkbox
         ui->importGainCheckBox->setEnabled(calGain_.isValid());
@@ -179,9 +181,9 @@ void SettingsImportDialog::parseCalSensor(const QJsonObject &jsonCalSensor)
         calSlope_ = DensCalSlope::fromJson(jsonCalSensor["slope"]);
 
         // Assign UI labels
-        ui->slopeB0Label->setText(QString::number(calSlope_.b0(), 'f', 6));
-        ui->slopeB1Label->setText(QString::number(calSlope_.b1(), 'f', 6));
-        ui->slopeB2Label->setText(QString::number(calSlope_.b2(), 'f', 6));
+        ui->slopeB0Label->setText(locale.toString(calSlope_.b0(), 'f', 6));
+        ui->slopeB1Label->setText(locale.toString(calSlope_.b1(), 'f', 6));
+        ui->slopeB2Label->setText(locale.toString(calSlope_.b2(), 'f', 6));
 
         // Do basic validation to enable the checkbox
         ui->importSlopeCheckBox->setEnabled(calSlope_.isValid());
@@ -190,15 +192,17 @@ void SettingsImportDialog::parseCalSensor(const QJsonObject &jsonCalSensor)
 
 void SettingsImportDialog::parseCalTarget(const QJsonObject &jsonCalTarget)
 {
+    const QLocale locale = util::numberLocale();
+
     if (jsonCalTarget.contains("reflection")) {
         calReflection_ = DensCalTarget::fromJson(jsonCalTarget["reflection"]);
     }
 
     // Assign UI labels
-    ui->reflCalLoDensityLabel->setText(QString::number(calReflection_.loDensity(), 'f', 2));
-    ui->reflCalLoReadingLabel->setText(QString::number(calReflection_.loReading(), 'f', 6));
-    ui->reflCalHiDensityLabel->setText(QString::number(calReflection_.hiDensity(), 'f', 2));
-    ui->reflCalHiReadingLabel->setText(QString::number(calReflection_.hiReading(), 'f', 6));
+    ui->reflCalLoDensityLabel->setText(locale.toString(calReflection_.loDensity(), 'f', 2));
+    ui->reflCalLoReadingLabel->setText(locale.toString(calReflection_.loReading(), 'f', 6));
+    ui->reflCalHiDensityLabel->setText(locale.toString(calReflection_.hiDensity(), 'f', 2));
+    ui->reflCalHiReadingLabel->setText(locale.toString(calReflection_.hiReading(), 'f', 6));
 
     // Do basic validation and enable the checkbox
     ui->importReflCheckBox->setEnabled(calReflection_.isValidReflection());
@@ -208,10 +212,10 @@ void SettingsImportDialog::parseCalTarget(const QJsonObject &jsonCalTarget)
     }
 
     // Assign UI labels
-    ui->tranCalLoDensityLabel->setText(QString::number(calTransmission_.loDensity(), 'f', 2));
-    ui->tranCalLoReadingLabel->setText(QString::number(calTransmission_.loReading(), 'f', 6));
-    ui->tranCalHiDensityLabel->setText(QString::number(calTransmission_.hiDensity(), 'f', 2));
-    ui->tranCalHiReadingLabel->setText(QString::number(calTransmission_.hiReading(), 'f', 6));
+    ui->tranCalLoDensityLabel->setText(locale.toString(calTransmission_.loDensity(), 'f', 2));
+    ui->tranCalLoReadingLabel->setText(locale.toString(calTransmission_.loReading(), 'f', 6));
+    ui->tranCalHiDensityLabel->setText(locale.toString(calTransmission_.hiDensity(), 'f', 2));
+    ui->tranCalHiReadingLabel->setText(locale.toString(calTransmission_.hiReading(), 'f', 6));
 
     // Do basic validation and enable the checkbox
     ui->importTranCheckBox->setEnabled(calTransmission_.isValidTransmission());

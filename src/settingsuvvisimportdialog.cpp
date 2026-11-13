@@ -162,6 +162,8 @@ bool SettingsUvVisImportDialog::parseHeader(const QJsonObject &root)
 
 void SettingsUvVisImportDialog::parseCalSensor(const QJsonObject &jsonCalSensor)
 {
+    const QLocale locale = util::numberLocale();
+
     if (jsonCalSensor.contains("gain")) {
         calGain_ = DensUvVisCalGain::fromJson(jsonCalSensor["gain"]);
 
@@ -172,7 +174,7 @@ void SettingsUvVisImportDialog::parseCalSensor(const QJsonObject &jsonCalSensor)
             if (qIsNaN(gainValue) || !qIsFinite(gainValue) || gainValue <= 0.0F) {
                 item->setText(QString());
             } else {
-                item->setText(QString::number(gainValue, 'f'));
+                item->setText(locale.toString(gainValue, 'f'));
             }
         }
 
@@ -183,15 +185,17 @@ void SettingsUvVisImportDialog::parseCalSensor(const QJsonObject &jsonCalSensor)
 
 void SettingsUvVisImportDialog::parseCalTarget(const QJsonObject &jsonCalTarget)
 {
+    const QLocale locale = util::numberLocale();
+
     if (jsonCalTarget.contains("visReflection")) {
         calReflection_ = DensCalTarget::fromJson(jsonCalTarget["visReflection"]);
     }
 
     // Assign UI labels
-    ui->reflCalLoDensityLabel->setText(QString::number(calReflection_.loDensity(), 'f', 2));
-    ui->reflCalLoReadingLabel->setText(QString::number(calReflection_.loReading(), 'f', 6));
-    ui->reflCalHiDensityLabel->setText(QString::number(calReflection_.hiDensity(), 'f', 2));
-    ui->reflCalHiReadingLabel->setText(QString::number(calReflection_.hiReading(), 'f', 6));
+    ui->reflCalLoDensityLabel->setText(locale.toString(calReflection_.loDensity(), 'f', 2));
+    ui->reflCalLoReadingLabel->setText(locale.toString(calReflection_.loReading(), 'f', 6));
+    ui->reflCalHiDensityLabel->setText(locale.toString(calReflection_.hiDensity(), 'f', 2));
+    ui->reflCalHiReadingLabel->setText(locale.toString(calReflection_.hiReading(), 'f', 6));
 
     // Do basic validation and enable the checkbox
     ui->importReflCheckBox->setEnabled(calReflection_.isValidReflection());
@@ -201,10 +205,10 @@ void SettingsUvVisImportDialog::parseCalTarget(const QJsonObject &jsonCalTarget)
     }
 
     // Assign UI labels
-    ui->tranCalLoDensityLabel->setText(QString::number(calVisTransmission_.loDensity(), 'f', 2));
-    ui->tranCalLoReadingLabel->setText(QString::number(calVisTransmission_.loReading(), 'f', 6));
-    ui->tranCalHiDensityLabel->setText(QString::number(calVisTransmission_.hiDensity(), 'f', 2));
-    ui->tranCalHiReadingLabel->setText(QString::number(calVisTransmission_.hiReading(), 'f', 6));
+    ui->tranCalLoDensityLabel->setText(locale.toString(calVisTransmission_.loDensity(), 'f', 2));
+    ui->tranCalLoReadingLabel->setText(locale.toString(calVisTransmission_.loReading(), 'f', 6));
+    ui->tranCalHiDensityLabel->setText(locale.toString(calVisTransmission_.hiDensity(), 'f', 2));
+    ui->tranCalHiReadingLabel->setText(locale.toString(calVisTransmission_.hiReading(), 'f', 6));
 
     // Do basic validation and enable the checkbox
     ui->importTranCheckBox->setEnabled(calVisTransmission_.isValidTransmission());
@@ -214,10 +218,10 @@ void SettingsUvVisImportDialog::parseCalTarget(const QJsonObject &jsonCalTarget)
     }
 
     // Assign UI labels
-    ui->tranUvCalLoDensityLabel->setText(QString::number(calUvTransmission_.loDensity(), 'f', 2));
-    ui->tranUvCalLoReadingLabel->setText(QString::number(calUvTransmission_.loReading(), 'f', 6));
-    ui->tranUvCalHiDensityLabel->setText(QString::number(calUvTransmission_.hiDensity(), 'f', 2));
-    ui->tranUvCalHiReadingLabel->setText(QString::number(calUvTransmission_.hiReading(), 'f', 6));
+    ui->tranUvCalLoDensityLabel->setText(locale.toString(calUvTransmission_.loDensity(), 'f', 2));
+    ui->tranUvCalLoReadingLabel->setText(locale.toString(calUvTransmission_.loReading(), 'f', 6));
+    ui->tranUvCalHiDensityLabel->setText(locale.toString(calUvTransmission_.hiDensity(), 'f', 2));
+    ui->tranUvCalHiReadingLabel->setText(locale.toString(calUvTransmission_.hiReading(), 'f', 6));
 
     // Do basic validation and enable the checkbox
     ui->importUvTranCheckBox->setEnabled(calUvTransmission_.isValidTransmission());
@@ -254,16 +258,17 @@ void SettingsUvVisImportDialog::calTemperatureAssignColumn(QTableWidget *table, 
 {
     if (!table || table->columnCount() <= col || table->rowCount() < 3) { return; }
 
+    const QLocale locale = util::numberLocale();
     QTableWidgetItem *item;
 
     item = util::tableWidgetItem(table, 0, col);
-    item->setText(QString::number(sourceValues.b0()));
+    item->setText(locale.toString(sourceValues.b0()));
 
     item = util::tableWidgetItem(table, 1, col);
-    item->setText(QString::number(sourceValues.b1()));
+    item->setText(locale.toString(sourceValues.b1()));
 
     item = util::tableWidgetItem(table, 2, col);
-    item->setText(QString::number(sourceValues.b2()));
+    item->setText(locale.toString(sourceValues.b2()));
 }
 
 void SettingsUvVisImportDialog::sendSelectedSettings(DensInterface *densInterface)
