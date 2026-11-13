@@ -254,7 +254,7 @@ void StickRemoteControlDialog::onSensorReading(const DensiStickReading& reading)
         float basicReading = alsReading / (timeMs * gainValue);
 
         ui->rawReadingLineEdit->setText(QString::number(reading.reading()));
-        ui->basicReadingLineEdit->setText(QString::number(basicReading));
+        ui->basicReadingLineEdit->setText(QString("%L1").arg(basicReading, 0, 'f', 6));
 
         const int gainIndex = static_cast<int>(reading.gain());
         if (ui->agcCheckBox->isChecked()

@@ -476,7 +476,7 @@ void RemoteControlDialog::onDiagSensorUvInvokeReading(unsigned int ch0)
 
 void RemoteControlDialog::onDiagSensorUvInvokeMeasurement(float ch0Basic)
 {
-    ui->ch0LineEdit->setText(QString::number(ch0Basic, 'f', 6));
+    ui->ch0LineEdit->setText(QString("%L1").arg(ch0Basic, 0, 'f', 6));
     ui->reflSpinBox->setValue(0);
     ui->tranSpinBox->setValue(0);
     ui->tranUvSpinBox->setValue(0);

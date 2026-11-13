@@ -314,7 +314,7 @@ QString DiagnosticsTab::formatDisplayTemp(const QString &tempStr)
     }
     float temp = text.toFloat(&ok);
     if (ok) {
-        text = QString::number(temp, 'f', 1) + "\u00B0C";
+        text = QString("%L1\u00B0C").arg(temp, 0, 'f', 1);
     } else {
         text.clear();
     }

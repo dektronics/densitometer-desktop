@@ -146,6 +146,8 @@ MainWindow::MainWindow(QWidget *parent)
     ui->autoAddPushButton->setChecked(true);
     ui->addReadingPushButton->setEnabled(false);
 
+    // Set initial empty reading value
+    ui->readingValueLineEdit->setText(QString("%L1D").arg(0.0, 4, 'f', densPrecision_));
 
     // Generate the theme-colored icon pixmaps
     reflTypePixmap = util::createThemeColoredPixmap(this, QString::fromUtf8(":/images/reflection-icon.png"));
@@ -687,7 +689,7 @@ void MainWindow::onDensityReading(DensInterface::DensityType type, float dValue,
     if (qAbs(displayValue) < 0.01F) {
         displayValue = 0.0F;
     }
-    ui->readingValueLineEdit->setText(QString("%1D").arg(displayValue, 4, 'f', densPrecision_));
+    ui->readingValueLineEdit->setText(QString("%L1D").arg(displayValue, 4, 'f', densPrecision_));
 
     // Save values so they can be referenced later
     lastReadingType_ = type;
@@ -818,8 +820,7 @@ void MainWindow::onActionDelete()
 
 void MainWindow::measTableAddReading(DensInterface::DensityType type, float density, float offset)
 {
-
-    QString numStr = QString("%1").arg(density, 4, 'f', densPrecision_);
+    QString numStr = QString("%L1").arg(density, 4, 'f', densPrecision_);
     QString typeStr;
     QIcon typeIcon;
     QString offsetStr;
@@ -836,7 +837,7 @@ void MainWindow::measTableAddReading(DensInterface::DensityType type, float dens
     }
 
     if (!qIsNaN(offset)) {
-        offsetStr = QString("%1").arg(offset, 4, 'f', densPrecision_);
+        offsetStr = QString("%L1").arg(offset, 4, 'f', densPrecision_);
     }
 
     int row = -1;
