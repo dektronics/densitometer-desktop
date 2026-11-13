@@ -232,6 +232,13 @@ std::tuple<float, float, float> polyfit(const QList<float> &xList, const QList<f
     return {(float)A[0], (float)A[1], (float)A[2]};
 }
 
+QLocale numberLocale()
+{
+    QLocale locale;
+    locale.setNumberOptions(QLocale::OmitGroupSeparator);
+    return locale;
+}
+
 QValidator *createIntValidator(int min, int max, QObject *parent)
 {
     QIntValidator *validator = new QIntValidator(min, max, parent);
@@ -257,7 +264,8 @@ void changeLineEditDecimals(QLineEdit *lineEdit, int decimals)
     }
 
     if (ok) {
-        lineEdit->setText(QString::number(value, 'f', decimals));
+        const QLocale locale = numberLocale();
+        lineEdit->setText(locale.toString(value, 'f', decimals));
     }
 }
 

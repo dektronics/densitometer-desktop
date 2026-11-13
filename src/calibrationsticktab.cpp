@@ -120,10 +120,11 @@ void CalibrationStickTab::refreshButtonState()
 
 void CalibrationStickTab::onTargetMeasurement(float basicReading)
 {
+    const QLocale locale = util::numberLocale();
     if (ui->reflLoReadingLineEdit->hasFocus()) {
-        ui->reflLoReadingLineEdit->setText(QString::number(basicReading, 'f'));
+        ui->reflLoReadingLineEdit->setText(locale.toString(basicReading, 'f'));
     } else if (ui->reflHiReadingLineEdit->hasFocus()) {
-        ui->reflHiReadingLineEdit->setText(QString::number(basicReading, 'f'));
+        ui->reflHiReadingLineEdit->setText(locale.toString(basicReading, 'f'));
     }
 }
 
@@ -138,6 +139,7 @@ void CalibrationStickTab::onCalGetAllValues()
 
 void CalibrationStickTab::onCalGainCalClicked()
 {
+    const QLocale locale = util::numberLocale();
     ui->gainCalPushButton->setEnabled(false);
 
     QMessageBox messageBox;
@@ -163,7 +165,7 @@ void CalibrationStickTab::onCalGainCalClicked()
                 if (qIsNaN(gainValue) || !qIsFinite(gainValue) || gainValue <= 0.0F) {
                     item->setText(QString());
                 } else {
-                    item->setText(QString::number(gainValue, 'f'));
+                    item->setText(locale.toString(gainValue, 'f'));
                 }
             }
 
@@ -271,6 +273,8 @@ void CalibrationStickTab::onCalReflectionTextChanged()
 
 void CalibrationStickTab::updateCalGain()
 {
+    const QLocale locale = util::numberLocale();
+
     disconnect(ui->gainTableWidget, &QTableWidget::itemChanged, this, &CalibrationStickTab::onCalGainItemChanged);
 
     for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
@@ -279,7 +283,7 @@ void CalibrationStickTab::updateCalGain()
         if (qIsNaN(gainValue) || !qIsFinite(gainValue) || gainValue <= 0.0F) {
             item->setText(QString());
         } else {
-            item->setText(QString::number(gainValue, 'f'));
+            item->setText(locale.toString(gainValue, 'f'));
         }
     }
 
@@ -292,10 +296,11 @@ void CalibrationStickTab::updateCalTarget()
 {
     const PeripheralCalDensityTarget calReflection = calData_.targetCalibration();
 
-    ui->reflLoDensityLineEdit->setText(QString::number(calReflection.loDensity(), 'f', densPrecision_));
-    ui->reflLoReadingLineEdit->setText(QString::number(calReflection.loReading(), 'f', 6));
-    ui->reflHiDensityLineEdit->setText(QString::number(calReflection.hiDensity(), 'f', densPrecision_));
-    ui->reflHiReadingLineEdit->setText(QString::number(calReflection.hiReading(), 'f', 6));
+    const QLocale locale = util::numberLocale();
+    ui->reflLoDensityLineEdit->setText(locale.toString(calReflection.loDensity(), 'f', densPrecision_));
+    ui->reflLoReadingLineEdit->setText(locale.toString(calReflection.loReading(), 'f', 6));
+    ui->reflHiDensityLineEdit->setText(locale.toString(calReflection.hiDensity(), 'f', densPrecision_));
+    ui->reflHiReadingLineEdit->setText(locale.toString(calReflection.hiReading(), 'f', 6));
 
     onCalReflectionTextChanged();
 }

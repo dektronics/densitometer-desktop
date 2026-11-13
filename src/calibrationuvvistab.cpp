@@ -171,11 +171,12 @@ void CalibrationUvVisTab::refreshButtonState()
 
         // Populate read-only edit fields that are only set
         // via the protocol for consistency of the data formats
+        const QLocale locale = util::numberLocale();
         if (ui->tranLoDensityLineEdit->text().isEmpty()) {
-            ui->tranLoDensityLineEdit->setText("0.00");
+            ui->tranLoDensityLineEdit->setText(locale.toString(0.0F, 'f', 2));
         }
         if (ui->tranUvLoDensityLineEdit->text().isEmpty()) {
-            ui->tranUvLoDensityLineEdit->setText("0.00");
+            ui->tranUvLoDensityLineEdit->setText(locale.toString(0.0F, 'f', 2));
         }
 
     } else {
@@ -217,24 +218,26 @@ void CalibrationUvVisTab::onDensityReading(DensInterface::DensityType type, floa
     Q_UNUSED(dZero)
     Q_UNUSED(rawValue)
 
+    const QLocale locale = util::numberLocale();
+
     // Update calibration tab fields, if focused
     if (type == DensInterface::DensityReflection) {
         if (ui->reflLoReadingLineEdit->hasFocus()) {
-            ui->reflLoReadingLineEdit->setText(QString::number(corrValue, 'f'));
+            ui->reflLoReadingLineEdit->setText(locale.toString(corrValue, 'f'));
         } else if (ui->reflHiReadingLineEdit->hasFocus()) {
-            ui->reflHiReadingLineEdit->setText(QString::number(corrValue, 'f'));
+            ui->reflHiReadingLineEdit->setText(locale.toString(corrValue, 'f'));
         }
     } else if (type == DensInterface::DensityTransmission) {
         if (ui->tranLoReadingLineEdit->hasFocus()) {
-            ui->tranLoReadingLineEdit->setText(QString::number(corrValue, 'f'));
+            ui->tranLoReadingLineEdit->setText(locale.toString(corrValue, 'f'));
         } else if (ui->tranHiReadingLineEdit->hasFocus()) {
-            ui->tranHiReadingLineEdit->setText(QString::number(corrValue, 'f'));
+            ui->tranHiReadingLineEdit->setText(locale.toString(corrValue, 'f'));
         }
     } else if (type == DensInterface::DensityUvTransmission) {
         if (ui->tranUvLoReadingLineEdit->hasFocus()) {
-            ui->tranUvLoReadingLineEdit->setText(QString::number(corrValue, 'f'));
+            ui->tranUvLoReadingLineEdit->setText(locale.toString(corrValue, 'f'));
         } else if (ui->tranUvHiReadingLineEdit->hasFocus()) {
-            ui->tranUvHiReadingLineEdit->setText(QString::number(corrValue, 'f'));
+            ui->tranUvHiReadingLineEdit->setText(locale.toString(corrValue, 'f'));
         }
     }
 }
@@ -310,9 +313,10 @@ void CalibrationUvVisTab::onGainFilterCalibrationFinished(int result)
 
         disconnect(ui->gainTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalGainItemChanged);
 
+        const QLocale locale = util::numberLocale();
         for (int i = 0; i < qMin(ui->gainTableWidget->rowCount(), gainValues.size()); i++) {
             QTableWidgetItem *item = util::tableWidgetItem(ui->gainTableWidget, i, 0);
-            item->setText(QString::number(gainValues[i], 'f', 6));
+            item->setText(locale.toString(gainValues[i], 'f', 6));
         }
 
         onCalGainItemChanged(nullptr);
@@ -327,6 +331,7 @@ void CalibrationUvVisTab::onCalGainSetClicked()
 {
     DensUvVisCalGain calGain;
     bool ok;
+    const QLocale locale = util::numberLocale();
 
     for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
         QTableWidgetItem *item = ui->gainTableWidget->item(i, 0);
@@ -334,7 +339,7 @@ void CalibrationUvVisTab::onCalGainSetClicked()
 
         DensUvVisCalGain::GainLevel gainLevel = static_cast<DensUvVisCalGain::GainLevel>(i);
 
-        float gainValue = item->text().toFloat(&ok);
+        float gainValue = locale.toFloat(item->text(), &ok);
         if (!ok) { return; }
 
         calGain.setGainValue(gainLevel, gainValue);
@@ -368,17 +373,18 @@ void CalibrationUvVisTab::onCalReflectionSetClicked()
 {
     DensCalTarget calTarget;
     bool ok;
+    const QLocale locale = util::numberLocale();
 
-    calTarget.setLoDensity(ui->reflLoDensityLineEdit->text().toFloat(&ok));
+    calTarget.setLoDensity(locale.toFloat(ui->reflLoDensityLineEdit->text(), &ok));
     if (!ok) { return; }
 
-    calTarget.setLoReading(ui->reflLoReadingLineEdit->text().toFloat(&ok));
+    calTarget.setLoReading(locale.toFloat(ui->reflLoReadingLineEdit->text(), &ok));
     if (!ok) { return; }
 
-    calTarget.setHiDensity(ui->reflHiDensityLineEdit->text().toFloat(&ok));
+    calTarget.setHiDensity(locale.toFloat(ui->reflHiDensityLineEdit->text(), &ok));
     if (!ok) { return; }
 
-    calTarget.setHiReading(ui->reflHiReadingLineEdit->text().toFloat(&ok));
+    calTarget.setHiReading(locale.toFloat(ui->reflHiReadingLineEdit->text(), &ok));
     if (!ok) { return; }
 
     if (!calTarget.isValid()) {
@@ -408,16 +414,17 @@ void CalibrationUvVisTab::onCalTransmissionSetClicked()
 {
     DensCalTarget calTarget;
     bool ok;
+    const QLocale locale = util::numberLocale();
 
     calTarget.setLoDensity(0.0F);
 
-    calTarget.setLoReading(ui->tranLoReadingLineEdit->text().toFloat(&ok));
+    calTarget.setLoReading(locale.toFloat(ui->tranLoReadingLineEdit->text(), &ok));
     if (!ok) { return; }
 
-    calTarget.setHiDensity(ui->tranHiDensityLineEdit->text().toFloat(&ok));
+    calTarget.setHiDensity(locale.toFloat(ui->tranHiDensityLineEdit->text(), &ok));
     if (!ok) { return; }
 
-    calTarget.setHiReading(ui->tranHiReadingLineEdit->text().toFloat(&ok));
+    calTarget.setHiReading(locale.toFloat(ui->tranHiReadingLineEdit->text(), &ok));
     if (!ok) { return; }
 
     if (!calTarget.isValid()) {
@@ -432,16 +439,17 @@ void CalibrationUvVisTab::onCalUvTransmissionSetClicked()
 {
     DensCalTarget calTarget;
     bool ok;
+    const QLocale locale = util::numberLocale();
 
     calTarget.setLoDensity(0.0F);
 
-    calTarget.setLoReading(ui->tranUvLoReadingLineEdit->text().toFloat(&ok));
+    calTarget.setLoReading(locale.toFloat(ui->tranUvLoReadingLineEdit->text(), &ok));
     if (!ok) { return; }
 
-    calTarget.setHiDensity(ui->tranUvHiDensityLineEdit->text().toFloat(&ok));
+    calTarget.setHiDensity(locale.toFloat(ui->tranUvHiDensityLineEdit->text(), &ok));
     if (!ok) { return; }
 
-    calTarget.setHiReading(ui->tranUvHiReadingLineEdit->text().toFloat(&ok));
+    calTarget.setHiReading(locale.toFloat(ui->tranUvHiReadingLineEdit->text(), &ok));
     if (!ok) { return; }
 
     if (!calTarget.isValid()) {
@@ -553,6 +561,7 @@ void CalibrationUvVisTab::onCalUvTransmissionTextChanged()
 
 void CalibrationUvVisTab::onCalGainResponse()
 {
+    const QLocale locale = util::numberLocale();
     const DensUvVisCalGain calGain = densInterface_->calUvVisGain();
 
     disconnect(ui->gainTableWidget, &QTableWidget::itemChanged, this, &CalibrationUvVisTab::onCalGainItemChanged);
@@ -563,7 +572,7 @@ void CalibrationUvVisTab::onCalGainResponse()
         if (qIsNaN(gainValue) || !qIsFinite(gainValue) || gainValue <= 0.0F) {
             item->setText(QString());
         } else {
-            item->setText(QString::number(gainValue, 'f'));
+            item->setText(locale.toString(gainValue, 'f'));
         }
     }
 
@@ -610,36 +619,39 @@ void CalibrationUvVisTab::onCalUvTempSetComplete()
 
 void CalibrationUvVisTab::onCalReflectionResponse()
 {
+    const QLocale locale = util::numberLocale();
     const DensCalTarget calReflection = densInterface_->calReflection();
 
-    ui->reflLoDensityLineEdit->setText(QString::number(calReflection.loDensity(), 'f', densPrecision_));
-    ui->reflLoReadingLineEdit->setText(QString::number(calReflection.loReading(), 'f', 6));
-    ui->reflHiDensityLineEdit->setText(QString::number(calReflection.hiDensity(), 'f', densPrecision_));
-    ui->reflHiReadingLineEdit->setText(QString::number(calReflection.hiReading(), 'f', 6));
+    ui->reflLoDensityLineEdit->setText(locale.toString(calReflection.loDensity(), 'f', densPrecision_));
+    ui->reflLoReadingLineEdit->setText(locale.toString(calReflection.loReading(), 'f', 6));
+    ui->reflHiDensityLineEdit->setText(locale.toString(calReflection.hiDensity(), 'f', densPrecision_));
+    ui->reflHiReadingLineEdit->setText(locale.toString(calReflection.hiReading(), 'f', 6));
 
     onCalReflectionTextChanged();
 }
 
 void CalibrationUvVisTab::onCalTransmissionResponse()
 {
+    const QLocale locale = util::numberLocale();
     const DensCalTarget calTransmission = densInterface_->calTransmission();
 
-    ui->tranLoDensityLineEdit->setText(QString::number(calTransmission.loDensity(), 'f', densPrecision_));
-    ui->tranLoReadingLineEdit->setText(QString::number(calTransmission.loReading(), 'f', 6));
-    ui->tranHiDensityLineEdit->setText(QString::number(calTransmission.hiDensity(), 'f', densPrecision_));
-    ui->tranHiReadingLineEdit->setText(QString::number(calTransmission.hiReading(), 'f', 6));
+    ui->tranLoDensityLineEdit->setText(locale.toString(calTransmission.loDensity(), 'f', densPrecision_));
+    ui->tranLoReadingLineEdit->setText(locale.toString(calTransmission.loReading(), 'f', 6));
+    ui->tranHiDensityLineEdit->setText(locale.toString(calTransmission.hiDensity(), 'f', densPrecision_));
+    ui->tranHiReadingLineEdit->setText(locale.toString(calTransmission.hiReading(), 'f', 6));
 
     onCalTransmissionTextChanged();
 }
 
 void CalibrationUvVisTab::onCalUvTransmissionResponse()
 {
+    const QLocale locale = util::numberLocale();
     const DensCalTarget calTransmission = densInterface_->calUvTransmission();
 
-    ui->tranUvLoDensityLineEdit->setText(QString::number(calTransmission.loDensity(), 'f', densPrecision_));
-    ui->tranUvLoReadingLineEdit->setText(QString::number(calTransmission.loReading(), 'f', 6));
-    ui->tranUvHiDensityLineEdit->setText(QString::number(calTransmission.hiDensity(), 'f', densPrecision_));
-    ui->tranUvHiReadingLineEdit->setText(QString::number(calTransmission.hiReading(), 'f', 6));
+    ui->tranUvLoDensityLineEdit->setText(locale.toString(calTransmission.loDensity(), 'f', densPrecision_));
+    ui->tranUvLoReadingLineEdit->setText(locale.toString(calTransmission.loReading(), 'f', 6));
+    ui->tranUvHiDensityLineEdit->setText(locale.toString(calTransmission.hiDensity(), 'f', densPrecision_));
+    ui->tranUvHiReadingLineEdit->setText(locale.toString(calTransmission.hiReading(), 'f', 6));
 
     onCalUvTransmissionTextChanged();
 }
@@ -691,21 +703,23 @@ void CalibrationUvVisTab::calTemperatureAssignColumn(QTableWidget *table, int co
 {
     if (!table || table->columnCount() <= col || table->rowCount() < 3) { return; }
 
+    const QLocale locale = util::numberLocale();
     QTableWidgetItem *item;
 
     item = util::tableWidgetItem(table, 0, col);
-    item->setText(QString::number(sourceValues.b0()));
+    item->setText(locale.toString(sourceValues.b0()));
 
     item = util::tableWidgetItem(table, 1, col);
-    item->setText(QString::number(sourceValues.b1()));
+    item->setText(locale.toString(sourceValues.b1()));
 
     item = util::tableWidgetItem(table, 2, col);
-    item->setText(QString::number(sourceValues.b2()));
+    item->setText(locale.toString(sourceValues.b2()));
 }
 
 DensCalTemperature CalibrationUvVisTab::calTemperatureCollectColumn(QTableWidget *table, int col)
 {
     bool ok;
+    const QLocale locale = util::numberLocale();
     float v0 = qSNaN();
     float v1 = qSNaN();
     float v2 = qSNaN();
@@ -716,19 +730,19 @@ DensCalTemperature CalibrationUvVisTab::calTemperatureCollectColumn(QTableWidget
 
     item = table->item(0, col);
     if (item) {
-        v0 = item->text().toFloat(&ok);
+        v0 = locale.toFloat(item->text(), &ok);
         if (!ok) { v0 = qSNaN(); }
     }
 
     item = table->item(1, col);
     if (item) {
-        v1 = item->text().toFloat(&ok);
+        v1 = locale.toFloat(item->text(), &ok);
         if (!ok) { v1 = qSNaN(); }
     }
 
     item = table->item(2, col);
     if (item) {
-        v2 = item->text().toFloat(&ok);
+        v2 = locale.toFloat(item->text(), &ok);
         if (!ok) { v2 = qSNaN(); }
     }
 

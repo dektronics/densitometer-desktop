@@ -60,13 +60,14 @@ SlopeCalibrationDialog::SlopeCalibrationDialog(QWidget *parent) :
     // to help with device manufacturing use cases, no UI is currently provided
     // for populating this data.
     QSettings settings;
+    const QLocale locale = util::numberLocale();
     QVariantList scaleList = settings.value("slope_calibration/scale").toList();
     if (!scaleList.isEmpty()) {
         int i = 0;
         for (const QVariant &entry : std::as_const(scaleList)) {
             bool ok;
             const QString entryStr = entry.toString();
-            const float entryNum = entryStr.toFloat(&ok);
+            const float entryNum = locale.toFloat(entryStr, &ok);
             if (ok && entryNum >= 0.0F && entryNum <= 5.0F) {
                 model_->setItem(i++, 0, new QStandardItem(entryStr));
             }
@@ -106,6 +107,7 @@ std::tuple<float, float, float> SlopeCalibrationDialog::calValues() const
 
 void SlopeCalibrationDialog::wedgePrecValueChanged(int value)
 {
+    const QLocale locale = util::numberLocale();
     QList<double> rawValues;
     for (int row = 0; row < model_->rowCount(); row++) {
         float density = itemValueAsFloat(row, 0);
@@ -117,7 +119,7 @@ void SlopeCalibrationDialog::wedgePrecValueChanged(int value)
     for (int row = 0; row < model_->rowCount(); row++) {
         QString numStr;
         if (!qIsNaN(rawValues[row])) {
-            numStr = QString::number(rawValues[row], 'f', value);
+            numStr = locale.toString(rawValues[row], 'f', value);
         }
         model_->setItem(row, 0, new QStandardItem(numStr));
     }
@@ -158,6 +160,8 @@ void SlopeCalibrationDialog::onTargetMeasurement(float basicReading)
 
 void SlopeCalibrationDialog::addRawMeasurement(float rawValue)
 {
+    const QLocale locale = util::numberLocale();
+
     if (qIsNaN(rawValue) || rawValue < 0.0F) {
         return;
     }
@@ -166,7 +170,7 @@ void SlopeCalibrationDialog::addRawMeasurement(float rawValue)
     int row = ulIndex.first;
     if (row < 0) { row = 0; }
 
-    QString numStr = QString::number(rawValue, 'f', 6);
+    QString numStr = locale.toString(rawValue, 'f', 6);
     model_->setItem(row, 1, new QStandardItem(numStr));
 
     if (row < model_->rowCount() - 1) {
@@ -251,6 +255,7 @@ void SlopeCalibrationDialog::onActionCopy()
 
 void SlopeCalibrationDialog::onActionPaste()
 {
+    const QLocale locale = util::numberLocale();
     static QRegularExpression reLine("\n|\r\n|\r");
     static QRegularExpression reRow("[,;]\\s*|\\s+");
 
@@ -267,11 +272,11 @@ void SlopeCalibrationDialog::onActionPaste()
             float num1 = qQNaN();
             float num2 = qQNaN();
             if (rowElements.size() > 0) {
-                num1 = rowElements.at(0).toFloat(&ok);
+                num1 = locale.toFloat(rowElements.at(0), &ok);
                 if (!ok) { num1 = qQNaN(); }
             }
             if (rowElements.size() > 1) {
-                num2 = rowElements.at(1).toFloat(&ok);
+                num2 = locale.toFloat(rowElements.at(1), &ok);
                 if (!ok) { num2 = qQNaN(); }
             }
             if (!qIsNaN(num1) || !qIsNaN(num2)) {
@@ -300,19 +305,19 @@ void SlopeCalibrationDialog::onActionPaste()
             QString numStr;
             if (col == 0) {
                 if (!qIsNaN(numElement.first)) {
-                    numStr = QString::number(numElement.first, 'f', wedgeDecimals);
+                    numStr = locale.toString(numElement.first, 'f', wedgeDecimals);
                     model_->setItem(row, col, new QStandardItem(numStr));
                 }
                 if (!qIsNaN(numElement.second)) {
-                    numStr = QString::number(numElement.second, 'f', 6);
+                    numStr = locale.toString(numElement.second, 'f', 6);
                     model_->setItem(row, col + 1, new QStandardItem(numStr));
                 }
             } else {
                 if (!qIsNaN(numElement.first)) {
-                    numStr = QString::number(numElement.first, 'f', 6);
+                    numStr = locale.toString(numElement.first, 'f', 6);
                     model_->setItem(row, col, new QStandardItem(numStr));
                 } else if (!qIsNaN(numElement.second)) {
-                    numStr = QString::number(numElement.second, 'f', 6);
+                    numStr = locale.toString(numElement.second, 'f', 6);
                     model_->setItem(row, col, new QStandardItem(numStr));
                 }
             }
@@ -389,9 +394,10 @@ void SlopeCalibrationDialog::onCalculateResults()
 
     auto beta = util::polyfit(xList, yList);
 
-    ui->b0LineEdit->setText(QString::number(std::get<0>(beta), 'f'));
-    ui->b1LineEdit->setText(QString::number(std::get<1>(beta), 'f'));
-    ui->b2LineEdit->setText(QString::number(std::get<2>(beta), 'f'));
+    const QLocale locale = util::numberLocale();
+    ui->b0LineEdit->setText(locale.toString(std::get<0>(beta), 'f'));
+    ui->b1LineEdit->setText(locale.toString(std::get<1>(beta), 'f'));
+    ui->b2LineEdit->setText(locale.toString(std::get<2>(beta), 'f'));
     calValues_ = beta;
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 }
@@ -428,11 +434,12 @@ QPair<int, int> SlopeCalibrationDialog::upperLeftActiveIndex() const
 
 float SlopeCalibrationDialog::itemValueAsFloat(int row, int col) const
 {
+    const QLocale locale = util::numberLocale();
     float value;
     bool ok = false;
     QStandardItem *item = model_->item(row, col);
     if (item) {
-        value = item->text().toFloat(&ok);
+        value = locale.toFloat(item->text(), &ok);
     }
 
     if (!ok) {

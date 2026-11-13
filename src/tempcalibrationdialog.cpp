@@ -201,6 +201,7 @@ bool TempCalibrationDialog::processImportData(const QByteArray &importData)
 
 void TempCalibrationDialog::populateImportDataSequence(QTableWidget *inputTableWidget, const QJsonArray &sequence)
 {
+    const QLocale locale = util::numberLocale();
     inputTableWidget->clearContents();
     int row = 0;
 
@@ -232,7 +233,7 @@ void TempCalibrationDialog::populateImportDataSequence(QTableWidget *inputTableW
             item = new QTableWidgetItem();
             inputTableWidget->setItem(row, 0, item);
         }
-        item->setText(QString::number(temperature, 'f', 1));
+        item->setText(locale.toString(temperature, 'f', 1));
 
         for (qsizetype i = 0; i < readings.size(); i++) {
             item = inputTableWidget->item(row, i + 1);
@@ -240,7 +241,7 @@ void TempCalibrationDialog::populateImportDataSequence(QTableWidget *inputTableW
                 item = new QTableWidgetItem();
                 inputTableWidget->setItem(row, i + 1, item);
             }
-            item->setText(QString::number(readings[i], 'f', 6));
+            item->setText(locale.toString(readings[i], 'f', 6));
         }
         row++;
     }
@@ -314,6 +315,7 @@ int TempCalibrationDialog::findMaxValidColumns(QTableWidget *inputTableWidget)
 
 QList<QList<double>> TempCalibrationDialog::collectInputData(QTableWidget *inputTableWidget, int maxColumns)
 {
+    const QLocale locale = util::numberLocale();
     QList<QList<double>> tableData;
     bool valid = true;
 
@@ -327,7 +329,7 @@ QList<QList<double>> TempCalibrationDialog::collectInputData(QTableWidget *input
                 valid = false;
                 break;
             }
-            double val = item->text().toDouble(&valid);
+            double val = locale.toDouble(item->text(), &valid);
             if (!valid) { break; }
 
             rowData.append(val);
@@ -400,20 +402,22 @@ void TempCalibrationDialog::coefficientSetAssignColumn(QTableWidget *table, int 
 {
     if (!table || table->columnCount() <= col || table->rowCount() < 3) { return; }
 
+    const QLocale locale = util::numberLocale();
     QTableWidgetItem *item;
 
     item = tableWidgetItem(table, 0, col);
-    item->setText(QString::number(sourceValues.b0()));
+    item->setText(locale.toString(sourceValues.b0()));
 
     item = tableWidgetItem(table, 1, col);
-    item->setText(QString::number(sourceValues.b1()));
+    item->setText(locale.toString(sourceValues.b1()));
 
     item = tableWidgetItem(table, 2, col);
-    item->setText(QString::number(sourceValues.b2()));
+    item->setText(locale.toString(sourceValues.b2()));
 }
 
 DensCalTemperature TempCalibrationDialog::coefficientSetCollectColumn(const QTableWidget *table, int col) const
 {
+    const QLocale locale = util::numberLocale();
     bool ok;
     float v0 = qSNaN();;
     float v1 = qSNaN();;
@@ -425,19 +429,19 @@ DensCalTemperature TempCalibrationDialog::coefficientSetCollectColumn(const QTab
 
     item = table->item(0, col);
     if (item) {
-        v0 = item->text().toFloat(&ok);
+        v0 = locale.toFloat(item->text(), &ok);
         if (!ok) { v0 = qSNaN(); }
     }
 
     item = table->item(1, col);
     if (item) {
-        v1 = item->text().toFloat(&ok);
+        v1 = locale.toFloat(item->text(), &ok);
         if (!ok) { v1 = qSNaN(); }
     }
 
     item = table->item(2, col);
     if (item) {
-        v2 = item->text().toFloat(&ok);
+        v2 = locale.toFloat(item->text(), &ok);
         if (!ok) { v2 = qSNaN(); }
     }
 

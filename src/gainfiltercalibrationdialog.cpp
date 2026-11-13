@@ -86,6 +86,7 @@ GainFilterCalibrationDialog::~GainFilterCalibrationDialog()
 
 QList<float> GainFilterCalibrationDialog::gainValues() const
 {
+    const QLocale locale = util::numberLocale();
     QList<float> result;
 
     for (int i = 0; i < ui->gainValueTableWidget->rowCount(); i++) {
@@ -93,7 +94,7 @@ QList<float> GainFilterCalibrationDialog::gainValues() const
         if (!item) { return QList<float>(); }
 
         bool ok;
-        double gainValue = item->text().toFloat(&ok);
+        double gainValue = locale.toFloat(item->text(), &ok);
         if (!ok) { return QList<float>(); }
 
         result.append(gainValue);
@@ -222,12 +223,13 @@ void GainFilterCalibrationDialog::measureNextGain()
 
 void GainFilterCalibrationDialog::onDiagSensorUvInvokeReading(unsigned int reading)
 {
+    const QLocale locale = util::numberLocale();
     bool measError = false;
 
     if (!running_) { return; }
     if (reading < std::numeric_limits<unsigned int>::max()) {
         QTableWidgetItem *item = util::tableWidgetItem(ui->measTableWidget, selectedMeasRow_, currentGain_);
-        item->setText(QString::number(reading));
+        item->setText(locale.toString(reading));
         currentGain_++;
     } else {
         measError = true;
@@ -324,6 +326,7 @@ void GainFilterCalibrationDialog::onGainValueTableWidgetDataChanged()
 
 void GainFilterCalibrationDialog::onCalcPushButtonClicked()
 {
+    const QLocale locale = util::numberLocale();
     bool ok;
     QList<double> gainRatios(ui->gainRatioTableWidget->rowCount());
 
@@ -369,7 +372,7 @@ void GainFilterCalibrationDialog::onCalcPushButtonClicked()
 
     for (int i = 0; i < gainRatios.size(); i++) {
         QTableWidgetItem *item = util::tableWidgetItem(ui->gainRatioTableWidget, i, 0);
-        item->setText(QString::number(gainRatios[i], 'f', 10));
+        item->setText(locale.toString(gainRatios[i], 'f', 10));
     }
 
     connect(ui->gainRatioTableWidget->model(), &QAbstractItemModel::dataChanged, this, &GainFilterCalibrationDialog::onGainRatioTableWidgetDataChanged);
@@ -379,6 +382,7 @@ void GainFilterCalibrationDialog::onCalcPushButtonClicked()
 
 void GainFilterCalibrationDialog::onCalcValuesPushButtonClicked()
 {
+    const QLocale locale = util::numberLocale();
     bool ok;
     QTableWidgetItem *item;
 
@@ -387,14 +391,13 @@ void GainFilterCalibrationDialog::onCalcValuesPushButtonClicked()
     const DensUvVisCalGain::GainLevel baseGain = static_cast<DensUvVisCalGain::GainLevel>(baseGainIndex);
     const float baseGainValue = DensUvVisCalGain::gainSpecValue(baseGain);
 
-
     // Collect the list of gain ratios
     QList<double> gainRatios(ui->gainRatioTableWidget->rowCount());
     for (int i = 0; i < gainRatios.size(); i++) {
         QTableWidgetItem *item = ui->gainRatioTableWidget->item(i, 0);
         if (!item) { return; }
 
-        double gainRatio = item->text().toDouble(&ok);
+        double gainRatio = locale.toDouble(item->text(), &ok);
         if (!ok) { return; }
 
         gainRatios[i] = gainRatio;
@@ -419,7 +422,7 @@ void GainFilterCalibrationDialog::onCalcValuesPushButtonClicked()
     disconnect(ui->gainValueTableWidget->model(), &QAbstractItemModel::dataChanged, this, &GainFilterCalibrationDialog::onGainValueTableWidgetDataChanged);
     for (int i = 0; i < ui->gainValueTableWidget->rowCount(); i++) {
         item = util::tableWidgetItem(ui->gainValueTableWidget, i, 0);
-        item->setText(QString::number(gainValues[i], 'f'));
+        item->setText(locale.toString(gainValues[i], 'f'));
     }
     connect(ui->gainValueTableWidget->model(), &QAbstractItemModel::dataChanged, this, &GainFilterCalibrationDialog::onGainValueTableWidgetDataChanged);
     onGainValueTableWidgetDataChanged();

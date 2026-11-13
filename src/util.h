@@ -35,6 +35,7 @@ void free2DArray(double **array, const size_t rows);
 
 std::tuple<float, float, float> polyfit(const QList<float> &xList, const QList<float> &yList);
 
+QLocale numberLocale();
 QValidator *createIntValidator(int min, int max, QObject *parent = nullptr);
 QValidator *createFloatValidator(double min, double max, int decimals, QObject *parent = nullptr);
 void changeLineEditDecimals(QLineEdit *lineEdit, int decimals);

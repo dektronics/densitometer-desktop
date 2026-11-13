@@ -161,6 +161,8 @@ void CalibrationBaselineTab::onConnectionClosed()
 
 void CalibrationBaselineTab::refreshButtonState()
 {
+    const QLocale locale = util::numberLocale();
+
     const bool connected = densInterface_->connected();
     if (connected) {
         ui->calGetAllPushButton->setEnabled(true);
@@ -174,13 +176,13 @@ void CalibrationBaselineTab::refreshButtonState()
         // Populate read-only edit fields that are only set
         // via the protocol for consistency of the data formats
         if (ui->low0LineEdit->text().isEmpty()) {
-            ui->low0LineEdit->setText("1");
+            ui->low0LineEdit->setText(locale.toString(1));
         }
         if (ui->low1LineEdit->text().isEmpty()) {
-            ui->low1LineEdit->setText("1");
+            ui->low1LineEdit->setText(locale.toString(1));
         }
         if (ui->tranLoDensityLineEdit->text().isEmpty()) {
-            ui->tranLoDensityLineEdit->setText("0.00");
+            ui->tranLoDensityLineEdit->setText(locale.toString(0.0F, 'f', 2));
         }
 
         ui->low0LineEdit->setEnabled(true);
@@ -233,18 +235,20 @@ void CalibrationBaselineTab::onDensityReading(DensInterface::DensityType type, f
     Q_UNUSED(dZero)
     Q_UNUSED(rawValue)
 
+    const QLocale locale = util::numberLocale();
+
     // Update calibration tab fields, if focused
     if (type == DensInterface::DensityReflection) {
         if (ui->reflLoReadingLineEdit->hasFocus()) {
-            ui->reflLoReadingLineEdit->setText(QString::number(corrValue, 'f'));
+            ui->reflLoReadingLineEdit->setText(locale.toString(corrValue, 'f'));
         } else if (ui->reflHiReadingLineEdit->hasFocus()) {
-            ui->reflHiReadingLineEdit->setText(QString::number(corrValue, 'f'));
+            ui->reflHiReadingLineEdit->setText(locale.toString(corrValue, 'f'));
         }
     } else {
         if (ui->tranLoReadingLineEdit->hasFocus()) {
-            ui->tranLoReadingLineEdit->setText(QString::number(corrValue, 'f'));
+            ui->tranLoReadingLineEdit->setText(locale.toString(corrValue, 'f'));
         } else if (ui->tranHiReadingLineEdit->hasFocus()) {
-            ui->tranHiReadingLineEdit->setText(QString::number(corrValue, 'f'));
+            ui->tranHiReadingLineEdit->setText(locale.toString(corrValue, 'f'));
         }
     }
 }
@@ -304,26 +308,27 @@ void CalibrationBaselineTab::onCalGainSetClicked()
 {
     DensCalGain calGain;
     bool ok;
+    const QLocale locale = util::numberLocale();
 
     calGain.setLow0(1.0F);
     calGain.setLow1(1.0F);
 
-    calGain.setMed0(ui->med0LineEdit->text().toFloat(&ok));
+    calGain.setMed0(locale.toFloat(ui->med0LineEdit->text(), &ok));
     if (!ok) { return; }
 
-    calGain.setMed1(ui->med1LineEdit->text().toFloat(&ok));
+    calGain.setMed1(locale.toFloat(ui->med1LineEdit->text(), &ok));
     if (!ok) { return; }
 
-    calGain.setHigh0(ui->high0LineEdit->text().toFloat(&ok));
+    calGain.setHigh0(locale.toFloat(ui->high0LineEdit->text(), &ok));
     if (!ok) { return; }
 
-    calGain.setHigh1(ui->high1LineEdit->text().toFloat(&ok));
+    calGain.setHigh1(locale.toFloat(ui->high1LineEdit->text(), &ok));
     if (!ok) { return; }
 
-    calGain.setMax0(ui->max0LineEdit->text().toFloat(&ok));
+    calGain.setMax0(locale.toFloat(ui->max0LineEdit->text(), &ok));
     if (!ok) { return; }
 
-    calGain.setMax1(ui->max1LineEdit->text().toFloat(&ok));
+    calGain.setMax1(locale.toFloat(ui->max1LineEdit->text(), &ok));
     if (!ok) { return; }
 
     densInterface_->sendSetCalGain(calGain);
@@ -333,14 +338,15 @@ void CalibrationBaselineTab::onCalSlopeSetClicked()
 {
     DensCalSlope calSlope;
     bool ok;
+    const QLocale locale = util::numberLocale();
 
-    calSlope.setB0(ui->b0LineEdit->text().toFloat(&ok));
+    calSlope.setB0(locale.toFloat(ui->b0LineEdit->text(), &ok));
     if (!ok) { return; }
 
-    calSlope.setB1(ui->b1LineEdit->text().toFloat(&ok));
+    calSlope.setB1(locale.toFloat(ui->b1LineEdit->text(), &ok));
     if (!ok) { return; }
 
-    calSlope.setB2(ui->b2LineEdit->text().toFloat(&ok));
+    calSlope.setB2(locale.toFloat(ui->b2LineEdit->text(), &ok));
     if (!ok) { return; }
 
     densInterface_->sendSetCalSlope(calSlope);
@@ -350,17 +356,18 @@ void CalibrationBaselineTab::onCalReflectionSetClicked()
 {
     DensCalTarget calTarget;
     bool ok;
+    const QLocale locale = util::numberLocale();
 
-    calTarget.setLoDensity(ui->reflLoDensityLineEdit->text().toFloat(&ok));
+    calTarget.setLoDensity(locale.toFloat(ui->reflLoDensityLineEdit->text(), &ok));
     if (!ok) { return; }
 
-    calTarget.setLoReading(ui->reflLoReadingLineEdit->text().toFloat(&ok));
+    calTarget.setLoReading(locale.toFloat(ui->reflLoReadingLineEdit->text(), &ok));
     if (!ok) { return; }
 
-    calTarget.setHiDensity(ui->reflHiDensityLineEdit->text().toFloat(&ok));
+    calTarget.setHiDensity(locale.toFloat(ui->reflHiDensityLineEdit->text(), &ok));
     if (!ok) { return; }
 
-    calTarget.setHiReading(ui->reflHiReadingLineEdit->text().toFloat(&ok));
+    calTarget.setHiReading(locale.toFloat(ui->reflHiReadingLineEdit->text(), &ok));
     if (!ok) { return; }
 
     densInterface_->sendSetCalReflection(calTarget);
@@ -370,16 +377,17 @@ void CalibrationBaselineTab::onCalTransmissionSetClicked()
 {
     DensCalTarget calTarget;
     bool ok;
+    const QLocale locale = util::numberLocale();
 
     calTarget.setLoDensity(0.0F);
 
-    calTarget.setLoReading(ui->tranLoReadingLineEdit->text().toFloat(&ok));
+    calTarget.setLoReading(locale.toFloat(ui->tranLoReadingLineEdit->text(), &ok));
     if (!ok) { return; }
 
-    calTarget.setHiDensity(ui->tranHiDensityLineEdit->text().toFloat(&ok));
+    calTarget.setHiDensity(locale.toFloat(ui->tranHiDensityLineEdit->text(), &ok));
     if (!ok) { return; }
 
-    calTarget.setHiReading(ui->tranHiReadingLineEdit->text().toFloat(&ok));
+    calTarget.setHiReading(locale.toFloat(ui->tranHiReadingLineEdit->text(), &ok));
     if (!ok) { return; }
 
     densInterface_->sendSetCalTransmission(calTarget);
@@ -492,18 +500,19 @@ void CalibrationBaselineTab::onCalLightResponse()
 void CalibrationBaselineTab::onCalGainResponse()
 {
     const DensCalGain calGain = densInterface_->calGain();
+    const QLocale locale = util::numberLocale();
 
-    ui->low0LineEdit->setText(QString::number(calGain.low0(), 'f'));
-    ui->low1LineEdit->setText(QString::number(calGain.low1(), 'f'));
+    ui->low0LineEdit->setText(locale.toString(calGain.low0(), 'f'));
+    ui->low1LineEdit->setText(locale.toString(calGain.low1(), 'f'));
 
-    ui->med0LineEdit->setText(QString::number(calGain.med0(), 'f'));
-    ui->med1LineEdit->setText(QString::number(calGain.med1(), 'f'));
+    ui->med0LineEdit->setText(locale.toString(calGain.med0(), 'f'));
+    ui->med1LineEdit->setText(locale.toString(calGain.med1(), 'f'));
 
-    ui->high0LineEdit->setText(QString::number(calGain.high0(), 'f'));
-    ui->high1LineEdit->setText(QString::number(calGain.high1(), 'f'));
+    ui->high0LineEdit->setText(locale.toString(calGain.high0(), 'f'));
+    ui->high1LineEdit->setText(locale.toString(calGain.high1(), 'f'));
 
-    ui->max0LineEdit->setText(QString::number(calGain.max0(), 'f'));
-    ui->max1LineEdit->setText(QString::number(calGain.max1(), 'f'));
+    ui->max0LineEdit->setText(locale.toString(calGain.max0(), 'f'));
+    ui->max1LineEdit->setText(locale.toString(calGain.max1(), 'f'));
 
     onCalGainTextChanged();
 }
@@ -511,10 +520,11 @@ void CalibrationBaselineTab::onCalGainResponse()
 void CalibrationBaselineTab::onCalSlopeResponse()
 {
     const DensCalSlope calSlope = densInterface_->calSlope();
+    const QLocale locale = util::numberLocale();
 
-    ui->b0LineEdit->setText(QString::number(calSlope.b0(), 'f'));
-    ui->b1LineEdit->setText(QString::number(calSlope.b1(), 'f'));
-    ui->b2LineEdit->setText(QString::number(calSlope.b2(), 'f'));
+    ui->b0LineEdit->setText(locale.toString(calSlope.b0(), 'f'));
+    ui->b1LineEdit->setText(locale.toString(calSlope.b1(), 'f'));
+    ui->b2LineEdit->setText(locale.toString(calSlope.b2(), 'f'));
 
     onCalSlopeTextChanged();
 }
@@ -522,11 +532,12 @@ void CalibrationBaselineTab::onCalSlopeResponse()
 void CalibrationBaselineTab::onCalReflectionResponse()
 {
     const DensCalTarget calReflection = densInterface_->calReflection();
+    const QLocale locale = util::numberLocale();
 
-    ui->reflLoDensityLineEdit->setText(QString::number(calReflection.loDensity(), 'f', densPrecision_));
-    ui->reflLoReadingLineEdit->setText(QString::number(calReflection.loReading(), 'f', 6));
-    ui->reflHiDensityLineEdit->setText(QString::number(calReflection.hiDensity(), 'f', densPrecision_));
-    ui->reflHiReadingLineEdit->setText(QString::number(calReflection.hiReading(), 'f', 6));
+    ui->reflLoDensityLineEdit->setText(locale.toString(calReflection.loDensity(), 'f', densPrecision_));
+    ui->reflLoReadingLineEdit->setText(locale.toString(calReflection.loReading(), 'f', 6));
+    ui->reflHiDensityLineEdit->setText(locale.toString(calReflection.hiDensity(), 'f', densPrecision_));
+    ui->reflHiReadingLineEdit->setText(locale.toString(calReflection.hiReading(), 'f', 6));
 
     onCalReflectionTextChanged();
 }
@@ -534,11 +545,12 @@ void CalibrationBaselineTab::onCalReflectionResponse()
 void CalibrationBaselineTab::onCalTransmissionResponse()
 {
     const DensCalTarget calTransmission = densInterface_->calTransmission();
+    const QLocale locale = util::numberLocale();
 
-    ui->tranLoDensityLineEdit->setText(QString::number(calTransmission.loDensity(), 'f', densPrecision_));
-    ui->tranLoReadingLineEdit->setText(QString::number(calTransmission.loReading(), 'f', 6));
-    ui->tranHiDensityLineEdit->setText(QString::number(calTransmission.hiDensity(), 'f', densPrecision_));
-    ui->tranHiReadingLineEdit->setText(QString::number(calTransmission.hiReading(), 'f', 6));
+    ui->tranLoDensityLineEdit->setText(locale.toString(calTransmission.loDensity(), 'f', densPrecision_));
+    ui->tranLoReadingLineEdit->setText(locale.toString(calTransmission.loReading(), 'f', 6));
+    ui->tranHiDensityLineEdit->setText(locale.toString(calTransmission.hiDensity(), 'f', densPrecision_));
+    ui->tranHiReadingLineEdit->setText(locale.toString(calTransmission.hiReading(), 'f', 6));
 
     onCalTransmissionTextChanged();
 }
@@ -556,9 +568,10 @@ void CalibrationBaselineTab::onSlopeCalibrationToolFinished(int result)
     dialog->deleteLater();
 
     if (result == QDialog::Accepted) {
+        const QLocale locale = util::numberLocale();
         auto result = dialog->calValues();
-        ui->b0LineEdit->setText(QString::number(std::get<0>(result), 'f'));
-        ui->b1LineEdit->setText(QString::number(std::get<1>(result), 'f'));
-        ui->b2LineEdit->setText(QString::number(std::get<2>(result), 'f'));
+        ui->b0LineEdit->setText(locale.toString(std::get<0>(result), 'f'));
+        ui->b1LineEdit->setText(locale.toString(std::get<1>(result), 'f'));
+        ui->b2LineEdit->setText(locale.toString(std::get<2>(result), 'f'));
     }
 }
