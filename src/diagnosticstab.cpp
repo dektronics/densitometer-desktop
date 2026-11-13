@@ -141,7 +141,11 @@ void DiagnosticsTab::onDiagDisplayScreenshot(const QByteArray &data)
     qDebug() << "Got screenshot:" << data.size();
     QImage image = QImage::fromData(data, "XBM");
     if (!image.isNull()) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 9, 0)
+        image = image.flipped(Qt::Horizontal | Qt::Vertical);
+#else
         image = image.mirrored(true, true);
+#endif
         image.invertPixels();
 
         QString fileName = QFileDialog::getSaveFileName(this, tr("Save Screenshot"),
