@@ -485,7 +485,7 @@ void MainWindow::about()
     QMessageBox::about(this, tr("About"),
                        tr("<b>%1 v%2</b><br>"
                           "<br>"
-                          "Copyright 2025 Dektronics, Inc. All rights reserved.")
+                          "Copyright \u00A9 2026 Dektronics, Inc. All rights reserved.")
                        .arg(QApplication::applicationName(),
                             QApplication::applicationVersion()));
 }
