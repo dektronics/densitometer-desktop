@@ -119,7 +119,7 @@ void HeadlessTask::systemInfoFinished()
 {
     std::cout << "Printalyzer Densitometer" << std::endl;
     std::cout << "Version: " << densInterface_->version().toStdString() << std::endl;
-    std::cout << "Date: " << densInterface_->buildDate().toString("yyyy-MM-dd hh:mm").toStdString() << std::endl;
+    std::cout << "Date: " << densInterface_->buildDate().toString(QStringLiteral("yyyy-MM-dd hh:mm")).toStdString() << std::endl;
     std::cout << "Commit: " << densInterface_->buildDescribe().toStdString() << std::endl;
     std::cout << "Checksum: " << QString::number(densInterface_->buildChecksum(), 16).toStdString() << std::endl;
     std::cout << "UID: " << densInterface_->uniqueId().toStdString() << std::endl;

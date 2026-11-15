@@ -11,6 +11,8 @@
 #include "densinterface.h"
 #include "util.h"
 
+using namespace Qt::StringLiterals;
+
 SettingsImportDialog::SettingsImportDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SettingsImportDialog)
@@ -88,14 +90,14 @@ bool SettingsImportDialog::loadFile(const QString &filename)
         return false;
     }
 
-    if (root.contains("calibration") && root["calibration"].isObject()) {
-        QJsonObject jsonCal = root["calibration"].toObject();
-        if (jsonCal.contains("sensor") && jsonCal["sensor"].isObject()) {
-            QJsonObject jsonCalSensor = jsonCal["sensor"].toObject();
+    if (root.contains("calibration"_L1) && root["calibration"_L1].isObject()) {
+        QJsonObject jsonCal = root["calibration"_L1].toObject();
+        if (jsonCal.contains("sensor"_L1) && jsonCal["sensor"_L1].isObject()) {
+            QJsonObject jsonCalSensor = jsonCal["sensor"_L1].toObject();
             parseCalSensor(jsonCalSensor);
         }
-        if (jsonCal.contains("target") && jsonCal["target"].isObject()) {
-            QJsonObject jsonCalTarget = jsonCal["target"].toObject();
+        if (jsonCal.contains("target"_L1) && jsonCal["target"_L1].isObject()) {
+            QJsonObject jsonCalTarget = jsonCal["target"_L1].toObject();
             parseCalTarget(jsonCalTarget);
         }
     }
@@ -112,33 +114,33 @@ bool SettingsImportDialog::parseHeader(const QJsonObject &root)
     QString deviceVersion;
     QString deviceUid;
     QString devicePartNumber;
-    if (root.contains("header") && root["header"].isObject()) {
-        QJsonObject jsonHeader = root["header"].toObject();
-        if (jsonHeader.contains("version")) {
-            int version = util::parseJsonInt(jsonHeader["version"]);
+    if (root.contains("header"_L1) && root["header"_L1].isObject()) {
+        QJsonObject jsonHeader = root["header"_L1].toObject();
+        if (jsonHeader.contains("version"_L1)) {
+            int version = util::parseJsonInt(jsonHeader["version"_L1]);
             if (version != 1) {
                 qWarning() << "Unexpected version:" << version;
                 return false;
             }
         }
-        if (jsonHeader.contains("date")) {
-            exportDate = jsonHeader["date"].toString();
+        if (jsonHeader.contains("date"_L1)) {
+            exportDate = jsonHeader["date"_L1].toString();
         }
     }
-    if (root.contains("system") && root["system"].isObject()) {
-        QJsonObject jsonSystem = root["system"].toObject();
+    if (root.contains("system"_L1) && root["system"_L1].isObject()) {
+        QJsonObject jsonSystem = root["system"_L1].toObject();
 
-        if (jsonSystem.contains("name")) {
-            deviceName = jsonSystem["name"].toString();
+        if (jsonSystem.contains("name"_L1)) {
+            deviceName = jsonSystem["name"_L1].toString();
         }
-        if (jsonSystem.contains("version")) {
-            deviceVersion = jsonSystem["version"].toString();
+        if (jsonSystem.contains("version"_L1)) {
+            deviceVersion = jsonSystem["version"_L1].toString();
         }
-        if (jsonSystem.contains("uid")) {
-            deviceUid = jsonSystem["uid"].toString();
+        if (jsonSystem.contains("uid"_L1)) {
+            deviceUid = jsonSystem["uid"_L1].toString();
         }
-        if (jsonSystem.contains("partNumber")) {
-            devicePartNumber = jsonSystem["partNumber"].toString();
+        if (jsonSystem.contains("partNumber"_L1)) {
+            devicePartNumber = jsonSystem["partNumber"_L1].toString();
         }
     }
 
@@ -161,8 +163,8 @@ void SettingsImportDialog::parseCalSensor(const QJsonObject &jsonCalSensor)
 {
     const QLocale locale = util::numberLocale();
 
-    if (jsonCalSensor.contains("gain")) {
-        calGain_ = DensCalGain::fromJson(jsonCalSensor["gain"]);
+    if (jsonCalSensor.contains("gain"_L1)) {
+        calGain_ = DensCalGain::fromJson(jsonCalSensor["gain"_L1]);
 
         // Assign UI labels
         ui->lowCh0Label->setText(locale.toString(calGain_.low0(), 'f', 1));
@@ -177,8 +179,8 @@ void SettingsImportDialog::parseCalSensor(const QJsonObject &jsonCalSensor)
         // Do basic validation to enable the checkbox
         ui->importGainCheckBox->setEnabled(calGain_.isValid());
     }
-    if (jsonCalSensor.contains("slope")) {
-        calSlope_ = DensCalSlope::fromJson(jsonCalSensor["slope"]);
+    if (jsonCalSensor.contains("slope"_L1)) {
+        calSlope_ = DensCalSlope::fromJson(jsonCalSensor["slope"_L1]);
 
         // Assign UI labels
         ui->slopeB0Label->setText(locale.toString(calSlope_.b0(), 'f', 6));
@@ -194,8 +196,8 @@ void SettingsImportDialog::parseCalTarget(const QJsonObject &jsonCalTarget)
 {
     const QLocale locale = util::numberLocale();
 
-    if (jsonCalTarget.contains("reflection")) {
-        calReflection_ = DensCalTarget::fromJson(jsonCalTarget["reflection"]);
+    if (jsonCalTarget.contains("reflection"_L1)) {
+        calReflection_ = DensCalTarget::fromJson(jsonCalTarget["reflection"_L1]);
     }
 
     // Assign UI labels
@@ -207,8 +209,8 @@ void SettingsImportDialog::parseCalTarget(const QJsonObject &jsonCalTarget)
     // Do basic validation and enable the checkbox
     ui->importReflCheckBox->setEnabled(calReflection_.isValidReflection());
 
-    if (jsonCalTarget.contains("transmission")) {
-        calTransmission_ = DensCalTarget::fromJson(jsonCalTarget["transmission"]);
+    if (jsonCalTarget.contains("transmission"_L1)) {
+        calTransmission_ = DensCalTarget::fromJson(jsonCalTarget["transmission"_L1]);
     }
 
     // Assign UI labels

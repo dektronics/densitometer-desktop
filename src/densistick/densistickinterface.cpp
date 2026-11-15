@@ -7,6 +7,8 @@
 #include "densisticksettings.h"
 #include "densistickreading.h"
 
+using namespace Qt::StringLiterals;
+
 namespace
 {
 static const uint8_t EEPROM_ADDRESS = 0x50;
@@ -81,9 +83,9 @@ bool DensiStickInterface::open()
     // Populate the version string
     Ft260ChipVersion chipVersion;
     if (ft260_->chipVersion(&chipVersion)) {
-        ft260Version_ = QString("%1%2-%3.%4")
-                            .arg(chipVersion.chip[0], 2, 16, QChar('0'))
-                            .arg(chipVersion.chip[1], 2, 16, QChar('0'))
+        ft260Version_ = QString("%1%2-%3.%4"_L1)
+                            .arg(chipVersion.chip[0], 2, 16, QChar('0'_L1))
+                            .arg(chipVersion.chip[1], 2, 16, QChar('0'_L1))
                             .arg(chipVersion.major)
                             .arg(chipVersion.minor);
     } else {

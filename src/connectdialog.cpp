@@ -7,7 +7,7 @@
 #include "densinterface.h"
 #include "densistick/ft260.h"
 
-static const char blankString[] = QT_TRANSLATE_NOOP("ConnectDialog", "N/A");
+static const QString blankString = QStringLiteral(QT_TRANSLATE_NOOP("ConnectDialog", "N/A"));
 
 ConnectDialog::ConnectDialog(QWidget *parent) :
     QDialog(parent),

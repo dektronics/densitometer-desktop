@@ -6,6 +6,8 @@
 #include <QTimer>
 #include <QDebug>
 
+using namespace Qt::StringLiterals;
+
 SettingsExporter::SettingsExporter(DensInterface *densInterface, QObject *parent)
     : QObject{parent},
       densInterface_(densInterface)
@@ -56,21 +58,21 @@ bool SettingsExporter::saveExport(const QString &filename)
 
     // File header information
     QJsonObject jsonHeader;
-    jsonHeader["version"] = QString::number(1);
-    jsonHeader["date"] = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm");
+    jsonHeader["version"_L1] = QString::number(1);
+    jsonHeader["date"_L1] = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm"_L1);
 
     // General system properties, for reference
     QJsonObject jsonSystem;
-    jsonSystem["name"] = densInterface_->projectName();
-    jsonSystem["version"] = densInterface_->version();
-    jsonSystem["buildDate"] = densInterface_->buildDate().toString("yyyy-MM-dd hh:mm");
-    jsonSystem["buildDescribe"] = densInterface_->buildDescribe();
-    jsonSystem["checksum"] = QString::number(densInterface_->buildChecksum(), 16);
-    jsonSystem["uid"] = densInterface_->uniqueId();
+    jsonSystem["name"_L1] = densInterface_->projectName();
+    jsonSystem["version"_L1] = densInterface_->version();
+    jsonSystem["buildDate"_L1] = densInterface_->buildDate().toString("yyyy-MM-dd hh:mm"_L1);
+    jsonSystem["buildDescribe"_L1] = densInterface_->buildDescribe();
+    jsonSystem["checksum"_L1] = QString::number(densInterface_->buildChecksum(), 16);
+    jsonSystem["uid"_L1] = densInterface_->uniqueId();
     if (densInterface_->deviceType() == DensInterface::DeviceBaseline) {
-        jsonSystem["partNumber"] = "DPD-100";
+        jsonSystem["partNumber"_L1] = "DPD-100"_L1;
     } else if (densInterface_->deviceType() == DensInterface::DeviceUvVis) {
-        jsonSystem["partNumber"] = "DPD-105";
+        jsonSystem["partNumber"_L1] = "DPD-105"_L1;
     }
 
     // Calibration data
@@ -81,18 +83,18 @@ bool SettingsExporter::saveExport(const QString &filename)
 
     if (densInterface_->deviceType() == DensInterface::DeviceBaseline) {
         const DensCalGain calGain = densInterface_->calGain();
-        jsonCalSensor["gain"] = calGain.toJson();
+        jsonCalSensor["gain"_L1] = calGain.toJson();
     } else if (densInterface_->deviceType() == DensInterface::DeviceUvVis) {
         const DensUvVisCalGain calGain = densInterface_->calUvVisGain();
-        jsonCalSensor["gain"] = calGain.toJson();
+        jsonCalSensor["gain"_L1] = calGain.toJson();
     }
 
     if (densInterface_->deviceType() == DensInterface::DeviceBaseline) {
         const DensCalSlope calSlope = densInterface_->calSlope();
-        jsonCalSensor["slope"] = calSlope.toJson();
+        jsonCalSensor["slope"_L1] = calSlope.toJson();
     }
 
-    jsonCal["sensor"] = jsonCalSensor;
+    jsonCal["sensor"_L1] = jsonCalSensor;
 
     // Target calibration
     QJsonObject jsonCalTarget;
@@ -100,17 +102,17 @@ bool SettingsExporter::saveExport(const QString &filename)
     if (densInterface_->deviceType() == DensInterface::DeviceBaseline) {
         const DensCalTarget calReflection = densInterface_->calReflection();
         const DensCalTarget calTransmission = densInterface_->calTransmission();
-        jsonCalTarget["reflection"] = calReflection.toJson();
-        jsonCalTarget["transmission"] = calTransmission.toJson();
+        jsonCalTarget["reflection"_L1] = calReflection.toJson();
+        jsonCalTarget["transmission"_L1] = calTransmission.toJson();
     } else if (densInterface_->deviceType() == DensInterface::DeviceUvVis) {
         const DensCalTarget calVisReflection = densInterface_->calReflection();
         const DensCalTarget calVisTransmission = densInterface_->calTransmission();
         const DensCalTarget calUvTransmission = densInterface_->calUvTransmission();
-        jsonCalTarget["visReflection"] = calVisReflection.toJson();
-        jsonCalTarget["visTransmission"] = calVisTransmission.toJson();
-        jsonCalTarget["uvTransmission"] = calUvTransmission.toJson();
+        jsonCalTarget["visReflection"_L1] = calVisReflection.toJson();
+        jsonCalTarget["visTransmission"_L1] = calVisTransmission.toJson();
+        jsonCalTarget["uvTransmission"_L1] = calUvTransmission.toJson();
     }
-    jsonCal["target"] = jsonCalTarget;
+    jsonCal["target"_L1] = jsonCalTarget;
 
     // Temperature calibration
     if (densInterface_->deviceType() == DensInterface::DeviceUvVis) {
@@ -118,16 +120,16 @@ bool SettingsExporter::saveExport(const QString &filename)
         const DensCalTemperature calUvTemperature = densInterface_->calUvTemperature();
 
         QJsonObject jsonCalTemperature;
-        jsonCalTemperature["vis"] = calVisTemperature.toJson();
-        jsonCalTemperature["uv"] = calUvTemperature.toJson();
-        jsonCal["temperature"] = jsonCalTemperature;
+        jsonCalTemperature["vis"_L1] = calVisTemperature.toJson();
+        jsonCalTemperature["uv"_L1] = calUvTemperature.toJson();
+        jsonCal["temperature"_L1] = jsonCalTemperature;
     }
 
     // Top level JSON object
     QJsonObject jsonExport;
-    jsonExport["header"] = jsonHeader;
-    jsonExport["system"] = jsonSystem;
-    jsonExport["calibration"] = jsonCal;
+    jsonExport["header"_L1] = jsonHeader;
+    jsonExport["system"_L1] = jsonSystem;
+    jsonExport["calibration"_L1] = jsonCal;
 
     QFile exportFile(filename);
 

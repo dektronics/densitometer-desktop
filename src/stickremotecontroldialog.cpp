@@ -6,6 +6,8 @@
 #include <QDebug>
 #include <cmath>
 
+using namespace Qt::StringLiterals;
+
 namespace
 {
 static const uint16_t SAMPLE_TIME = 719;
@@ -72,9 +74,9 @@ void StickRemoteControlDialog::onStickLightChanged()
     ui->reflCurrentLineEdit->setText(tr("%1 mA").arg(std::round(stickInterface_->lightCurrent() * 1000.0F)));
 
     if (QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark) {
-        ui->reflSpinBox->setStyleSheet("QSpinBox { background-color: darkgreen; }");
+        ui->reflSpinBox->setStyleSheet(u"QSpinBox { background-color: darkgreen; }"_s);
     } else {
-        ui->reflSpinBox->setStyleSheet("QSpinBox { background-color: lightgreen; }");
+        ui->reflSpinBox->setStyleSheet(u"QSpinBox { background-color: lightgreen; }"_s);
     }
     ledControlState(true);
 }
@@ -254,7 +256,7 @@ void StickRemoteControlDialog::onSensorReading(const DensiStickReading& reading)
         float basicReading = alsReading / (timeMs * gainValue);
 
         ui->rawReadingLineEdit->setText(QString::number(reading.reading()));
-        ui->basicReadingLineEdit->setText(QString("%L1").arg(basicReading, 0, 'f', 6));
+        ui->basicReadingLineEdit->setText(QString("%L1"_L1).arg(basicReading, 0, 'f', 6));
 
         const int gainIndex = static_cast<int>(reading.gain());
         if (ui->agcCheckBox->isChecked()

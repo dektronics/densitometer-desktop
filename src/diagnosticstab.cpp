@@ -10,6 +10,8 @@
 #include "remotecontroldialog.h"
 #include "stickremotecontroldialog.h"
 
+using namespace Qt::StringLiterals;
+
 DiagnosticsTab::DiagnosticsTab(DensInterface *densInterface, QWidget *parent)
     : QWidget(parent)
     , ui(new Ui::DiagnosticsTab)
@@ -85,16 +87,16 @@ void DiagnosticsTab::onConnectionClosed()
 void DiagnosticsTab::onSystemVersionResponse()
 {
     if (stickRunner_) {
-        ui->nameLabel->setText("<b>Printalyzer DensiStick</b>");
+        ui->nameLabel->setText(u"<b>Printalyzer DensiStick</b>"_s);
         ui->versionLineEdit->clear();
         ui->halVersionLineEdit->setText(stickRunner_->stickInterface()->version());
         ui->mcuSysClockLineEdit->setText(stickRunner_->stickInterface()->systemClock());
         ui->uniqueIdLineEdit->setText(stickRunner_->stickInterface()->serialNumber());
     } else {
         if (densInterface_->projectName().isEmpty()) {
-            ui->nameLabel->setText("Printalyzer Densitometer");
+            ui->nameLabel->setText(u"Printalyzer Densitometer"_s);
         } else {
-            ui->nameLabel->setText(QString("<b>%1</b>").arg(densInterface_->projectName()));
+            ui->nameLabel->setText(QString(u"<b>%1</b>"_s).arg(densInterface_->projectName()));
         }
         ui->versionLineEdit->setText(densInterface_->version());
     }
@@ -102,12 +104,12 @@ void DiagnosticsTab::onSystemVersionResponse()
 
 void DiagnosticsTab::onSystemBuildResponse()
 {
-    ui->buildDateLineEdit->setText(densInterface_->buildDate().toString("yyyy-MM-dd hh:mm"));
+    ui->buildDateLineEdit->setText(densInterface_->buildDate().toString("yyyy-MM-dd hh:mm"_L1));
     ui->buildCommitLineEdit->setText(densInterface_->buildDescribe());
     if (densInterface_->buildChecksum() == 0) {
         ui->buildChecksumLineEdit->clear();
     } else {
-        ui->buildChecksumLineEdit->setText(QString("%1").arg(densInterface_->buildChecksum(), 0, 16));
+        ui->buildChecksumLineEdit->setText(QString("%1"_L1).arg(densInterface_->buildChecksum(), 0, 16));
     }
 }
 
@@ -149,7 +151,7 @@ void DiagnosticsTab::onDiagDisplayScreenshot(const QByteArray &data)
         image.invertPixels();
 
         QString fileName = QFileDialog::getSaveFileName(this, tr("Save Screenshot"),
-                                                        "screenshot.png",
+                                                        "screenshot.png"_L1,
                                                         tr("Images (*.png *.jpg)"));
         if (!fileName.isEmpty()) {
             if (image.save(fileName)) {
@@ -194,7 +196,7 @@ void DiagnosticsTab::onRemoteControlFinished()
 void DiagnosticsTab::configureForDeviceType()
 {
     // Clear all text fields
-    ui->nameLabel->setText("Printalyzer Densitometer");
+    ui->nameLabel->setText(u"Printalyzer Densitometer"_s);
     ui->versionLineEdit->clear();
     ui->buildDateLineEdit->clear();
     ui->buildCommitLineEdit->clear();
@@ -309,12 +311,12 @@ QString DiagnosticsTab::formatDisplayTemp(const QString &tempStr)
     if (text.isEmpty()) {
         return text;
     }
-    if (text.endsWith(QChar('C'))) {
+    if (text.endsWith(QChar('C'_L1))) {
         text.chop(1);
     }
     float temp = text.toFloat(&ok);
     if (ok) {
-        text = QString("%L1\u00B0C").arg(temp, 0, 'f', 1);
+        text = QString(u"%L1\u00B0C"_s).arg(temp, 0, 'f', 1);
     } else {
         text.clear();
     }

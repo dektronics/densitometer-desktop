@@ -7,6 +7,8 @@
 #include "intitemdelegate.h"
 #include "util.h"
 
+using namespace Qt::StringLiterals;
+
 namespace
 {
 const int MAX_GAIN = 9;
@@ -56,9 +58,9 @@ GainFilterCalibrationDialog::GainFilterCalibrationDialog(DensInterface *densInte
     ui->gainValueTableWidget->setRowCount(MAX_GAIN + 1);
 
     if (QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark) {
-        ui->measTableWidget->setStyleSheet("QTableWidget::item:disabled { selection-color: black; }");
+        ui->measTableWidget->setStyleSheet(u"QTableWidget::item:disabled { selection-color: black; }"_s);
     } else {
-        ui->measTableWidget->setStyleSheet("QTableWidget::item:disabled { selection-color: white; }");
+        ui->measTableWidget->setStyleSheet(u"QTableWidget::item:disabled { selection-color: white; }"_s);
     }
 
     connect(ui->scanPushButton, &QPushButton::clicked, this, &GainFilterCalibrationDialog::onScanPushButtonClicked);
@@ -141,7 +143,7 @@ void GainFilterCalibrationDialog::onSystemRemoteControl(bool enabled)
 
 void GainFilterCalibrationDialog::onDiagLightMaxChanged()
 {
-    densInterface_->sendSetSystemDisplayText("Gain\nCalibration");
+    densInterface_->sendSetSystemDisplayText("Gain\nCalibration"_L1);
     started_ = true;
     refreshButtonState();
 }

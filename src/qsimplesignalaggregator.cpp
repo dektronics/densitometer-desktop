@@ -8,6 +8,8 @@
 
 #include <QMetaMethod>
 
+using namespace Qt::StringLiterals;
+
 QSimpleSignalAggregator::QSimpleSignalAggregator(QObject *parent) :
     QSignalAggregator(parent),
     triggerObject(this),
@@ -18,7 +20,7 @@ QSimpleSignalAggregator::QSimpleSignalAggregator(QObject *parent) :
 auto QSimpleSignalAggregator::convertSignalIntoInvokableMethod(const char *signal)
     -> QString {
     // Index the char* to remove the "2" prefix added by SIGNAL() macro
-    QString normalizedSignal = QString(signal+1);
+    QString normalizedSignal = QString::fromUtf8(signal+1);
     // Remove parentheses (subsequently added back by
     // QMetaObject::invokeMethod)
     normalizedSignal.chop(2);
@@ -46,13 +48,13 @@ auto QSimpleSignalAggregator::aggregate(const QObject *sender,
     connect(sender, signal, this, SLOT(captureSignal()));
 
     QHash<const QString, int> senderHash = lookingFor.value(sender);
-    senderHash.insert(signal, occurrences +
-                      lookingFor.value(sender).value(signal, 0));
+    senderHash.insert(QString::fromUtf8(signal), occurrences +
+                      lookingFor.value(sender).value(QString::fromUtf8(signal), 0));
     lookingFor.insert(sender, senderHash);
 
     QHash<const QString, int> monitorHash = monitor.value(sender);
-    monitorHash.insert(signal, occurrences +
-                       monitor.value(sender).value(signal, 0));
+    monitorHash.insert(QString::fromUtf8(signal), occurrences +
+                       monitor.value(sender).value(QString::fromUtf8(signal), 0));
     monitor.insert(sender, monitorHash);
 
     // printStatus();
@@ -71,11 +73,11 @@ auto QSimpleSignalAggregator::emitGatedSignal() -> void {
 
 auto QSimpleSignalAggregator::captureSignal() -> void {
     const QObject *sender = QObject::sender();
-    const QString signalSignature = sender
+    const QString signalSignature = QString::fromUtf8(sender
         ->metaObject()
         ->method(senderSignalIndex())
-        .methodSignature();
-    const QByteArray signalString = QString("2%1")
+        .methodSignature());
+    const QByteArray signalString = QString("2%1"_L1)
         .arg(signalSignature)
         .toLocal8Bit();
     const char *signal = signalString.constData();
@@ -83,13 +85,13 @@ auto QSimpleSignalAggregator::captureSignal() -> void {
     // qDebug() << "Caught" << signal << "signal from" << sender;
 
     QHash<const QString, int> senderHash = lookingFor.value(sender);
-    const auto remaining = senderHash.value(signal) - 1;
+    const auto remaining = senderHash.value(QString::fromUtf8(signal)) - 1;
 
     if (remaining == 0) {
-        senderHash.remove(signal);
+        senderHash.remove(QString::fromUtf8(signal));
         disconnect(sender, signal, this, SLOT(captureSignal()));
     } else {
-        senderHash.insert(signal, remaining);
+        senderHash.insert(QString::fromUtf8(signal), remaining);
     }
     lookingFor.insert(sender, senderHash);
 

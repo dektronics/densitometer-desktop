@@ -7,6 +7,8 @@
 #include <array>
 #include "util.h"
 
+using namespace Qt::StringLiterals;
+
 class DensCalLightData : public QSharedData
 {
 public:
@@ -176,14 +178,14 @@ bool DensCalGain::isValid() const
 QJsonValue DensCalGain::toJson() const
 {
     QJsonObject jsonCalGain;
-    jsonCalGain["L0"] = QString::number(data->low0, 'f', 6);
-    jsonCalGain["L1"] = QString::number(data->low1, 'f', 6);
-    jsonCalGain["M0"] = QString::number(data->med0, 'f', 6);
-    jsonCalGain["M1"] = QString::number(data->med1, 'f', 6);
-    jsonCalGain["H0"] = QString::number(data->high0, 'f', 6);
-    jsonCalGain["H1"] = QString::number(data->high1, 'f', 6);
-    jsonCalGain["X0"] = QString::number(data->max0, 'f', 6);
-    jsonCalGain["X1"] = QString::number(data->max1, 'f', 6);
+    jsonCalGain["L0"_L1] = QString::number(data->low0, 'f', 6);
+    jsonCalGain["L1"_L1] = QString::number(data->low1, 'f', 6);
+    jsonCalGain["M0"_L1] = QString::number(data->med0, 'f', 6);
+    jsonCalGain["M1"_L1] = QString::number(data->med1, 'f', 6);
+    jsonCalGain["H0"_L1] = QString::number(data->high0, 'f', 6);
+    jsonCalGain["H1"_L1] = QString::number(data->high1, 'f', 6);
+    jsonCalGain["X0"_L1] = QString::number(data->max0, 'f', 6);
+    jsonCalGain["X1"_L1] = QString::number(data->max1, 'f', 6);
     return jsonCalGain;
 }
 
@@ -195,29 +197,29 @@ DensCalGain DensCalGain::fromJson(const QJsonValue &jsonValue)
 
     const QJsonObject jsonCalGain = jsonValue.toObject();
 
-    if (jsonCalGain.contains("L0")) {
-        calGain.setLow0(util::parseJsonFloat(jsonCalGain["L0"]));
+    if (jsonCalGain.contains("L0"_L1)) {
+        calGain.setLow0(util::parseJsonFloat(jsonCalGain["L0"_L1]));
     }
-    if (jsonCalGain.contains("L1")) {
-        calGain.setLow1(util::parseJsonFloat(jsonCalGain["L1"]));
+    if (jsonCalGain.contains("L1"_L1)) {
+        calGain.setLow1(util::parseJsonFloat(jsonCalGain["L1"_L1]));
     }
-    if (jsonCalGain.contains("M0")) {
-        calGain.setMed0(util::parseJsonFloat(jsonCalGain["M0"]));
+    if (jsonCalGain.contains("M0"_L1)) {
+        calGain.setMed0(util::parseJsonFloat(jsonCalGain["M0"_L1]));
     }
-    if (jsonCalGain.contains("M1")) {
-        calGain.setMed1(util::parseJsonFloat(jsonCalGain["M1"]));
+    if (jsonCalGain.contains("M1"_L1)) {
+        calGain.setMed1(util::parseJsonFloat(jsonCalGain["M1"_L1]));
     }
-    if (jsonCalGain.contains("H0")) {
-        calGain.setHigh0(util::parseJsonFloat(jsonCalGain["H0"]));
+    if (jsonCalGain.contains("H0"_L1)) {
+        calGain.setHigh0(util::parseJsonFloat(jsonCalGain["H0"_L1]));
     }
-    if (jsonCalGain.contains("H1")) {
-        calGain.setHigh1(util::parseJsonFloat(jsonCalGain["H1"]));
+    if (jsonCalGain.contains("H1"_L1)) {
+        calGain.setHigh1(util::parseJsonFloat(jsonCalGain["H1"_L1]));
     }
-    if (jsonCalGain.contains("X0")) {
-        calGain.setMax0(util::parseJsonFloat(jsonCalGain["X0"]));
+    if (jsonCalGain.contains("X0"_L1)) {
+        calGain.setMax0(util::parseJsonFloat(jsonCalGain["X0"_L1]));
     }
-    if (jsonCalGain.contains("X1")) {
-        calGain.setMax1(util::parseJsonFloat(jsonCalGain["X1"]));
+    if (jsonCalGain.contains("X1"_L1)) {
+        calGain.setMax1(util::parseJsonFloat(jsonCalGain["X1"_L1]));
     }
 
     return calGain;
@@ -376,9 +378,9 @@ bool DensCalCoefficientSet::isValid() const
 QJsonValue DensCalCoefficientSet::toJson() const
 {
     QJsonObject jsonCoefficientSet;
-    jsonCoefficientSet["B0"] = data->b0;
-    jsonCoefficientSet["B1"] = data->b1;
-    jsonCoefficientSet["B2"] = data->b2;
+    jsonCoefficientSet["B0"_L1] = data->b0;
+    jsonCoefficientSet["B1"_L1] = data->b1;
+    jsonCoefficientSet["B2"_L1] = data->b2;
     return jsonCoefficientSet;
 }
 
@@ -390,14 +392,14 @@ DensCalCoefficientSet DensCalCoefficientSet::fromJson(const QJsonValue &jsonValu
 
     const QJsonObject jsonCoefficientSet = jsonValue.toObject();
 
-    if (jsonCoefficientSet.contains("B0")) {
-        coefficientSet.setB0(util::parseJsonFloat(jsonCoefficientSet["B0"]));
+    if (jsonCoefficientSet.contains("B0"_L1)) {
+        coefficientSet.setB0(util::parseJsonFloat(jsonCoefficientSet["B0"_L1]));
     }
-    if (jsonCoefficientSet.contains("B1")) {
-        coefficientSet.setB1(util::parseJsonFloat(jsonCoefficientSet["B1"]));
+    if (jsonCoefficientSet.contains("B1"_L1)) {
+        coefficientSet.setB1(util::parseJsonFloat(jsonCoefficientSet["B1"_L1]));
     }
-    if (jsonCoefficientSet.contains("B2")) {
-        coefficientSet.setB2(util::parseJsonFloat(jsonCoefficientSet["B2"]));
+    if (jsonCoefficientSet.contains("B2"_L1)) {
+        coefficientSet.setB2(util::parseJsonFloat(jsonCoefficientSet["B2"_L1]));
     }
 
     return coefficientSet;
@@ -485,16 +487,16 @@ bool DensCalTarget::isValidLoOnly() const
 QJsonValue DensCalTarget::toJson() const
 {
     QJsonObject jsonCalLo;
-    jsonCalLo["density"] = QString::number(data->loDensity, 'f', 2);
-    jsonCalLo["reading"] = QString::number(data->loReading, 'f', 6);
+    jsonCalLo["density"_L1] = QString::number(data->loDensity, 'f', 2);
+    jsonCalLo["reading"_L1] = QString::number(data->loReading, 'f', 6);
 
     QJsonObject jsonCalHi;
-    jsonCalHi["density"] = QString::number(data->hiDensity, 'f', 2);
-    jsonCalHi["reading"] = QString::number(data->hiReading, 'f', 6);
+    jsonCalHi["density"_L1] = QString::number(data->hiDensity, 'f', 2);
+    jsonCalHi["reading"_L1] = QString::number(data->hiReading, 'f', 6);
 
     QJsonObject jsonCal;
-    jsonCal["cal-lo"] = jsonCalLo;
-    jsonCal["cal-hi"] = jsonCalHi;
+    jsonCal["cal-lo"_L1] = jsonCalLo;
+    jsonCal["cal-hi"_L1] = jsonCalHi;
 
     return jsonCal;
 }
@@ -507,24 +509,24 @@ DensCalTarget DensCalTarget::fromJson(const QJsonValue &jsonValue)
 
     const QJsonObject jsonCalTarget = jsonValue.toObject();
 
-    if (jsonCalTarget.contains("cal-lo") && jsonCalTarget["cal-lo"].isObject()) {
-        const QJsonObject jsonCalLo = jsonCalTarget["cal-lo"].toObject();
+    if (jsonCalTarget.contains("cal-lo"_L1) && jsonCalTarget["cal-lo"_L1].isObject()) {
+        const QJsonObject jsonCalLo = jsonCalTarget["cal-lo"_L1].toObject();
 
-        if (jsonCalLo.contains("density")) {
-            calTarget.setLoDensity(util::parseJsonFloat(jsonCalLo["density"]));
+        if (jsonCalLo.contains("density"_L1)) {
+            calTarget.setLoDensity(util::parseJsonFloat(jsonCalLo["density"_L1]));
         }
-        if (jsonCalLo.contains("reading")) {
-            calTarget.setLoReading(util::parseJsonFloat(jsonCalLo["reading"]));
+        if (jsonCalLo.contains("reading"_L1)) {
+            calTarget.setLoReading(util::parseJsonFloat(jsonCalLo["reading"_L1]));
         }
     }
-    if (jsonCalTarget.contains("cal-hi") && jsonCalTarget["cal-hi"].isObject()) {
-        const QJsonObject jsonCalHi = jsonCalTarget["cal-hi"].toObject();
+    if (jsonCalTarget.contains("cal-hi"_L1) && jsonCalTarget["cal-hi"_L1].isObject()) {
+        const QJsonObject jsonCalHi = jsonCalTarget["cal-hi"_L1].toObject();
 
-        if (jsonCalHi.contains("density")) {
-            calTarget.setHiDensity(util::parseJsonFloat(jsonCalHi["density"]));
+        if (jsonCalHi.contains("density"_L1)) {
+            calTarget.setHiDensity(util::parseJsonFloat(jsonCalHi["density"_L1]));
         }
-        if (jsonCalHi.contains("reading")) {
-            calTarget.setHiReading(util::parseJsonFloat(jsonCalHi["reading"]));
+        if (jsonCalHi.contains("reading"_L1)) {
+            calTarget.setHiReading(util::parseJsonFloat(jsonCalHi["reading"_L1]));
         }
     }
 

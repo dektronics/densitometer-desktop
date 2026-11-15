@@ -21,7 +21,7 @@ Logger::Logger(QWidget *parent)
 
 void Logger::putData(const QByteArray &data)
 {
-    insertPlainText(data);
+    insertPlainText(QString::fromLatin1(data));
 
     if (autoScroll_) {
         QScrollBar *bar = verticalScrollBar();

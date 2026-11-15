@@ -10,6 +10,8 @@
 #include "floatitemdelegate.h"
 #include "util.h"
 
+using namespace Qt::StringLiterals;
+
 TempCalibrationDialog::TempCalibrationDialog(QWidget *parent)
     : QDialog(parent)
     , ui(new Ui::TempCalibrationDialog)
@@ -116,7 +118,7 @@ void TempCalibrationDialog::onActionDelete()
 void TempCalibrationDialog::onImportClicked()
 {
     QFileDialog fileDialog(this, tr("Import Temperature Data"));
-    fileDialog.setDefaultSuffix(".dat");
+    fileDialog.setDefaultSuffix(".dat"_L1);
     fileDialog.setNameFilters(
         QStringList() << tr("Matching Data Files (*%1*.dat)").arg(uniqueId_)
                       << tr("All Data Files (*.dat)"));
@@ -153,14 +155,14 @@ bool TempCalibrationDialog::processImportData(const QByteArray &importData)
 
     QString uniqueId;
     QDateTime timestamp;
-    if (root.contains("header") && root["header"].isObject()) {
-        const QJsonObject jsonHeader = root["header"].toObject();
+    if (root.contains("header"_L1) && root["header"_L1].isObject()) {
+        const QJsonObject jsonHeader = root["header"_L1].toObject();
 
-        if (jsonHeader.contains("uniqueId")) {
-            uniqueId = jsonHeader["uniqueId"].toString();
+        if (jsonHeader.contains("uniqueId"_L1)) {
+            uniqueId = jsonHeader["uniqueId"_L1].toString();
         }
-        if (jsonHeader.contains("timestamp")) {
-            timestamp = QDateTime::fromString(jsonHeader["timestamp"].toString(), Qt::ISODate);
+        if (jsonHeader.contains("timestamp"_L1)) {
+            timestamp = QDateTime::fromString(jsonHeader["timestamp"_L1].toString(), Qt::ISODate);
         }
     }
 
@@ -184,13 +186,13 @@ bool TempCalibrationDialog::processImportData(const QByteArray &importData)
 
     qDebug() << "Import data captured on:" << timestamp.toString();
 
-    if (root.contains("sequenceVis") && root["sequenceVis"].isArray()) {
-        const QJsonArray sequenceVis = root["sequenceVis"].toArray();
+    if (root.contains("sequenceVis"_L1) && root["sequenceVis"_L1].isArray()) {
+        const QJsonArray sequenceVis = root["sequenceVis"_L1].toArray();
         populateImportDataSequence(ui->visInputTableWidget, sequenceVis);
     }
 
-    if (root.contains("sequenceUv") && root["sequenceUv"].isArray()) {
-        const QJsonArray sequenceUv = root["sequenceUv"].toArray();
+    if (root.contains("sequenceUv"_L1) && root["sequenceUv"_L1].isArray()) {
+        const QJsonArray sequenceUv = root["sequenceUv"_L1].toArray();
         populateImportDataSequence(ui->uvInputTableWidget, sequenceUv);
     }
 
@@ -212,12 +214,12 @@ void TempCalibrationDialog::populateImportDataSequence(QTableWidget *inputTableW
         float temperature = qSNaN();
         QList<float> readings;
 
-        if (entryObj.contains("temperature") && entryObj["temperature"].isDouble()) {
-            temperature = entryObj["temperature"].toDouble(qSNaN());
+        if (entryObj.contains("temperature"_L1) && entryObj["temperature"_L1].isDouble()) {
+            temperature = entryObj["temperature"_L1].toDouble(qSNaN());
         }
 
-        if (entryObj.contains("readings") && entryObj["readings"].isArray()) {
-            const QJsonArray readingArray = entryObj["readings"].toArray();
+        if (entryObj.contains("readings"_L1) && entryObj["readings"_L1].isArray()) {
+            const QJsonArray readingArray = entryObj["readings"_L1].toArray();
             for (const QJsonValue &readingEntry : std::as_const(readingArray)) {
                 float reading = readingEntry.toDouble(qSNaN());
                 readings.append(reading);
@@ -385,7 +387,7 @@ void TempCalibrationDialog::calculateCorrections(const QList<QList<double>> &tab
 
     coefficientSetAssignColumn(resultsTableWidget, resultsCol, DensCalTemperature(polyResult));
 
-    qDebug() << "Reference temp:" << QString("%1°C").arg(QString::number(tableData[refTempRow][0], 'f', 1));
+    qDebug() << "Reference temp:" << QString(u"%1°C"_s).arg(QString::number(tableData[refTempRow][0], 'f', 1));
 }
 
 QTableWidgetItem *TempCalibrationDialog::tableWidgetItem(QTableWidget *table, int row, int column)

@@ -209,7 +209,7 @@ void GainCalibrationDialog::onCalGainCalError()
 void GainCalibrationDialog::addText(const QString &text)
 {
     ui->plainTextEdit->insertPlainText(text);
-    ui->plainTextEdit->insertPlainText("\n");
+    ui->plainTextEdit->insertPlainText(QStringLiteral("\n"));
     QScrollBar *bar = ui->plainTextEdit->verticalScrollBar();
     bar->setValue(bar->maximum());
 }

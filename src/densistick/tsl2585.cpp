@@ -885,9 +885,9 @@ QString TSL2585::gainString(tsl2585_gain_t gain)
 
 
     if (gain >= TSL2585_GAIN_0_5X && gain <= TSL2585_GAIN_4096X) {
-        return QString(TSL2585_GAIN_STR[gain]);
+        return QString(QLatin1String(TSL2585_GAIN_STR[gain]));
     } else {
-        return QString("?");
+        return QString(QLatin1String("?"));
     }
 }
 

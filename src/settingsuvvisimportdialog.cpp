@@ -11,6 +11,8 @@
 #include "densinterface.h"
 #include "util.h"
 
+using namespace Qt::StringLiterals;
+
 SettingsUvVisImportDialog::SettingsUvVisImportDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SettingsUvVisImportDialog)
@@ -87,18 +89,18 @@ bool SettingsUvVisImportDialog::loadFile(const QString &filename)
         return false;
     }
 
-    if (root.contains("calibration") && root["calibration"].isObject()) {
-        const QJsonObject jsonCal = root["calibration"].toObject();
-        if (jsonCal.contains("sensor") && jsonCal["sensor"].isObject()) {
-            const QJsonObject jsonCalSensor = jsonCal["sensor"].toObject();
+    if (root.contains("calibration"_L1) && root["calibration"_L1].isObject()) {
+        const QJsonObject jsonCal = root["calibration"_L1].toObject();
+        if (jsonCal.contains("sensor"_L1) && jsonCal["sensor"_L1].isObject()) {
+            const QJsonObject jsonCalSensor = jsonCal["sensor"_L1].toObject();
             parseCalSensor(jsonCalSensor);
         }
-        if (jsonCal.contains("target") && jsonCal["target"].isObject()) {
-            const QJsonObject jsonCalTarget = jsonCal["target"].toObject();
+        if (jsonCal.contains("target"_L1) && jsonCal["target"_L1].isObject()) {
+            const QJsonObject jsonCalTarget = jsonCal["target"_L1].toObject();
             parseCalTarget(jsonCalTarget);
         }
-        if (jsonCal.contains("temperature") && jsonCal["temperature"].isObject()) {
-            const QJsonObject jsonCalTemp = jsonCal["temperature"].toObject();
+        if (jsonCal.contains("temperature"_L1) && jsonCal["temperature"_L1].isObject()) {
+            const QJsonObject jsonCalTemp = jsonCal["temperature"_L1].toObject();
             parseCalTemperature(jsonCalTemp);
         }
     }
@@ -115,33 +117,33 @@ bool SettingsUvVisImportDialog::parseHeader(const QJsonObject &root)
     QString deviceVersion;
     QString deviceUid;
     QString devicePartNumber;
-    if (root.contains("header") && root["header"].isObject()) {
-        QJsonObject jsonHeader = root["header"].toObject();
-        if (jsonHeader.contains("version")) {
-            int version = util::parseJsonInt(jsonHeader["version"]);
+    if (root.contains("header"_L1) && root["header"_L1].isObject()) {
+        QJsonObject jsonHeader = root["header"_L1].toObject();
+        if (jsonHeader.contains("version"_L1)) {
+            int version = util::parseJsonInt(jsonHeader["version"_L1]);
             if (version != 1) {
                 qWarning() << "Unexpected version:" << version;
                 return false;
             }
         }
-        if (jsonHeader.contains("date")) {
-            exportDate = jsonHeader["date"].toString();
+        if (jsonHeader.contains("date"_L1)) {
+            exportDate = jsonHeader["date"_L1].toString();
         }
     }
-    if (root.contains("system") && root["system"].isObject()) {
-        QJsonObject jsonSystem = root["system"].toObject();
+    if (root.contains("system"_L1) && root["system"_L1].isObject()) {
+        QJsonObject jsonSystem = root["system"_L1].toObject();
 
-        if (jsonSystem.contains("name")) {
-            deviceName = jsonSystem["name"].toString();
+        if (jsonSystem.contains("name"_L1)) {
+            deviceName = jsonSystem["name"_L1].toString();
         }
-        if (jsonSystem.contains("version")) {
-            deviceVersion = jsonSystem["version"].toString();
+        if (jsonSystem.contains("version"_L1)) {
+            deviceVersion = jsonSystem["version"_L1].toString();
         }
-        if (jsonSystem.contains("uid")) {
-            deviceUid = jsonSystem["uid"].toString();
+        if (jsonSystem.contains("uid"_L1)) {
+            deviceUid = jsonSystem["uid"_L1].toString();
         }
-        if (jsonSystem.contains("partNumber")) {
-            devicePartNumber = jsonSystem["partNumber"].toString();
+        if (jsonSystem.contains("partNumber"_L1)) {
+            devicePartNumber = jsonSystem["partNumber"_L1].toString();
         }
     }
 
@@ -164,8 +166,8 @@ void SettingsUvVisImportDialog::parseCalSensor(const QJsonObject &jsonCalSensor)
 {
     const QLocale locale = util::numberLocale();
 
-    if (jsonCalSensor.contains("gain")) {
-        calGain_ = DensUvVisCalGain::fromJson(jsonCalSensor["gain"]);
+    if (jsonCalSensor.contains("gain"_L1)) {
+        calGain_ = DensUvVisCalGain::fromJson(jsonCalSensor["gain"_L1]);
 
         // Assign UI labels
         for (int i = 0; i < ui->gainTableWidget->rowCount(); i++) {
@@ -187,8 +189,8 @@ void SettingsUvVisImportDialog::parseCalTarget(const QJsonObject &jsonCalTarget)
 {
     const QLocale locale = util::numberLocale();
 
-    if (jsonCalTarget.contains("visReflection")) {
-        calReflection_ = DensCalTarget::fromJson(jsonCalTarget["visReflection"]);
+    if (jsonCalTarget.contains("visReflection"_L1)) {
+        calReflection_ = DensCalTarget::fromJson(jsonCalTarget["visReflection"_L1]);
     }
 
     // Assign UI labels
@@ -200,8 +202,8 @@ void SettingsUvVisImportDialog::parseCalTarget(const QJsonObject &jsonCalTarget)
     // Do basic validation and enable the checkbox
     ui->importReflCheckBox->setEnabled(calReflection_.isValidReflection());
 
-    if (jsonCalTarget.contains("visTransmission")) {
-        calVisTransmission_ = DensCalTarget::fromJson(jsonCalTarget["visTransmission"]);
+    if (jsonCalTarget.contains("visTransmission"_L1)) {
+        calVisTransmission_ = DensCalTarget::fromJson(jsonCalTarget["visTransmission"_L1]);
     }
 
     // Assign UI labels
@@ -213,8 +215,8 @@ void SettingsUvVisImportDialog::parseCalTarget(const QJsonObject &jsonCalTarget)
     // Do basic validation and enable the checkbox
     ui->importTranCheckBox->setEnabled(calVisTransmission_.isValidTransmission());
 
-    if (jsonCalTarget.contains("uvTransmission")) {
-        calUvTransmission_ = DensCalTarget::fromJson(jsonCalTarget["uvTransmission"]);
+    if (jsonCalTarget.contains("uvTransmission"_L1)) {
+        calUvTransmission_ = DensCalTarget::fromJson(jsonCalTarget["uvTransmission"_L1]);
     }
 
     // Assign UI labels
@@ -229,13 +231,13 @@ void SettingsUvVisImportDialog::parseCalTarget(const QJsonObject &jsonCalTarget)
 
 void SettingsUvVisImportDialog::parseCalTemperature(const QJsonObject &jsonCalTemp)
 {
-    if (jsonCalTemp.contains("vis")) {
-        calVisTemp_ = DensCalTemperature::fromJson(jsonCalTemp["vis"]);
+    if (jsonCalTemp.contains("vis"_L1)) {
+        calVisTemp_ = DensCalTemperature::fromJson(jsonCalTemp["vis"_L1]);
         calTemperatureAssignColumn(ui->tempTableWidget, 0, calVisTemp_);
     }
 
-    if (jsonCalTemp.contains("uv")) {
-        calUvTemp_ = DensCalTemperature::fromJson(jsonCalTemp["uv"]);
+    if (jsonCalTemp.contains("uv"_L1)) {
+        calUvTemp_ = DensCalTemperature::fromJson(jsonCalTemp["uv"_L1]);
         calTemperatureAssignColumn(ui->tempTableWidget, 1, calUvTemp_);
     }
 

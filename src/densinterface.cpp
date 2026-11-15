@@ -5,6 +5,8 @@
 #include "denscommand.h"
 #include "util.h"
 
+using namespace Qt::StringLiterals;
+
 DensInterface::DensInterface(QObject *parent)
     : QObject(parent)
     , serialPort_(nullptr)
@@ -58,7 +60,7 @@ bool DensInterface::connectToDevice(QSerialPort *serialPort, DeviceType deviceTy
     connect(serialPort_, &QSerialPort::readyRead, this, &DensInterface::readData);
 
     // Send command to get system version, to verify connected device
-    DensCommand command(DensCommand::TypeGet, DensCommand::CategorySystem, "V");
+    DensCommand command(DensCommand::TypeGet, DensCommand::CategorySystem, "V"_L1);
     return sendCommand(command);
 }
 
@@ -89,63 +91,63 @@ void DensInterface::disconnectFromDevice()
 
 void DensInterface::sendGetSystemVersion()
 {
-    DensCommand command(DensCommand::TypeGet, DensCommand::CategorySystem, "V");
+    DensCommand command(DensCommand::TypeGet, DensCommand::CategorySystem, "V"_L1);
     sendCommand(command);
 }
 
 void DensInterface::sendGetSystemBuild()
 {
-    DensCommand command(DensCommand::TypeGet, DensCommand::CategorySystem, "B");
+    DensCommand command(DensCommand::TypeGet, DensCommand::CategorySystem, "B"_L1);
     sendCommand(command);
 }
 
 void DensInterface::sendGetSystemDeviceInfo()
 {
-    DensCommand command(DensCommand::TypeGet, DensCommand::CategorySystem, "DEV");
+    DensCommand command(DensCommand::TypeGet, DensCommand::CategorySystem, "DEV"_L1);
     sendCommand(command);
 }
 
 void DensInterface::sendGetSystemRtosInfo()
 {
-    DensCommand command(DensCommand::TypeGet, DensCommand::CategorySystem, "RTOS");
+    DensCommand command(DensCommand::TypeGet, DensCommand::CategorySystem, "RTOS"_L1);
     sendCommand(command);
 }
 
 void DensInterface::sendGetSystemUID()
 {
-    DensCommand command(DensCommand::TypeGet, DensCommand::CategorySystem, "UID");
+    DensCommand command(DensCommand::TypeGet, DensCommand::CategorySystem, "UID"_L1);
     sendCommand(command);
 }
 
 void DensInterface::sendGetSystemInternalSensors()
 {
-    DensCommand command(DensCommand::TypeGet, DensCommand::CategorySystem, "ISEN");
+    DensCommand command(DensCommand::TypeGet, DensCommand::CategorySystem, "ISEN"_L1);
     sendCommand(command);
 }
 
 void DensInterface::sendInvokeSystemRemoteControl(bool enabled)
 {
     QStringList args;
-    args.append(enabled ? "1" : "0");
+    args.append(enabled ? "1"_L1 : "0"_L1);
 
-    DensCommand command(DensCommand::TypeInvoke, DensCommand::CategorySystem, "REMOTE", args);
+    DensCommand command(DensCommand::TypeInvoke, DensCommand::CategorySystem, "REMOTE"_L1, args);
     sendCommand(command);
 }
 
 void DensInterface::sendSetSystemDisplayText(const QString &text)
 {
     QString sendText = text;
-    sendText.replace(QChar('\\'), QLatin1String("\\\\"));
-    sendText.replace(QChar('\n'), QLatin1String("\\n"));
+    sendText.replace(QChar('\\'_L1), QLatin1String("\\\\"));
+    sendText.replace(QChar('\n'_L1), QLatin1String("\\n"));
 
     if (deviceType_ == DeviceType::DeviceUvVis) {
-        sendText = QChar('"') + sendText + QChar('"');
+        sendText = QChar('"'_L1) + sendText + QChar('"'_L1);
     }
 
     QStringList args;
     args.append(sendText);
 
-    DensCommand command(DensCommand::TypeSet, DensCommand::CategorySystem, "DISP", args);
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategorySystem, "DISP"_L1, args);
     sendCommand(command);
 }
 
@@ -154,9 +156,9 @@ void DensInterface::sendSetSystemDisplayEnable(bool enabled)
     if (deviceType_ != DeviceType::DeviceUvVis) { return; }
 
     QStringList args;
-    args.append(enabled ? "1" : "0");
+    args.append(enabled ? "1"_L1 : "0"_L1);
 
-    DensCommand command(DensCommand::TypeSet, DensCommand::CategorySystem, "DISP", args);
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategorySystem, "DISP"_L1, args);
     sendCommand(command);
 }
 
@@ -164,15 +166,15 @@ void DensInterface::sendSetMeasurementFormat(DensInterface::DensityFormat format
 {
     QStringList args;
     if (format == FormatBasic) {
-        args.append("BASIC");
+        args.append("BASIC"_L1);
     } else if (format == FormatExtended) {
-        args.append("EXT");
+        args.append("EXT"_L1);
     } else {
         qWarning() << "Unsupported format:" << format;
         return;
     }
 
-    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryMeasurement, "FORMAT", args);
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryMeasurement, "FORMAT"_L1, args);
     sendCommand(command);
 }
 
@@ -180,18 +182,18 @@ void DensInterface::sendSetAllowUncalibratedMeasurements(bool allow)
 {
     QStringList args;
     if (allow) {
-        args.append("1");
+        args.append("1"_L1);
     } else {
-        args.append("0");
+        args.append("0"_L1);
     }
 
-    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryMeasurement, "UNCAL", args);
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryMeasurement, "UNCAL"_L1, args);
     sendCommand(command);
 }
 
 void DensInterface::sendGetDiagDisplayScreenshot()
 {
-    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryDiagnostics, "DISP");
+    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryDiagnostics, "DISP"_L1);
     sendCommand(command);
 }
 
@@ -199,7 +201,7 @@ void DensInterface::sendGetDiagLightMax()
 {
     if (deviceType_ != DeviceType::DeviceUvVis) { return; }
 
-    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryDiagnostics, "LMAX");
+    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryDiagnostics, "LMAX"_L1);
     sendCommand(command);
 }
 
@@ -211,7 +213,7 @@ void DensInterface::sendSetDiagLightRefl(int value)
     QStringList args;
     args.append(QString::number(value));
 
-    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryDiagnostics, "LR", args);
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryDiagnostics, "LR"_L1, args);
     sendCommand(command);
 }
 
@@ -223,7 +225,7 @@ void DensInterface::sendSetDiagLightTran(int value)
     QStringList args;
     args.append(QString::number(value));
 
-    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryDiagnostics, "LT", args);
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryDiagnostics, "LT"_L1, args);
     sendCommand(command);
 }
 
@@ -237,21 +239,21 @@ void DensInterface::sendSetDiagLightTranUv(int value)
     QStringList args;
     args.append(QString::number(value));
 
-    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryDiagnostics, "LTU", args);
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryDiagnostics, "LTU"_L1, args);
     sendCommand(command);
 }
 
 void DensInterface::sendInvokeDiagSensorStart()
 {
-    DensCommand command(DensCommand::TypeInvoke, DensCommand::CategoryDiagnostics, "S",
-                        QStringList() << "START");
+    DensCommand command(DensCommand::TypeInvoke, DensCommand::CategoryDiagnostics, "S"_L1,
+                        QStringList() << "START"_L1);
     sendCommand(command);
 }
 
 void DensInterface::sendInvokeDiagSensorStop()
 {
-    DensCommand command(DensCommand::TypeInvoke, DensCommand::CategoryDiagnostics, "S",
-                        QStringList() << "STOP");
+    DensCommand command(DensCommand::TypeInvoke, DensCommand::CategoryDiagnostics, "S"_L1,
+                        QStringList() << "STOP"_L1);
     sendCommand(command);
 }
 
@@ -262,10 +264,10 @@ void DensInterface::sendSetUvDiagSensorMode(int mode)
     else if (mode > 2) { mode = 2; }
 
     QStringList args;
-    args.append("MODE");
+    args.append("MODE"_L1);
     args.append(QString::number(mode));
 
-    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryDiagnostics, "S", args);
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryDiagnostics, "S"_L1, args);
     sendCommand(command);
 }
 
@@ -279,11 +281,11 @@ void DensInterface::sendSetBaselineDiagSensorConfig(int gain, int integration)
     else if (integration > 5) { integration = 5; }
 
     QStringList args;
-    args.append("CFG");
+    args.append("CFG"_L1);
     args.append(QString::number(gain));
     args.append(QString::number(integration));
 
-    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryDiagnostics, "S", args);
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryDiagnostics, "S"_L1, args);
     sendCommand(command);
 }
 
@@ -299,12 +301,12 @@ void DensInterface::sendSetUvDiagSensorConfig(int gain, int sampleTime, int samp
     else if (sampleCount > 2047) { sampleCount = 2047; }
 
     QStringList args;
-    args.append("CFG");
+    args.append("CFG"_L1);
     args.append(QString::number(gain));
     args.append(QString::number(sampleTime));
     args.append(QString::number(sampleCount));
 
-    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryDiagnostics, "S", args);
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryDiagnostics, "S"_L1, args);
     sendCommand(command);
 }
 
@@ -314,10 +316,10 @@ void DensInterface::sendSetUvDiagSensorAgcEnable(int sampleCount)
     if (deviceType_ != DeviceUvVis) { return; }
 
     QStringList args;
-    args.append("AGCEN");
+    args.append("AGCEN"_L1);
     args.append(QString::number(sampleCount));
 
-    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryDiagnostics, "S", args);
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryDiagnostics, "S"_L1, args);
     sendCommand(command);
 }
 
@@ -326,9 +328,9 @@ void DensInterface::sendSetUvDiagSensorAgcDisable()
     if (deviceType_ != DeviceUvVis) { return; }
 
     QStringList args;
-    args.append("AGCDIS");
+    args.append("AGCDIS"_L1);
 
-    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryDiagnostics, "S", args);
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryDiagnostics, "S"_L1, args);
     sendCommand(command);
 }
 
@@ -338,16 +340,16 @@ void DensInterface::sendInvokeBaselineDiagRead(DensInterface::SensorLight light,
 
     QStringList args;
     if (light == SensorLight::SensorLightReflection) {
-        args.append("R");
+        args.append("R"_L1);
     } else if (light == SensorLight::SensorLightTransmission) {
-        args.append("T");
+        args.append("T"_L1);
     } else {
-        args.append("0");
+        args.append("0"_L1);
     }
     args.append(QString::number(gain));
     args.append(QString::number(integration));
 
-    DensCommand command(DensCommand::TypeInvoke, DensCommand::CategoryDiagnostics, "READ", args);
+    DensCommand command(DensCommand::TypeInvoke, DensCommand::CategoryDiagnostics, "READ"_L1, args);
     sendCommand(command);
 }
 
@@ -357,13 +359,13 @@ void DensInterface::sendInvokeUvDiagRead(DensInterface::SensorLight light, int l
 
     QStringList args;
     if (light == SensorLight::SensorLightReflection) {
-        args.append("R");
+        args.append("R"_L1);
     } else if (light == SensorLight::SensorLightTransmission) {
-        args.append("T");
+        args.append("T"_L1);
     } else if (light == SensorLight::SensorLightUvTransmission) {
-        args.append("U");
+        args.append("U"_L1);
     } else {
-        args.append("0");
+        args.append("0"_L1);
     }
 
     if (lightValue < 0) { lightValue = 0; }
@@ -375,7 +377,7 @@ void DensInterface::sendInvokeUvDiagRead(DensInterface::SensorLight light, int l
     args.append(QString::number(sampleTime));
     args.append(QString::number(sampleCount));
 
-    DensCommand command(DensCommand::TypeInvoke, DensCommand::CategoryDiagnostics, "READ", args);
+    DensCommand command(DensCommand::TypeInvoke, DensCommand::CategoryDiagnostics, "READ"_L1, args);
     sendCommand(command);
 }
 
@@ -385,11 +387,11 @@ void DensInterface::sendInvokeUvDiagMeasure(DensInterface::SensorLight light, in
 
     QStringList args;
     if (light == SensorLight::SensorLightReflection) {
-        args.append("R");
+        args.append("R"_L1);
     } else if (light == SensorLight::SensorLightTransmission) {
-        args.append("T");
+        args.append("T"_L1);
     } else if (light == SensorLight::SensorLightUvTransmission) {
-        args.append("U");
+        args.append("U"_L1);
     } else {
         return;
     }
@@ -398,33 +400,33 @@ void DensInterface::sendInvokeUvDiagMeasure(DensInterface::SensorLight light, in
     else if (lightValue > std::numeric_limits<uint16_t>::max()) { lightValue = std::numeric_limits<uint16_t>::max(); }
     args.append(QString::number(lightValue));
 
-    DensCommand command(DensCommand::TypeInvoke, DensCommand::CategoryDiagnostics, "MEAS", args);
+    DensCommand command(DensCommand::TypeInvoke, DensCommand::CategoryDiagnostics, "MEAS"_L1, args);
     sendCommand(command);
 }
 
 void DensInterface::sendSetDiagLoggingModeUsb()
 {
     DensCommand command(DensCommand::TypeSet, DensCommand::CategoryDiagnostics,
-                        "LOG", QStringList() << "U");
+                        "LOG"_L1, QStringList() << "U"_L1);
     sendCommand(command);
 }
 
 void DensInterface::sendSetDiagLoggingModeDebug()
 {
     DensCommand command(DensCommand::TypeSet, DensCommand::CategoryDiagnostics,
-                        "LOG", QStringList() << "D");
+                        "LOG"_L1, QStringList() << "D"_L1);
     sendCommand(command);
 }
 
 void DensInterface::sendInvokeCalGain()
 {
-    DensCommand command(DensCommand::TypeInvoke, DensCommand::CategoryCalibration, "GAIN");
+    DensCommand command(DensCommand::TypeInvoke, DensCommand::CategoryCalibration, "GAIN"_L1);
     sendCommand(command);
 }
 
 void DensInterface::sendGetCalLight()
 {
-    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryCalibration, "LIGHT");
+    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryCalibration, "LIGHT"_L1);
     sendCommand(command);
 }
 
@@ -434,13 +436,13 @@ void DensInterface::sendSetCalLight(const DensCalLight &calLight)
     args.append(QString::number(calLight.reflectionValue()));
     args.append(QString::number(calLight.transmissionValue()));
 
-    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "LIGHT", args);
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "LIGHT"_L1, args);
     sendCommand(command);
 }
 
 void DensInterface::sendGetCalGain()
 {
-    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryCalibration, "GAIN");
+    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryCalibration, "GAIN"_L1);
     sendCommand(command);
 }
 
@@ -456,7 +458,7 @@ void DensInterface::sendSetCalGain(const DensCalGain &calGain)
     args.append(util::encode_f32(calGain.max0()));
     args.append(util::encode_f32(calGain.max1()));
 
-    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "GAIN", args);
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "GAIN"_L1, args);
     sendCommand(command);
 }
 
@@ -476,7 +478,7 @@ void DensInterface::sendSetUvVisCalGain(const DensUvVisCalGain &calGain)
     args.append(util::encode_f32(calGain.gainValue(DensUvVisCalGain::Gain128X)));
     args.append(util::encode_f32(calGain.gainValue(DensUvVisCalGain::Gain256X)));
 
-    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "GAIN", args);
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "GAIN"_L1, args);
     sendCommand(command);
 }
 
@@ -484,7 +486,7 @@ void DensInterface::sendGetCalSlope()
 {
     if (deviceType_ != DeviceBaseline) { return; }
 
-    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryCalibration, "SLOPE");
+    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryCalibration, "SLOPE"_L1);
     sendCommand(command);
 }
 
@@ -497,7 +499,7 @@ void DensInterface::sendSetCalSlope(const DensCalSlope &calSlope)
     args.append(util::encode_f32(calSlope.b1()));
     args.append(util::encode_f32(calSlope.b2()));
 
-    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "SLOPE", args);
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "SLOPE"_L1, args);
     sendCommand(command);
 }
 
@@ -505,7 +507,7 @@ void DensInterface::sendGetCalVisTemperature()
 {
     if (deviceType_ != DeviceUvVis) { return; }
 
-    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryCalibration, "VTEMP");
+    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryCalibration, "VTEMP"_L1);
     sendCommand(command);
 }
 
@@ -518,7 +520,7 @@ void DensInterface::sendSetCalVisTemperature(const DensCalTemperature &calTemper
     args.append(util::encode_f32(calTemperature.b1()));
     args.append(util::encode_f32(calTemperature.b2()));
 
-    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "VTEMP", args);
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "VTEMP"_L1, args);
     sendCommand(command);
 }
 
@@ -526,7 +528,7 @@ void DensInterface::sendGetCalUvTemperature()
 {
     if (deviceType_ != DeviceUvVis) { return; }
 
-    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryCalibration, "UTEMP");
+    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryCalibration, "UTEMP"_L1);
     sendCommand(command);
 }
 
@@ -539,13 +541,13 @@ void DensInterface::sendSetCalUvTemperature(const DensCalTemperature &calTempera
     args.append(util::encode_f32(calTemperature.b1()));
     args.append(util::encode_f32(calTemperature.b2()));
 
-    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "UTEMP", args);
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "UTEMP"_L1, args);
     sendCommand(command);
 }
 
 void DensInterface::sendGetCalReflection()
 {
-    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryCalibration, "REFL");
+    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryCalibration, "REFL"_L1);
     sendCommand(command);
 }
 
@@ -557,13 +559,13 @@ void DensInterface::sendSetCalReflection(const DensCalTarget &calTarget)
     args.append(util::encode_f32(calTarget.hiDensity()));
     args.append(util::encode_f32(calTarget.hiReading()));
 
-    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "REFL", args);
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "REFL"_L1, args);
     sendCommand(command);
 }
 
 void DensInterface::sendGetCalTransmission()
 {
-    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryCalibration, "TRAN");
+    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryCalibration, "TRAN"_L1);
     sendCommand(command);
 }
 
@@ -575,7 +577,7 @@ void DensInterface::sendSetCalTransmission(const DensCalTarget &calTarget)
     args.append(util::encode_f32(calTarget.hiDensity()));
     args.append(util::encode_f32(calTarget.hiReading()));
 
-    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "TRAN", args);
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "TRAN"_L1, args);
     sendCommand(command);
 }
 
@@ -583,7 +585,7 @@ void DensInterface::sendGetCalUvTransmission()
 {
     if (deviceType_ != DeviceUvVis) { return; }
 
-    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryCalibration, "UVTR");
+    DensCommand command(DensCommand::TypeGet, DensCommand::CategoryCalibration, "UVTR"_L1);
     sendCommand(command);
 }
 
@@ -597,7 +599,7 @@ void DensInterface::sendSetCalUvTransmission(const DensCalTarget &calTarget)
     args.append(util::encode_f32(calTarget.hiDensity()));
     args.append(util::encode_f32(calTarget.hiReading()));
 
-    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "UVTR", args);
+    DensCommand command(DensCommand::TypeSet, DensCommand::CategoryCalibration, "UVTR"_L1, args);
     sendCommand(command);
 }
 
@@ -839,7 +841,7 @@ void DensInterface::readSystemResponse(const DensCommand &response)
             }
         } else if (response.action() == QLatin1String("B")) {
             if (args.length() > 0) {
-                buildDate_ = QDateTime::fromString(args.at(0), "yyyy-MM-dd hh:mm");
+                buildDate_ = QDateTime::fromString(args.at(0), "yyyy-MM-dd hh:mm"_L1);
             }
             if (args.length() > 1) {
                 buildDescribe_ = args.at(1);

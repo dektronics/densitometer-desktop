@@ -113,6 +113,8 @@ endif()
 
 qt_create_translation(QM_FILES ${CMAKE_SOURCE_DIR} ${TS_FILES})
 
+target_compile_definitions(densitometer PRIVATE QT_NO_CAST_FROM_ASCII)
+
 target_link_libraries(densitometer PRIVATE
     Qt${QT_VERSION_MAJOR}::Widgets
     Qt${QT_VERSION_MAJOR}::SvgWidgets

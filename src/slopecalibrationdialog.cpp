@@ -12,6 +12,8 @@
 #include "floatitemdelegate.h"
 #include "util.h"
 
+using namespace Qt::StringLiterals;
+
 SlopeCalibrationDialog::SlopeCalibrationDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::SlopeCalibrationDialog),
@@ -231,7 +233,7 @@ void SlopeCalibrationDialog::onActionCopy()
         }
         if (hasCol1 && hasCol2) {
             copiedText.append(numElement.first);
-            copiedText.append(QChar('\t'));
+            copiedText.append(QChar('\t'_L1));
             copiedText.append(numElement.second);
         } else if (hasCol1) {
             copiedText.append(numElement.first);
@@ -256,8 +258,8 @@ void SlopeCalibrationDialog::onActionCopy()
 void SlopeCalibrationDialog::onActionPaste()
 {
     const QLocale locale = util::numberLocale();
-    static QRegularExpression reLine("\n|\r\n|\r");
-    static QRegularExpression reRow("[,;]\\s*|\\s+");
+    static QRegularExpression reLine("\n|\r\n|\r"_L1);
+    static QRegularExpression reRow("[,;]\\s*|\\s+"_L1);
 
     // Capture and split the text to be pasted
     const QClipboard *clipboard = QApplication::clipboard();

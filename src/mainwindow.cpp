@@ -31,6 +31,8 @@
 #include "densistick/densistickrunner.h"
 #include "util.h"
 
+using namespace Qt::StringLiterals;
+
 namespace
 {
 static const int MEAS_TABLE_ROWS = 10;
@@ -147,7 +149,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->addReadingPushButton->setEnabled(false);
 
     // Set initial empty reading value
-    ui->readingValueLineEdit->setText(QString("%L1D").arg(0.0, 4, 'f', densPrecision_));
+    ui->readingValueLineEdit->setText(QString("%L1D"_L1).arg(0.0, 4, 'f', densPrecision_));
 
     // Generate the theme-colored icon pixmaps
     reflTypePixmap = util::createThemeColoredPixmap(this, QString::fromUtf8(":/images/reflection-icon.png"));
@@ -309,7 +311,7 @@ void MainWindow::closeConnection()
 void MainWindow::onImportSettings()
 {
     QFileDialog fileDialog(this, tr("Load Device Settings"), QString(), tr("Settings Files (*.pds)"));
-    fileDialog.setDefaultSuffix(".pds");
+    fileDialog.setDefaultSuffix(".pds"_L1);
     fileDialog.setAcceptMode(QFileDialog::AcceptOpen);
     if (fileDialog.exec() && !fileDialog.selectedFiles().isEmpty()) {
         QString filename = fileDialog.selectedFiles().constFirst();
@@ -360,7 +362,7 @@ void MainWindow::onExportSettings()
     SettingsExporter *exporter = new SettingsExporter(densInterface_, this);
     connect(exporter, &SettingsExporter::exportReady, this, [this, exporter]() {
         QFileDialog fileDialog(this, tr("Save Device Settings"), QString(), tr("Settings File (*.pds)"));
-        fileDialog.setDefaultSuffix(".pds");
+        fileDialog.setDefaultSuffix(".pds"_L1);
         fileDialog.setAcceptMode(QFileDialog::AcceptSave);
         if (fileDialog.exec() && !fileDialog.selectedFiles().isEmpty()) {
             QString filename = fileDialog.selectedFiles().constFirst();
@@ -673,7 +675,7 @@ void MainWindow::onDensityReading(DensInterface::DensityType type, float dValue,
         if (qAbs(displayZero) < 0.01F) {
             displayZero = 0.0F;
         }
-        ui->zeroIndicatorLabel->setToolTip(QString("%1D").arg(displayZero, 4, 'f', densPrecision_));
+        ui->zeroIndicatorLabel->setToolTip(QString("%1D"_L1).arg(displayZero, 4, 'f', densPrecision_));
     } else {
         ui->zeroIndicatorLabel->setPixmap(QPixmap());
         ui->zeroIndicatorLabel->setToolTip(QString());
@@ -689,7 +691,7 @@ void MainWindow::onDensityReading(DensInterface::DensityType type, float dValue,
     if (qAbs(displayValue) < 0.01F) {
         displayValue = 0.0F;
     }
-    ui->readingValueLineEdit->setText(QString("%L1D").arg(displayValue, 4, 'f', densPrecision_));
+    ui->readingValueLineEdit->setText(QString("%L1D"_L1).arg(displayValue, 4, 'f', densPrecision_));
 
     // Save values so they can be referenced later
     lastReadingType_ = type;
@@ -820,7 +822,7 @@ void MainWindow::onActionDelete()
 
 void MainWindow::measTableAddReading(DensInterface::DensityType type, float density, float offset)
 {
-    QString numStr = QString("%L1").arg(density, 4, 'f', densPrecision_);
+    QString numStr = QString("%L1"_L1).arg(density, 4, 'f', densPrecision_);
     QString typeStr;
     QIcon typeIcon;
     QString offsetStr;
@@ -837,7 +839,7 @@ void MainWindow::measTableAddReading(DensInterface::DensityType type, float dens
     }
 
     if (!qIsNaN(offset)) {
-        offsetStr = QString("%L1").arg(offset, 4, 'f', densPrecision_);
+        offsetStr = QString("%L1"_L1).arg(offset, 4, 'f', densPrecision_);
     }
 
     int row = -1;
@@ -941,7 +943,7 @@ void MainWindow::measTableCopyList(const QModelIndexList &indexList, bool includ
 
 void MainWindow::measTablePaste()
 {
-    static QRegularExpression re("\n|\r\n|\r|\t|[,;]\\s*|\\s+");
+    static QRegularExpression re("\n|\r\n|\r|\t|[,;]\\s*|\\s+"_L1);
 
     // Capture and split the text to be pasted
     const QClipboard *clipboard = QApplication::clipboard();

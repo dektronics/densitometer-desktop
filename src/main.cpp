@@ -11,6 +11,8 @@
 #include "mainwindow.h"
 #include "headlesstask.h"
 
+using namespace Qt::StringLiterals;
+
 namespace
 {
 HeadlessTask::Command headlessCommand = HeadlessTask::CommandUnknown;
@@ -26,20 +28,20 @@ bool handleCommandLine(const QCoreApplication &app)
     parser.addVersionOption();
 
     // Add specific command line options
-    QCommandLineOption listOption(QStringList() << "l" << "list",
+    QCommandLineOption listOption(QStringList() << "l"_L1 << "list"_L1,
                                   QCoreApplication::translate("main", "List attached devices."));
     parser.addOption(listOption);
 
-    QCommandLineOption portOption(QStringList() << "p" << "port",
+    QCommandLineOption portOption(QStringList() << "p"_L1 << "port"_L1,
                                   QCoreApplication::translate("main", "Connect to device at the selected port."),
                                   QCoreApplication::translate("main", "port"));
     parser.addOption(portOption);
 
-    QCommandLineOption infoOption(QStringList() << "i" << "info",
+    QCommandLineOption infoOption(QStringList() << "i"_L1 << "info"_L1,
                                   QCoreApplication::translate("main", "Query device system info."));
     parser.addOption(infoOption);
 
-    QCommandLineOption exportOption(QStringList() << "export",
+    QCommandLineOption exportOption(QStringList() << "export"_L1,
                                     QCoreApplication::translate("main", "Export device settings to file."),
                                     QCoreApplication::translate("main", "file"));
     parser.addOption(exportOption);
@@ -88,17 +90,17 @@ bool handleCommandLine(const QCoreApplication &app)
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    QApplication::setApplicationName("Printalyzer Densitometer Desktop");
-    QApplication::setApplicationVersion("1.1.0");
-    QApplication::setOrganizationName("Dektronics, Inc.");
-    QApplication::setOrganizationDomain("dektronics.com");
-    QApplication::setWindowIcon(QIcon(":/icons/appicon.png"));
+    QApplication::setApplicationName(QCoreApplication::translate("main", "Printalyzer Densitometer Desktop"));
+    QApplication::setApplicationVersion("1.1.0"_L1);
+    QApplication::setOrganizationName(u"Dektronics, Inc."_s);
+    QApplication::setOrganizationDomain(u"dektronics.com"_s);
+    QApplication::setWindowIcon(QIcon(u":/icons/appicon.png"_s));
 
     QTranslator translator;
     const QStringList uiLanguages = QLocale::system().uiLanguages();
     for (const QString &locale : uiLanguages) {
-        const QString baseName = "densitometer_" + QLocale(locale).name();
-        if (translator.load(":/i18n/" + baseName)) {
+        const QString baseName = "densitometer_"_L1 + QLocale(locale).name();
+        if (translator.load(":/i18n/"_L1 + baseName)) {
             a.installTranslator(&translator);
             break;
         }

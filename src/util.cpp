@@ -14,6 +14,8 @@
 #include <QLineEdit>
 #include <string.h>
 
+using namespace Qt::StringLiterals;
+
 namespace util
 {
 
@@ -52,7 +54,7 @@ QString encode_f32(float val)
 {
     QByteArray buf(4, Qt::Uninitialized);
     copy_from_f32(reinterpret_cast<uint8_t *>(buf.data()), val);
-    QString result = buf.toHex().toUpper();
+    QString result = QString::fromLatin1(buf.toHex().toUpper());
     return result;
 }
 
@@ -362,8 +364,8 @@ void tableWidgetCopy(const QTableWidget *tableWidget)
 
 void tableWidgetPaste(QTableWidget *tableWidget)
 {
-    static QRegularExpression reLine("\n|\r\n|\r");
-    static QRegularExpression reRow("[,;]\\s*|\\s+");
+    static QRegularExpression reLine("\n|\r\n|\r"_L1);
+    static QRegularExpression reRow("[,;]\\s*|\\s+"_L1);
 
     // Capture and split the text to be pasted
     // This keeps valid floats in string representation, so the target widget

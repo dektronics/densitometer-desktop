@@ -4,6 +4,8 @@
 #include <QStyleHints>
 #include <QDebug>
 
+using namespace Qt::StringLiterals;
+
 RemoteControlDialog::RemoteControlDialog(DensInterface *densInterface, QWidget *parent) :
     QDialog(parent),
     ui(new Ui::RemoteControlDialog),
@@ -59,8 +61,8 @@ RemoteControlDialog::RemoteControlDialog(DensInterface *densInterface, QWidget *
 
         ui->gainComboBox->clear();
         ui->gainComboBox->addItems(
-            QStringList() << "0.5x" << "1x" << "2x" << "4x" << "8x"
-                          << "16x" << "32x" << "64x" << "128x" << "256x");
+            QStringList() << "0.5x"_L1 << "1x"_L1 << "2x"_L1 << "4x"_L1 << "8x"_L1
+                          << "16x"_L1 << "32x"_L1 << "64x"_L1 << "128x"_L1 << "256x"_L1);
         ui->gainComboBox->setCurrentIndex(8);
 
         ui->rawReadingRadioButton->setVisible(true);
@@ -125,13 +127,13 @@ void RemoteControlDialog::onDiagLightMaxChanged()
 void RemoteControlDialog::onDiagLightChanged()
 {
     if (QGuiApplication::styleHints()->colorScheme() == Qt::ColorScheme::Dark) {
-        ui->reflSpinBox->setStyleSheet("QSpinBox { background-color: darkgreen; }");
-        ui->tranSpinBox->setStyleSheet("QSpinBox { background-color: darkgreen; }");
-        ui->tranUvSpinBox->setStyleSheet("QSpinBox { background-color: darkgreen; }");
+        ui->reflSpinBox->setStyleSheet(u"QSpinBox { background-color: darkgreen; }"_s);
+        ui->tranSpinBox->setStyleSheet(u"QSpinBox { background-color: darkgreen; }"_s);
+        ui->tranUvSpinBox->setStyleSheet(u"QSpinBox { background-color: darkgreen; }"_s);
     } else {
-        ui->reflSpinBox->setStyleSheet("QSpinBox { background-color: lightgreen; }");
-        ui->tranSpinBox->setStyleSheet("QSpinBox { background-color: lightgreen; }");
-        ui->tranUvSpinBox->setStyleSheet("QSpinBox { background-color: lightgreen; }");
+        ui->reflSpinBox->setStyleSheet(u"QSpinBox { background-color: lightgreen; }"_s);
+        ui->tranSpinBox->setStyleSheet(u"QSpinBox { background-color: lightgreen; }"_s);
+        ui->tranUvSpinBox->setStyleSheet(u"QSpinBox { background-color: lightgreen; }"_s);
     }
     ledControlState(true);
 }
@@ -476,7 +478,7 @@ void RemoteControlDialog::onDiagSensorUvInvokeReading(unsigned int ch0)
 
 void RemoteControlDialog::onDiagSensorUvInvokeMeasurement(float ch0Basic)
 {
-    ui->ch0LineEdit->setText(QString("%L1").arg(ch0Basic, 0, 'f', 6));
+    ui->ch0LineEdit->setText(QString("%L1"_L1).arg(ch0Basic, 0, 'f', 6));
     ui->reflSpinBox->setValue(0);
     ui->tranSpinBox->setValue(0);
     ui->tranUvSpinBox->setValue(0);

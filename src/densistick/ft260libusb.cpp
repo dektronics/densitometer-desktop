@@ -3,11 +3,14 @@
 #include <QThread>
 #include <QDateTime>
 #include <QDebug>
+#include <QCoreApplication>
 
 #include <libusb-1.0/libusb.h>
 
 #include "ft260deviceinfo.h"
 #include "ft260deviceinfo_p.h"
+
+using namespace Qt::StringLiterals;
 
 #define HID_MAX_TRAN_SIZE 0x3C
 #define HID_OFFSET_BYTES  0x04
@@ -917,17 +920,17 @@ QList<Ft260DeviceInfo> listDevicesByLibUsb()
                 continue;
             }
 
-            pathStr = QString("Bus %1, Device %2, Path: ")
+            pathStr = QString(QCoreApplication::translate("Ft260LibUsb", "Bus %1, Device %2, Path: "))
                           .arg(libusb_get_bus_number(dev))
                           .arg(libusb_get_device_address(dev));
             pathStr.append(QString::number(path[0]));
             for (j = 1; j < r; j++) {
-                pathStr.append('.');
+                pathStr.append('.'_L1);
                 pathStr.append(QString::number(path[j]));
             }
 
             Ft260DeviceInfoPrivate privDevice;
-            privDevice.devicePath = QByteArray(reinterpret_cast<const char *>(path), r).toHex();
+            privDevice.devicePath = QString::fromLatin1(QByteArray(reinterpret_cast<const char *>(path), r).toHex());
             privDevice.deviceDisplayPath = pathStr;
             privDevice.deviceDriver = Ft260DeviceInfo::DriverLibUsb;
             privDevice.vendorId = desc.idVendor;
@@ -949,7 +952,7 @@ QList<Ft260DeviceInfo> listDevicesByLibUsb()
                 qWarning() << "libusb_open error:" << LIBUSB_STRERROR(r);
             }
 
-            privDevice.description = QString("%1 (%2)").arg(privDevice.product, privDevice.serialNumber);
+            privDevice.description = QString("%1 (%2)"_L1).arg(privDevice.product, privDevice.serialNumber);
             list.append(privDevice);
         }
         if (r < 0) {

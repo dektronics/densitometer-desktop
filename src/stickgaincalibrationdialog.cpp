@@ -343,7 +343,7 @@ void StickGainCalibrationDialog::onCalGainCalError()
 void StickGainCalibrationDialog::addText(const QString &text)
 {
     ui->plainTextEdit->insertPlainText(text);
-    ui->plainTextEdit->insertPlainText("\n");
+    ui->plainTextEdit->insertPlainText(QLatin1String("\n"));
     QScrollBar *bar = ui->plainTextEdit->verticalScrollBar();
     bar->setValue(bar->maximum());
 }

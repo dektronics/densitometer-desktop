@@ -17,6 +17,8 @@
 #define HID_OFFSET_BYTES  0x04
 #define REQUEST_BUF_SIZE  64
 
+using namespace Qt::StringLiterals;
+
 namespace
 {
 typedef enum {
@@ -736,7 +738,7 @@ QList<Ft260DeviceInfo> listDevicesByHidApi()
         privDevice.manufacturer = QString::fromWCharArray(cur_dev->manufacturer_string);
         privDevice.product = QString::fromWCharArray(cur_dev->product_string);
         privDevice.serialNumber = QString::fromWCharArray(cur_dev->serial_number);
-        privDevice.description = QString("%1 (%2)").arg(privDevice.product, privDevice.serialNumber);
+        privDevice.description = QString("%1 (%2)"_L1).arg(privDevice.product, privDevice.serialNumber);
         list.append(privDevice);
     }
 

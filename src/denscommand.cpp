@@ -231,9 +231,9 @@ QString DensCommand::toString() const
 
     QString result;
     if (d->type == TypeDensityReflection || d->type == TypeDensityTransmission || d->type == TypeDensityUvTransmission) {
-        result = QString("%1%2").arg(t_ch, d->args.join(QLatin1Char(',')));
+        result = QString(QStringLiteral("%1%2")).arg(t_ch, d->args.join(QLatin1Char(',')));
     } else {
-        result = QString("%1%2 %3").arg(t_ch, c_ch, d->action);
+        result = QString(QStringLiteral("%1%2 %3")).arg(t_ch, c_ch, d->action);
         if (!d->args.isEmpty()) {
             result.append(QLatin1Char(','));
             result.append(d->args.join(QLatin1Char(',')));
